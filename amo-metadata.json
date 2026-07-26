@@ -19,8 +19,8 @@
   "version": {
     "license": "MIT",
     "release_notes": {
-      "en-US": "Removes legacy ChatGPT domains, adds a default-on user message glass toggle, and updates the default model selector for GPT-5.5 Instant and GPT-5.6 Sol Medium or High."
+      "en-US": "Fixes custom image and video background uploads, restores scrolling throughout the settings popup, and keeps dropdown options visible near the edge of the popup."
     },
-    "approval_notes": "This is an unofficial MIT-licensed fork of TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT. The upstream copyright and MIT license are preserved. There is no build step. The submitted extension contains the human-readable source used at runtime. The optional feedback form posts user-entered feedback, a random ticket ID, the extension version, and the browser user agent to auroraforchatgpt.tnemoroccan.workers.dev only after the user initiates submission and grants the optional Firefox data permission."
+    "approval_notes": "This is an unofficial MIT-licensed fork of TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT. The upstream copyright and MIT license are preserved. There is no build step. The submitted extension contains the human-readable source used at runtime. The unlimitedStorage permission is used only for custom image and video backgrounds selected by the user and stored locally, with a 15 MB file limit. The optional feedback form posts user-entered feedback, a random ticket ID, the extension version, and the browser user agent to auroraforchatgpt.tnemoroccan.workers.dev only after the user initiates submission and grants the optional Firefox data permission."
   }
 }

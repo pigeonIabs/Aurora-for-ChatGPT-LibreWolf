@@ -30,12 +30,13 @@ Data masking runs locally and visually obscures selected patterns such as email 
 ## Permissions
 
 - `storage` saves extension preferences and local background data
+- `unlimitedStorage` allows user-selected image and video backgrounds to fit in local browser storage
 - `chatgpt.com` host access injects the extension's visual and workflow features
 - Optional personal communications and technical interaction permissions apply only to the feedback form
 
 ## Third-party sites
 
-The extension operates on ChatGPT and OpenAI websites, which have their own privacy practices. The optional feedback endpoint is maintained by the upstream Aurora project.
+The extension operates on the ChatGPT website, which has its own privacy practices. The optional feedback endpoint is maintained by the upstream Aurora project.
 
 ## Contact
 

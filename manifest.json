@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "default_locale": "en",
   "description": "__MSG_extensionDescription__",
   "background": {
@@ -17,7 +17,8 @@
     "128": "icons/logo-128.png"
   },
   "permissions": [
-    "storage"
+    "storage",
+    "unlimitedStorage"
   ],
   "host_permissions": [
     "https://chatgpt.com/*",

@@ -35,7 +35,7 @@ const $ = {};
 let listenersAttached = false;
 
 // --- Helpers ---
-const getMessage = (key) => chrome?.i18n?.getMessage(key) || key;
+const getMessage = (key, substitutions) => chrome?.i18n?.getMessage(key, substitutions) || key;
 
 // --- Main Initialization (Zero-Latency) ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -327,6 +327,7 @@ function initOrUpdateSelects(settings) {
         container.classList.add('is-open');
         optsContainer.style.display = 'block';
         trigger.setAttribute('aria-expanded', 'true');
+        positionSelectOptions(trigger, optsContainer);
       });
       
       // Attach option click listeners ONCE using event delegation
@@ -359,9 +360,28 @@ function closeAllSelects() {
     if (!el) return;
     el.classList.remove('is-open');
     const opts = el.querySelector('.select-options');
-    if (opts) opts.style.display = 'none';
+    if (opts) {
+      opts.style.display = 'none';
+      opts.style.maxHeight = '';
+      opts.classList.remove('open-up');
+    }
     const trigger = el.querySelector('.select-trigger');
     if (trigger) trigger.setAttribute('aria-expanded', 'false');
+  });
+}
+
+function positionSelectOptions(trigger, options) {
+  requestAnimationFrame(() => {
+    const triggerRect = trigger.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - triggerRect.bottom - 8;
+    const spaceAbove = triggerRect.top - 8;
+    const preferredHeight = Math.min(options.scrollHeight, 240);
+    const openUp = spaceBelow < Math.min(preferredHeight, 120) && spaceAbove > spaceBelow;
+    const availableSpace = Math.max(96, Math.floor((openUp ? spaceAbove : spaceBelow) - 4));
+
+    options.classList.toggle('open-up', openUp);
+    options.style.maxHeight = `${Math.min(preferredHeight, availableSpace)}px`;
+    options.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest' });
   });
 }
 
@@ -443,19 +463,36 @@ function setupChangeListeners() {
       const file = e.target.files[0];
       if (!file) return;
       if (file.size > MAX_FILE_SIZE_BYTES) {
-        alert(getMessage('alertFileTooLarge') || 'File too large (Max 15MB)');
+        alert(getMessage('alertFileTooLarge', [String(MAX_FILE_SIZE_MB)]) || `File too large. Choose a file under ${MAX_FILE_SIZE_MB} MB.`);
         $.bgFile.value = '';
         return;
       }
+
       const reader = new FileReader();
       reader.onload = (ev) => {
-        chrome.storage.local.set({ [LOCAL_BG_KEY]: ev.target.result }, () => {
+        const dataUrl = ev.target?.result;
+        if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) {
+          alert('Aurora could not read that file.');
+          return;
+        }
+
+        chrome.storage.local.set({ [LOCAL_BG_KEY]: dataUrl }, () => {
           if (chrome.runtime.lastError) {
-            alert("Error saving image: " + chrome.runtime.lastError.message);
-          } else {
-            chrome.storage.sync.set({ customBgUrl: '__local__' });
+            alert(`Aurora could not save that file. ${chrome.runtime.lastError.message}`);
+            return;
           }
+
+          chrome.storage.local.get(LOCAL_BG_KEY, (saved) => {
+            if (chrome.runtime.lastError || !saved?.[LOCAL_BG_KEY]) {
+              alert('Aurora could not verify the saved background.');
+              return;
+            }
+            chrome.storage.sync.set({ customBgUrl: '__local__' });
+          });
         });
+      };
+      reader.onerror = () => {
+        alert('Aurora could not read that file.');
       };
       reader.readAsDataURL(file);
       $.bgFile.value = '';

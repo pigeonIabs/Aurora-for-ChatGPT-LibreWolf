@@ -36,7 +36,7 @@ For local development, open `about:debugging#/runtime/this-firefox`, choose `Loa
 
 ## Permissions
 
-The extension stores preferences locally through browser storage.
+The extension stores preferences and custom background files locally through browser storage. The `unlimitedStorage` permission lets image and video backgrounds up to the extension's 15 MB limit fit without browser-storage quota failures.
 
 Host access is scoped to `chatgpt.com` and the optional feedback endpoint. Feedback text, a generated ticket ID, the extension version, and browser user agent are transmitted only after the user chooses to send feedback and grants Firefox's optional data permission.
 
