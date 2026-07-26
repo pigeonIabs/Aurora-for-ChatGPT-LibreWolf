@@ -119,6 +119,12 @@
   "labelGlassStyle": {
     "message": "Style de verre"
   },
+  "labelGlassUserMessages": {
+    "message": "Bulles utilisateur en verre"
+  },
+  "tooltipGlassUserMessages": {
+    "message": "Applique le style de verre actif aux bulles de vos messages"
+  },
   "sectionInterface": {
     "message": "Interface"
   },

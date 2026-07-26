@@ -119,6 +119,12 @@
   "labelGlassStyle": {
     "message": "Стиль стекла"
   },
+  "labelGlassUserMessages": {
+    "message": "Стеклянные сообщения пользователя"
+  },
+  "tooltipGlassUserMessages": {
+    "message": "Применять активный стиль стекла к вашим сообщениям"
+  },
   "sectionInterface": {
     "message": "Интерфейс"
   },

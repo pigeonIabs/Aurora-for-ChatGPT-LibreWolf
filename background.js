@@ -2,6 +2,7 @@ const DEFAULTS = {
   legacyComposer: false,
   theme: 'auto',
   appearance: 'clear',
+  glassUserMessages: true,
   hideGpt5Limit: false,
   hideUpgradeButtons: false,
   disableAnimations: false,
@@ -29,13 +30,28 @@ const DEFAULTS = {
   extensionEnabled: true
 };
 
+const DEFAULT_MODEL_VALUES = new Set([
+  '',
+  'gpt-5.5-instant',
+  'gpt-5.6-sol-medium',
+  'gpt-5.6-sol-high',
+]);
+
+function normalizeDefaultModel(value) {
+  return DEFAULT_MODEL_VALUES.has(value) ? value : '';
+}
+
 // --- Settings Cache for Instant Popup Response ---
 let settingsCache = null;
 let localCache = {};
 
 // Pre-cache settings on service worker startup
 chrome.storage.sync.get(DEFAULTS, (settings) => {
-  settingsCache = { ...DEFAULTS, ...settings };
+  const defaultModel = normalizeDefaultModel(settings.defaultModel);
+  settingsCache = { ...DEFAULTS, ...settings, defaultModel };
+  if (defaultModel !== settings.defaultModel) {
+    chrome.storage.sync.set({ defaultModel });
+  }
 });
 chrome.storage.local.get(['customBgData', 'detectedTheme'], (local) => {
   localCache = local || {};
@@ -46,7 +62,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'sync' && settingsCache) {
     for (const [key, { newValue }] of Object.entries(changes)) {
       if (newValue !== undefined) {
-        settingsCache[key] = newValue;
+        settingsCache[key] = key === 'defaultModel' ? normalizeDefaultModel(newValue) : newValue;
       } else {
         settingsCache[key] = DEFAULTS[key];
       }
@@ -74,6 +90,9 @@ chrome.runtime.onInstalled.addListener((details) => {
           newSettings[key] = DEFAULTS[key];
         }
       });
+      if (normalizeDefaultModel(items.defaultModel) !== items.defaultModel) {
+        newSettings.defaultModel = '';
+      }
       if (Object.keys(newSettings).length > 0) {
         chrome.storage.sync.set(newSettings);
       }
@@ -90,7 +109,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else {
       // Fallback: cache not ready yet (rare edge case)
       chrome.storage.sync.get(DEFAULTS, (settings) => {
-        settingsCache = { ...DEFAULTS, ...settings };
+        settingsCache = {
+          ...DEFAULTS,
+          ...settings,
+          defaultModel: normalizeDefaultModel(settings.defaultModel),
+        };
         sendResponse(settingsCache);
       });
       return true; // Async response
@@ -108,7 +131,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         chrome.storage.sync.get(DEFAULTS),
         chrome.storage.local.get(['customBgData', 'detectedTheme'])
       ]).then(([sync, local]) => {
-        settingsCache = { ...DEFAULTS, ...sync };
+        settingsCache = {
+          ...DEFAULTS,
+          ...sync,
+          defaultModel: normalizeDefaultModel(sync.defaultModel),
+        };
         localCache = local || {};
         sendResponse({ settings: settingsCache, local: localCache });
       });

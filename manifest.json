@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "default_locale": "en",
   "description": "__MSG_extensionDescription__",
   "background": {
@@ -20,9 +20,7 @@
     "storage"
   ],
   "host_permissions": [
-    "https://chat.openai.com/*",
     "https://chatgpt.com/*",
-    "https://openai.com/*",
     "https://auroraforchatgpt.tnemoroccan.workers.dev/*"
   ],
   "content_security_policy": {
@@ -75,9 +73,7 @@
   "content_scripts": [
     {
       "matches": [
-        "https://chat.openai.com/*",
-        "https://chatgpt.com/*",
-        "https://openai.com/*"
+        "https://chatgpt.com/*"
       ],
       "js": [
         "data-masking.js",
@@ -122,9 +118,7 @@
         "vendor/tiktoken-lite/encoders/*"
       ],
       "matches": [
-        "https://chat.openai.com/*",
-        "https://chatgpt.com/*",
-        "https://openai.com/*"
+        "https://chatgpt.com/*"
       ]
     }
   ]

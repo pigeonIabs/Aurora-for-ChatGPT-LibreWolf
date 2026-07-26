@@ -11,6 +11,7 @@ const FEEDBACK_API_URL = 'https://auroraforchatgpt.tnemoroccan.workers.dev';
 
 const DEFAULTS = {
   legacyComposer: false, theme: 'auto', appearance: 'clear', hideGpt5Limit: false,
+  glassUserMessages: true,
   hideUpgradeButtons: false, disableAnimations: false, focusMode: false,
   hideQuickSettings: false, queueWhileGenerating: false, customBgUrl: '', backgroundBlur: '60',
   backgroundScaling: 'cover', voiceColor: 'default', cuteVoiceUI: false,
@@ -26,7 +27,7 @@ const TOGGLE_KEYS = [
   'legacyComposer', 'hideGpt5Limit', 'hideUpgradeButtons', 'disableAnimations',
   'focusMode', 'hideQuickSettings', 'queueWhileGenerating', 'showTokenCounter', 'blurChatHistory',
   'blurAvatar', 'soundEnabled', 'autoContrast', 'dataMaskingEnabled',
-  'maskingRandomMode', 'cuteVoiceUI', 'cinemaMode'
+  'maskingRandomMode', 'cuteVoiceUI', 'cinemaMode', 'glassUserMessages'
 ];
 
 // --- Element Cache (populated once on DOMContentLoaded) ---
@@ -107,8 +108,6 @@ function cacheElements() {
   $.bgUrl = document.getElementById('bgUrl');
   $.bgFile = document.getElementById('bgFile');
   $.clearBg = document.getElementById('clearBg');
-  $.modelRow = document.getElementById('defaultModelCustomRow');
-  $.modelInput = document.getElementById('defaultModelCustomInput');
   $.settingsSearch = document.getElementById('settingsSearch');
   $.clearSearchBtn = document.getElementById('clearSearchBtn');
   $.exportSettings = document.getElementById('exportSettings');
@@ -196,13 +195,6 @@ function renderUi(settings, localData = {}) {
     }
   }
 
-  // Custom Model Input
-  const knownModels = ['gpt-5','gpt-5-thinking','gpt-5-thinking-mini','gpt-5-thinking-instant','gpt-4o','gpt-4.1','o3','o4-mini',''];
-  const isCustomModel = settings.defaultModel && !knownModels.includes(settings.defaultModel);
-  
-  if ($.modelRow) $.modelRow.hidden = !isCustomModel;
-  if ($.modelInput && isCustomModel) $.modelInput.value = settings.defaultModel;
-
   // Initialize/Update Custom Selects (Optimized: builds once, updates only values)
   initOrUpdateSelects(settings);
 }
@@ -283,31 +275,10 @@ const SELECT_CONFIGS = [
     id: 'defaultModelSelector', key: 'defaultModel',
     options: [
       { value: '', labelKey: 'defaultModelOptionNone' },
-      { value: 'gpt-5', label: 'Auto' },
-      { value: 'gpt-5-thinking', label: 'GPT-5 Thinking' },
-      { value: 'gpt-5-thinking-mini', label: 'GPT-5 Thinking mini' },
-      { value: 'gpt-5-thinking-instant', label: 'GPT-5 Instant' },
-      { value: 'gpt-4o', label: 'GPT-4o' },
-      { value: 'gpt-4.1', label: 'GPT-4.1' },
-      { value: 'o3', label: 'o3' },
-      { value: 'o4-mini', label: 'o4-mini' },
-      { value: '__custom__', labelKey: 'defaultModelOptionCustom' }
-    ],
-    mapVal: (v) => {
-      if (!v) return '';
-      const known = ['gpt-5','gpt-5-thinking','gpt-5-thinking-mini','gpt-5-thinking-instant','gpt-4o','gpt-4.1','o3','o4-mini',''];
-      return known.includes(v) ? v : '__custom__';
-    },
-    onSelect: (val) => {
-      if (val === '__custom__') {
-        $.modelRow.hidden = false;
-        $.modelInput?.focus();
-      } else {
-        $.modelRow.hidden = true;
-        if ($.modelInput) $.modelInput.value = '';
-        chrome.storage.sync.set({ defaultModel: val });
-      }
-    }
+      { value: 'gpt-5.5-instant', label: 'GPT-5.5 Instant' },
+      { value: 'gpt-5.6-sol-medium', label: 'GPT-5.6 Sol Medium' },
+      { value: 'gpt-5.6-sol-high', label: 'GPT-5.6 Sol High' }
+    ]
   }
 ];
 
@@ -505,13 +476,6 @@ function setupChangeListeners() {
         $.blurValue.textContent = DEFAULTS.backgroundBlur;
       }
       if ($.bgUrl) $.bgUrl.value = '';
-    });
-  }
-
-  // Custom Model Text
-  if ($.modelInput) {
-    $.modelInput.addEventListener('change', () => {
-      chrome.storage.sync.set({ defaultModel: $.modelInput.value.trim() });
     });
   }
 

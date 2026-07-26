@@ -38,7 +38,7 @@ For local development, open `about:debugging#/runtime/this-firefox`, choose `Loa
 
 The extension stores preferences locally through browser storage.
 
-Host access is scoped to ChatGPT, OpenAI pages used by the extension, and the optional feedback endpoint. Feedback text, a generated ticket ID, the extension version, and browser user agent are transmitted only after the user chooses to send feedback and grants Firefox's optional data permission.
+Host access is scoped to `chatgpt.com` and the optional feedback endpoint. Feedback text, a generated ticket ID, the extension version, and browser user agent are transmitted only after the user chooses to send feedback and grants Firefox's optional data permission.
 
 See [PRIVACY.md](PRIVACY.md) for the complete privacy policy.
 

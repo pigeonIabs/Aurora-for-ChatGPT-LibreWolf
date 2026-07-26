@@ -428,6 +428,7 @@
           'voiceColor',
           'appearance',
           'cinemaMode',
+          'glassUserMessages',
         ];
         if (changedKeys.some((k) => rootFlagKeys.includes(k))) {
           this.rootFlags.apply();

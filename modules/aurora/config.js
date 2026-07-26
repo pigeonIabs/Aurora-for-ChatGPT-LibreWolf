@@ -55,20 +55,10 @@
 
     // Default model selection hints (robust to UI text variations)
     MODEL_LABEL_HINTS: {
-      'gpt-5': ['auto', 'gpt-5'],
-      'gpt-5-thinking': ['gpt-5 thinking', 'thinking'],
-      'gpt-5-thinking-mini': ['thinking mini', 'mini'],
-      'gpt-5-thinking-instant': ['instant'],
-      'gpt-4o': ['gpt-4o', '4o'],
-      'gpt-4.1': ['gpt-4.1', 'gpt 4.1'],
-      o3: ['o3'],
-      'o4-mini': ['o4 mini', 'o4-mini'],
-      o1: ['o1'],
-      'o1-mini': ['o1 mini', 'o1-mini'],
+      'gpt-5.5-instant': ['gpt-5.5 instant', 'instant'],
+      'gpt-5.6-sol-medium': ['gpt-5.6 sol medium', 'medium'],
+      'gpt-5.6-sol-high': ['gpt-5.6 sol high', 'high'],
     },
   };
-
-  A.config.LEGACY_MODEL_SLUGS =
-    A.config.LEGACY_MODEL_SLUGS || new Set(['gpt-4o', 'gpt-4.1', 'o3', 'o4-mini', 'o1', 'o1-mini']);
 })();
 

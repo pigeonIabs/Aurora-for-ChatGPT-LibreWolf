@@ -19,7 +19,7 @@
   "version": {
     "license": "MIT",
     "release_notes": {
-      "en-US": "Initial public LibreWolf release. Adds Firefox Manifest V3 compatibility, LibreWolf packaging, local token counting support, explicit host permissions, and removes the Christmas and New Year themes."
+      "en-US": "Removes legacy ChatGPT domains, adds a default-on user message glass toggle, and updates the default model selector for GPT-5.5 Instant and GPT-5.6 Sol Medium or High."
     },
     "approval_notes": "This is an unofficial MIT-licensed fork of TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT. The upstream copyright and MIT license are preserved. There is no build step. The submitted extension contains the human-readable source used at runtime. The optional feedback form posts user-entered feedback, a random ticket ID, the extension version, and the browser user agent to auroraforchatgpt.tnemoroccan.workers.dev only after the user initiates submission and grants the optional Firefox data permission."
   }

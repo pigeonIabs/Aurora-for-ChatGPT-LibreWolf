@@ -119,6 +119,12 @@
   "labelGlassStyle": {
     "message": "Glass Style"
   },
+  "labelGlassUserMessages": {
+    "message": "Glass user messages"
+  },
+  "tooltipGlassUserMessages": {
+    "message": "Apply the active glass style to your message bubbles"
+  },
   "sectionInterface": {
     "message": "Interface"
   },

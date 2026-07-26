@@ -30,6 +30,7 @@
     root.classList.toggle(LEGACY_CLASS, !!s.legacyComposer);
     root.classList.toggle(ANIMATIONS_DISABLED_CLASS, !!s.disableAnimations);
     root.classList.toggle(CLEAR_APPEARANCE_CLASS, s.appearance === 'clear');
+    root.classList.toggle('cgpt-glass-user-messages', s.glassUserMessages !== false);
     root.classList.toggle('cgpt-cute-voice-on', !!s.cuteVoiceUI);
     root.classList.toggle('cgpt-focus-mode-on', !!s.focusMode);
     root.classList.toggle('cgpt-cinema-mode', !!s.cinemaMode);

@@ -295,10 +295,14 @@ html.cgpt-ambient-on:not(.cgpt-animations-disabled):not(.cgpt-legacy-composer) :
 }
 /* --- Element-Specific Overrides & Hover Effects --- */
 
-/* User Message Bubble (Special Case) */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[data-message-author-role="user"] .user-message-bubble-color { border: 1px solid var(--user-bubble-border) !important; -webkit-backdrop-filter: blur(12px) saturate(160%) !important; backdrop-filter: blur(12px) saturate(160%) !important; }
-html.cgpt-appearance-clear:not(.cgpt-legacy-composer) div[data-message-author-role="user"] .user-message-bubble-color { -webkit-backdrop-filter: blur(var(--clear-blur, 28px)) saturate(var(--clear-saturate, 180%)) !important; backdrop-filter: blur(var(--clear-blur, 28px)) saturate(var(--clear-saturate, 180%)) !important; border: 1px solid var(--clear-border, rgba(255,255,255,0.2)) !important; box-shadow: inset 0 0 2px 0 var(--clear-glow, rgba(255,255,255,0.08)); }
-html.cgpt-appearance-clear.cgpt-light-mode:not(.cgpt-legacy-composer) div[data-message-author-role="user"] .user-message-bubble-color { border-color: var(--clear-border-light, rgba(0,0,0,0.15)) !important; box-shadow: inset 0 0 2px 0 var(--clear-glow-light, rgba(255,255,255,0.25)); }
+/* User Message Bubble */
+html.cgpt-ambient-on.cgpt-glass-user-messages:not(.cgpt-legacy-composer) div[data-message-author-role="user"] .user-message-bubble-color {
+  background: var(--aurora-glass-bg) !important;
+  border: 1px solid var(--aurora-glass-border) !important;
+  box-shadow: inset 0 0 2px 0 var(--aurora-glass-glow), var(--aurora-glass-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate)) !important;
+  backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate)) !important;
+}
 
 /* Danger Button (Special Case) */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) .btn-danger.relative.btn { background: rgba(239, 68, 68, 0.45) !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; color: #fff !important; }

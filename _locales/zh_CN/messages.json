@@ -119,6 +119,12 @@
   "labelGlassStyle": {
     "message": "玻璃样式"
   },
+  "labelGlassUserMessages": {
+    "message": "用户消息玻璃效果"
+  },
+  "tooltipGlassUserMessages": {
+    "message": "将当前玻璃样式应用到你的消息气泡"
+  },
   "sectionInterface": {
     "message": "界面"
   },

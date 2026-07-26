@@ -30,7 +30,7 @@ Data masking runs locally and visually obscures selected patterns such as email 
 ## Permissions
 
 - `storage` saves extension preferences and local background data
-- ChatGPT and OpenAI host access injects the extension's visual and workflow features
+- `chatgpt.com` host access injects the extension's visual and workflow features
 - Optional personal communications and technical interaction permissions apply only to the feedback form
 
 ## Third-party sites

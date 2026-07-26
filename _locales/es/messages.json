@@ -275,6 +275,12 @@
   "labelGlassStyle": {
     "message": "Estilo de Vidrio"
   },
+  "labelGlassUserMessages": {
+    "message": "Mensajes de usuario con efecto de vidrio"
+  },
+  "tooltipGlassUserMessages": {
+    "message": "Aplica el estilo de vidrio activo a las burbujas de tus mensajes"
+  },
   "glassAppearanceOptionDimmed": {
     "message": "Atenuado"
   },
