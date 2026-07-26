@@ -1,0 +1,26 @@
+{
+  "name": {
+    "en-US": "Aurora for ChatGPT LibreWolf"
+  },
+  "summary": {
+    "en-US": "Personalize ChatGPT with glass themes, privacy controls, token counting, custom backgrounds, and workflow tools."
+  },
+  "description": {
+    "en-US": "An unofficial LibreWolf-focused port of Aurora for ChatGPT. It adds glass themes, custom image and video backgrounds, local token and word counting, privacy masking, streamer mode, focus controls, queued messages, custom fonts, voice styling, and settings import and export.\n\nThe extension stores preferences locally. Chat content used for styling, token counting, queueing, and masking stays inside the browser. Its optional feedback form sends only the text a user chooses to submit, a generated ticket ID, the extension version, and browser user agent after Firefox grants the optional data permission.\n\nThis project is independently maintained and is not affiliated with OpenAI, LibreWolf, or the upstream Aurora maintainers."
+  },
+  "categories": [
+    "appearance",
+    "privacy-security"
+  ],
+  "homepage": {
+    "en-US": "https://github.com/pigeonIabs/Aurora-for-ChatGPT-LibreWolf"
+  },
+  "requires_payment": false,
+  "version": {
+    "license": "MIT",
+    "release_notes": {
+      "en-US": "Initial public LibreWolf release. Adds Firefox Manifest V3 compatibility, LibreWolf packaging, local token counting support, explicit host permissions, and removes the Christmas and New Year themes."
+    },
+    "approval_notes": "This is an unofficial MIT-licensed fork of TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT. The upstream copyright and MIT license are preserved. There is no build step. The submitted extension contains the human-readable source used at runtime. The optional feedback form posts user-entered feedback, a random ticket ID, the extension version, and the browser user agent to auroraforchatgpt.tnemoroccan.workers.dev only after the user initiates submission and grants the optional Firefox data permission."
+  }
+}
