@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aurora Background Upload</title>
+  <link rel="stylesheet" href="background-upload.css">
+</head>
+<body>
+  <main>
+    <div class="eyebrow">Aurora for ChatGPT LibreWolf</div>
+    <h1>Choose a background</h1>
+    <p class="intro">Select an image or video up to 15 MB. Aurora stores it locally inside LibreWolf.</p>
+
+    <label class="choose-button" for="backgroundFile">Choose image or video</label>
+    <input id="backgroundFile" type="file" accept="image/*,video/mp4,video/webm,video/ogg">
+
+    <div class="progress" id="progress" hidden>
+      <span class="progress-bar" id="progressBar"></span>
+    </div>
+    <p class="status" id="status" role="status" aria-live="polite">Waiting for a file</p>
+  </main>
+  <script src="background-upload.js"></script>
+</body>
+</html>

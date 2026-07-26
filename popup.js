@@ -5,8 +5,7 @@
 const LOCAL_BG_KEY = 'customBgData';
 const BLUE_WALLPAPER_URL = 'https://img.freepik.com/free-photo/abstract-luxury-gradient-blue-background-smooth-dark-blue-with-black-vignette-studio-banner_1258-54581.jpg?semt=ais_hybrid&w=740&q=80';
 const GROK_HORIZON_URL = chrome?.runtime?.getURL ? chrome.runtime.getURL('assets/grok-4.webp') : 'assets/grok-4.webp';
-const MAX_FILE_SIZE_MB = 15;
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const PURE_BLACK_BACKGROUND = '__pure_black__';
 const FEEDBACK_API_URL = 'https://auroraforchatgpt.tnemoroccan.workers.dev';
 
 const DEFAULTS = {
@@ -189,7 +188,7 @@ function renderUi(settings, localData = {}) {
       $.bgUrl.value = getMessage('statusLocalFileInUse') || 'Local File Active';
       $.bgUrl.disabled = true;
     } else if (document.activeElement !== $.bgUrl) {
-      const presets = [BLUE_WALLPAPER_URL, GROK_HORIZON_URL];
+      const presets = [BLUE_WALLPAPER_URL, GROK_HORIZON_URL, PURE_BLACK_BACKGROUND];
       $.bgUrl.value = presets.includes(settings.customBgUrl) ? '' : settings.customBgUrl;
       $.bgUrl.disabled = false;
     }
@@ -205,6 +204,7 @@ const SELECT_CONFIGS = [
     id: 'bgPreset', key: 'customBgUrl',
     options: [
       { value: 'default', labelKey: 'bgPresetOptionDefault' },
+      { value: PURE_BLACK_BACKGROUND, label: 'Pure Black' },
       { value: '__gpt5_animated__', labelKey: 'bgPresetOptionGpt5Animated' },
       { value: 'grokHorizon', labelKey: 'bgPresetOptionGrokHorizon' },
       { value: 'blue', labelKey: 'bgPresetOptionBlue' },
@@ -214,6 +214,7 @@ const SELECT_CONFIGS = [
       if (!v) return 'default';
       if (v === BLUE_WALLPAPER_URL) return 'blue';
       if (v === GROK_HORIZON_URL) return 'grokHorizon';
+      if (v === PURE_BLACK_BACKGROUND) return PURE_BLACK_BACKGROUND;
       if (v === '__gpt5_animated__') return '__gpt5_animated__';
       return 'custom';
     },
@@ -221,6 +222,7 @@ const SELECT_CONFIGS = [
       let url = '';
       if (val === 'blue') url = BLUE_WALLPAPER_URL;
       else if (val === 'grokHorizon') url = GROK_HORIZON_URL;
+      else if (val === PURE_BLACK_BACKGROUND) url = PURE_BLACK_BACKGROUND;
       else if (val === '__gpt5_animated__') url = '__gpt5_animated__';
       if (val !== 'custom') chrome.storage.local.remove(LOCAL_BG_KEY);
       chrome.storage.sync.set({ customBgUrl: url });
@@ -459,43 +461,13 @@ function setupChangeListeners() {
 
   // BG File
   if ($.bgFile) {
-    $.bgFile.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      if (file.size > MAX_FILE_SIZE_BYTES) {
-        alert(getMessage('alertFileTooLarge', [String(MAX_FILE_SIZE_MB)]) || `File too large. Choose a file under ${MAX_FILE_SIZE_MB} MB.`);
-        $.bgFile.value = '';
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const dataUrl = ev.target?.result;
-        if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) {
-          alert('Aurora could not read that file.');
-          return;
+    $.bgFile.addEventListener('click', () => {
+      const uploadUrl = chrome.runtime.getURL('background-upload.html');
+      chrome.tabs.create({ url: uploadUrl }, () => {
+        if (chrome.runtime.lastError) {
+          window.open(uploadUrl, '_blank');
         }
-
-        chrome.storage.local.set({ [LOCAL_BG_KEY]: dataUrl }, () => {
-          if (chrome.runtime.lastError) {
-            alert(`Aurora could not save that file. ${chrome.runtime.lastError.message}`);
-            return;
-          }
-
-          chrome.storage.local.get(LOCAL_BG_KEY, (saved) => {
-            if (chrome.runtime.lastError || !saved?.[LOCAL_BG_KEY]) {
-              alert('Aurora could not verify the saved background.');
-              return;
-            }
-            chrome.storage.sync.set({ customBgUrl: '__local__' });
-          });
-        });
-      };
-      reader.onerror = () => {
-        alert('Aurora could not read that file.');
-      };
-      reader.readAsDataURL(file);
-      $.bgFile.value = '';
+      });
     });
   }
 

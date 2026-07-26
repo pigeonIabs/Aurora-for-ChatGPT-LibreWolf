@@ -159,6 +159,9 @@ html.cgpt-bg-anim-disabled #cgpt-ambient-bg { transition: none; }
 #cgpt-ambient-bg.bg-visible { opacity: 1; }
 #cgpt-ambient-bg .media-layer { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 750ms ease-in-out; }
 #cgpt-ambient-bg .media-layer.active { opacity: 1; }
+#cgpt-ambient-bg .media-layer.pure-black-active { background: #000; }
+#cgpt-ambient-bg.pure-black-mode { background: #000; }
+#cgpt-ambient-bg.pure-black-mode :is(.haze, .overlay) { display: none !important; }
 #cgpt-ambient-bg picture, #cgpt-ambient-bg img, #cgpt-ambient-bg video, #cgpt-ambient-bg .haze, #cgpt-ambient-bg .overlay, #cgpt-ambient-bg .animated-bg { position: absolute; inset: 0; width: 100%; height: 100%; }
 #cgpt-ambient-bg img, #cgpt-ambient-bg video { filter: blur(var(--cgpt-bg-blur-radius, 60px)) var(--bg-filter); opacity: var(--bg-opacity); will-change: transform, filter, opacity; z-index: 0; transition: filter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
 #cgpt-ambient-bg .haze { z-index: 2; background: var(--haze-gradient); transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.6s ease; }
@@ -209,8 +212,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(
   textarea.bg-token-main-surface-primary.border-token-border-default,
   .bg-token-main-surface-primary.sticky.top-\[-1px\],
   form[data-type="unified-composer"] > div > div,
-  div[data-message-author-role="assistant"] pre,
-  .agent-turn pre,
+  [data-aurora-code-block="true"],
   #cgpt-qs-panel,
   .py-3.px-3.rounded-3xl.bg-token-main-surface-tertiary,
   .divide-token-border-default.bg-token-main-surface-primary.mx-1.mt-1,
@@ -245,6 +247,31 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(
   /* Removed background transition to prevent open glitches */
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   will-change: filter, backdrop-filter;
+}
+
+/* Fenced code, writing, and copyable paste blocks */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aurora-code-block="true"] {
+  overflow: clip;
+  border-radius: 16px !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aurora-code-block="true"] :is(
+  pre,
+  code,
+  [class*="bg-token"],
+  [class*="bg-surface"]
+) {
+  background: transparent !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aurora-code-block="true"] :is(
+  button,
+  [role="button"]
+) {
+  border-color: color-mix(in oklab, var(--aurora-glass-border) 82%, transparent) !important;
+  background: color-mix(in oklab, var(--aurora-glass-bg) 72%, transparent) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(140%) !important;
+  backdrop-filter: blur(10px) saturate(140%) !important;
 }
 
 /* Dialog navigation arrows (image/media viewer): avoid overly highlighted glass tiles */

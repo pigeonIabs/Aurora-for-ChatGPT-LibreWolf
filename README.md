@@ -26,7 +26,9 @@ For local development, open `about:debugging#/runtime/this-firefox`, choose `Loa
 ## Main Features
 
 - Glassmorphism theme with clear and dimmed styles.
-- Custom image and video backgrounds with local file support.
+- Custom image and video backgrounds with a dedicated Firefox-safe upload page and local file storage.
+- Pure Black OLED background preset.
+- Glass styling for fenced code and copyable writing blocks.
 - Real time token and word counting with local WASM files.
 - Privacy suite with data masking, streamer mode, and avatar blur.
 - Focus mode, upgrade element hiding, and GPT limit message handling.

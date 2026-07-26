@@ -28,8 +28,6 @@
     'div.absolute.top-full > div[class*="bg-surface"]',
     /* Composer & Code Blocks */
     'form[data-type="unified-composer"] > div > div',
-    'div[data-message-author-role="assistant"] pre',
-    '.agent-turn pre',
     /* Buttons & UI Elements */
     '#cgpt-qs-panel',
     '.py-3.px-3.rounded-3xl.bg-token-main-surface-tertiary',
@@ -63,6 +61,45 @@
         .join(',')
     : UNTAGGED_GLASS_SELECTOR_FAST;
 
+  const CODE_CONTENT_SELECTOR = [
+    'div[data-message-author-role="assistant"] pre',
+    '.agent-turn pre',
+    'div[data-message-author-role="assistant"] code[class*="language-"]',
+    '.agent-turn code[class*="language-"]',
+    'div[data-message-author-role="assistant"] [class*="code-block"]',
+    '.agent-turn [class*="code-block"]',
+  ].join(',');
+
+  function tagCodeBlocks(root = document) {
+    const candidates = [];
+    if (root?.nodeType === 1 && root.matches?.(CODE_CONTENT_SELECTOR)) candidates.push(root);
+    root?.querySelectorAll?.(CODE_CONTENT_SELECTOR).forEach((node) => candidates.push(node));
+
+    for (const content of candidates) {
+      const turn =
+        content.closest?.('div[data-message-author-role="assistant"]') ||
+        content.closest?.('.agent-turn');
+      let wrapper = content.tagName === 'PRE' ? content.parentElement : content;
+      let best = wrapper;
+
+      for (let depth = 0; wrapper && wrapper !== turn && depth < 5; depth += 1) {
+        const hasBlockControls = !!wrapper.querySelector?.(
+          'button[aria-label*="copy" i], button[title*="copy" i], button[aria-label*="download" i], button[title*="download" i], button[aria-label*="edit" i], button[title*="edit" i]'
+        );
+        const className = wrapper.getAttribute?.('class') || '';
+        if (hasBlockControls || /(code|contain-inline-size|rounded|bg-token)/i.test(className)) {
+          best = wrapper;
+          break;
+        }
+        wrapper = wrapper.parentElement;
+      }
+
+      if (best?.nodeType === 1) {
+        best.dataset.auroraCodeBlock = 'true';
+      }
+    }
+  }
+
   function tag(root = document, includeSlowSelectors = false) {
     if (!isEnabled()) return;
     const selector = includeSlowSelectors ? UNTAGGED_GLASS_SELECTOR_ALL : UNTAGGED_GLASS_SELECTOR_FAST;
@@ -76,6 +113,8 @@
     for (const el of elements) {
       el.dataset.auroraGlass = 'true';
     }
+
+    tagCodeBlocks(root);
   }
 
   // Full document scan is throttled and scheduled in idle time to avoid jank.
@@ -136,5 +175,6 @@
   A.glass.scheduleFullScan = A.glass.scheduleFullScan || scheduleFullScan;
   A.glass.hasSlowHints = A.glass.hasSlowHints || hasSlowHints;
   A.glass.tagAncestorsForSlowHints = A.glass.tagAncestorsForSlowHints || tagAncestorsForSlowHints;
+  A.glass.tagCodeBlocks = A.glass.tagCodeBlocks || tagCodeBlocks;
 })();
 

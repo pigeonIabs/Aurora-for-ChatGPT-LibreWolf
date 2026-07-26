@@ -105,7 +105,7 @@
     // Completely clean a layer of all content and classes
     cleanLayer(layer) {
       if (!layer) return;
-      layer.classList.remove('active', 'gpt5-active');
+      layer.classList.remove('active', 'gpt5-active', 'pure-black-active');
 
       const img = layer.querySelector('img');
       const video = layer.querySelector('video');
@@ -322,6 +322,8 @@
 
         if (url === '__gpt5_animated__') {
           inactiveLayer.classList.add('gpt5-active');
+        } else if (url === '__pure_black__') {
+          inactiveLayer.classList.add('pure-black-active');
         } else if (url === '__local__') {
           if (chrome?.runtime?.id && chrome?.storage?.local) {
             const localData = await new Promise((resolve) => {
@@ -342,6 +344,7 @@
           await this.loadDefault(inactiveLayer);
         }
 
+        container.classList.toggle('pure-black-mode', url === '__pure_black__');
         this.state = 'transitioning';
         await this.crossfade(inactiveLayer, activeLayer);
 
