@@ -4,8 +4,7 @@
 // --- Constants & Defaults ---
 const LOCAL_BG_KEY = 'customBgData';
 const BLUE_WALLPAPER_URL = 'https://img.freepik.com/free-photo/abstract-luxury-gradient-blue-background-smooth-dark-blue-with-black-vignette-studio-banner_1258-54581.jpg?semt=ais_hybrid&w=740&q=80';
-const GROK_HORIZON_URL = chrome?.runtime?.getURL ? chrome.runtime.getURL('Aurora/grok-4.webp') : 'Aurora/grok-4.webp';
-const CHRISTMAS_BG_URL = chrome?.runtime?.getURL ? chrome.runtime.getURL('Aurora/christmas-bg.webp') : 'Aurora/christmas-bg.webp';
+const GROK_HORIZON_URL = chrome?.runtime?.getURL ? chrome.runtime.getURL('assets/grok-4.webp') : 'assets/grok-4.webp';
 const MAX_FILE_SIZE_MB = 15;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const FEEDBACK_API_URL = 'https://auroraforchatgpt.tnemoroccan.workers.dev';
@@ -19,7 +18,7 @@ const DEFAULTS = {
   showTokenCounter: false, blurChatHistory: false, blurAvatar: false,
   soundEnabled: false, soundVolume: 'low', autoContrast: false,
   smartSelectors: true, dataMaskingEnabled: false, maskingRandomMode: false,
-  enableSnowfall: false, enableNewYear: false, cinemaMode: false, snowType: 'standard',
+  cinemaMode: false,
   extensionEnabled: true
 };
 
@@ -27,7 +26,7 @@ const TOGGLE_KEYS = [
   'legacyComposer', 'hideGpt5Limit', 'hideUpgradeButtons', 'disableAnimations',
   'focusMode', 'hideQuickSettings', 'queueWhileGenerating', 'showTokenCounter', 'blurChatHistory',
   'blurAvatar', 'soundEnabled', 'autoContrast', 'dataMaskingEnabled',
-  'maskingRandomMode', 'enableSnowfall', 'enableNewYear', 'cuteVoiceUI', 'cinemaMode'
+  'maskingRandomMode', 'cuteVoiceUI', 'cinemaMode'
 ];
 
 // --- Element Cache (populated once on DOMContentLoaded) ---
@@ -116,7 +115,6 @@ function cacheElements() {
   $.importSettings = document.getElementById('importSettings');
   $.settingsJson = document.getElementById('settingsJson');
   $.importExportRow = document.getElementById('importExportTextAreaRow');
-  $.holidayMode = document.getElementById('holidayMode');
   $.masterToggleBtn = document.getElementById('masterToggleBtn');
   
   // Feedback elements
@@ -150,8 +148,7 @@ function cacheElements() {
     appearanceSelector: document.getElementById('appearanceSelector'),
     fontSelector: document.getElementById('fontSelector'),
     voiceColorSelector: document.getElementById('voiceColorSelector'),
-    defaultModelSelector: document.getElementById('defaultModelSelector'),
-    snowTypeSelector: document.getElementById('snowTypeSelector')
+    defaultModelSelector: document.getElementById('defaultModelSelector')
   };
 }
 
@@ -169,13 +166,6 @@ function renderUi(settings, localData = {}) {
     const el = $.toggles?.[key];
     if (el) el.checked = !!settings[key];
   });
-
-  // Holiday Mode toggle state (on if all holiday features are enabled)
-  if ($.holidayMode) {
-    const isHolidayMode = settings.enableSnowfall && settings.enableNewYear && 
-                          settings.customBgUrl === CHRISTMAS_BG_URL;
-    $.holidayMode.checked = isHolidayMode;
-  }
 
   if ($.masterToggleBtn) {
     const isEnabled = settings.extensionEnabled !== false;
@@ -200,7 +190,7 @@ function renderUi(settings, localData = {}) {
       $.bgUrl.value = getMessage('statusLocalFileInUse') || 'Local File Active';
       $.bgUrl.disabled = true;
     } else if (document.activeElement !== $.bgUrl) {
-      const presets = [BLUE_WALLPAPER_URL, GROK_HORIZON_URL, CHRISTMAS_BG_URL];
+      const presets = [BLUE_WALLPAPER_URL, GROK_HORIZON_URL];
       $.bgUrl.value = presets.includes(settings.customBgUrl) ? '' : settings.customBgUrl;
       $.bgUrl.disabled = false;
     }
@@ -225,7 +215,6 @@ const SELECT_CONFIGS = [
       { value: 'default', labelKey: 'bgPresetOptionDefault' },
       { value: '__gpt5_animated__', labelKey: 'bgPresetOptionGpt5Animated' },
       { value: 'grokHorizon', labelKey: 'bgPresetOptionGrokHorizon' },
-      { value: 'christmas', labelKey: 'bgPresetOptionChristmas' },
       { value: 'blue', labelKey: 'bgPresetOptionBlue' },
       { value: 'custom', labelKey: 'bgPresetOptionCustom', hidden: true }
     ],
@@ -233,7 +222,6 @@ const SELECT_CONFIGS = [
       if (!v) return 'default';
       if (v === BLUE_WALLPAPER_URL) return 'blue';
       if (v === GROK_HORIZON_URL) return 'grokHorizon';
-      if (v === CHRISTMAS_BG_URL) return 'christmas';
       if (v === '__gpt5_animated__') return '__gpt5_animated__';
       return 'custom';
     },
@@ -241,7 +229,6 @@ const SELECT_CONFIGS = [
       let url = '';
       if (val === 'blue') url = BLUE_WALLPAPER_URL;
       else if (val === 'grokHorizon') url = GROK_HORIZON_URL;
-      else if (val === 'christmas') url = CHRISTMAS_BG_URL;
       else if (val === '__gpt5_animated__') url = '__gpt5_animated__';
       if (val !== 'custom') chrome.storage.local.remove(LOCAL_BG_KEY);
       chrome.storage.sync.set({ customBgUrl: url });
@@ -321,13 +308,6 @@ const SELECT_CONFIGS = [
         chrome.storage.sync.set({ defaultModel: val });
       }
     }
-  },
-  {
-    id: 'snowTypeSelector', key: 'snowType',
-    options: [
-      { value: 'standard', label: 'Standard' },
-      { value: 'chatgpt-logo', label: 'ChatGPT Snow' }
-    ]
   }
 ];
 
@@ -428,22 +408,6 @@ function setupChangeListeners() {
       });
     }
   });
-
-  // Holiday Mode toggle (combines snowfall + garland + Christmas background)
-  if ($.holidayMode) {
-    $.holidayMode.addEventListener('change', () => {
-      const isOn = $.holidayMode.checked;
-      const updates = {
-        enableSnowfall: isOn,
-        enableNewYear: isOn,
-        customBgUrl: isOn ? CHRISTMAS_BG_URL : ''
-      };
-      chrome.storage.sync.set(updates);
-      // Also update individual toggles visually
-      if ($.toggles?.enableSnowfall) $.toggles.enableSnowfall.checked = isOn;
-      if ($.toggles?.enableNewYear) $.toggles.enableNewYear.checked = isOn;
-    });
-  }
 
   if ($.masterToggleBtn) {
     $.masterToggleBtn.addEventListener('click', () => {
@@ -588,6 +552,21 @@ function setupTabs() {
   });
 }
 
+async function requestFeedbackDataPermission() {
+  const permissionsApi = globalThis.browser?.permissions || chrome?.permissions;
+  const needed = ['personalCommunications', 'technicalAndInteraction'];
+
+  try {
+    if (!permissionsApi?.getAll || !permissionsApi?.request) return true;
+    const current = await permissionsApi.getAll();
+    if (!Array.isArray(current?.data_collection)) return true;
+    if (needed.every((permission) => current.data_collection.includes(permission))) return true;
+    return !!(await permissionsApi.request({ data_collection: needed }));
+  } catch (e) {
+    return true;
+  }
+}
+
 // --- Search Logic ---
 let searchableData = [];
 
@@ -707,6 +686,14 @@ function setupFeedbackSystem() {
   $.sendFeedback?.addEventListener('click', async () => {
     const text = $.feedbackInput?.value.trim();
     if (!text) return;
+
+    const hasDataPermission = await requestFeedbackDataPermission();
+    if (!hasDataPermission) {
+      $.feedbackStatus.textContent = getMessage('feedbackPermissionRequired') || 'Feedback permission is required to send this report.';
+      $.feedbackStatus.className = 'feedback-status error';
+      $.feedbackStatus.hidden = false;
+      return;
+    }
 
     $.sendFeedback.disabled = true;
     $.sendFeedback.textContent = getMessage('feedbackSending') || 'Sending...';

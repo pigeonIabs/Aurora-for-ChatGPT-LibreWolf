@@ -65,20 +65,7 @@
   <main class="tab-content">
     <!-- Appearance Tab -->
     <div id="appearance" class="tab-pane active">
-      <!-- Holiday Mode Banner -->
-      <div class="holiday-mode-banner">
-        <div class="holiday-mode-left">
-          <span class="holiday-icon">🎄</span>
-          <div class="holiday-text">
-            <span class="holiday-title" data-i18n="labelHolidayMode">Holiday Mode</span>
-            <span class="holiday-subtitle" data-i18n="tooltipHolidayMode">Snow, lights & festive background</span>
-          </div>
-	        </div>
-	        <label class="switch">
-	          <input type="checkbox" id="holidayMode" aria-label="Holiday Mode" data-i18n-aria-label="labelHolidayMode">
-	          <span class="track"><span class="thumb"></span></span>
-	        </label>
-	      </div>
+
       <div class="master-toggle-row">
         <button type="button" id="masterToggleBtn" class="master-toggle-btn" data-i18n="labelAuroraActivated">Aurora activated</button>
       </div>
@@ -182,40 +169,8 @@
 	            <div class="select-options" role="listbox" aria-label="Custom font" data-i18n-aria-label="labelCustomFont"></div>
 	          </div>
 	        </div>
-	      </div>
-	      <div class="section-header" data-i18n="sectionHolidayEffects">Holiday Effects</div>
-	      <div class="row">
-	        <div class="row-label-with-icon">
-	          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-snowflake"><line x1="2" x2="22" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="22"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/></svg>
-	          <div class="label" data-i18n="labelSnowfall">Let it snow</div>
-	        </div>
-	        <label class="switch" title="Enable snowing animation" data-i18n-title="tooltipSnowfall">
-	          <input type="checkbox" id="enableSnowfall" aria-label="Snowfall" data-i18n-aria-label="labelSnowfall">
-	          <span class="track"><span class="thumb"></span></span>
-	        </label>
-	      </div>
-	      <div class="row">
-	        <div class="label">Snow Type</div>
-	        <div class="custom-select-wrapper">
-	          <div class="custom-select" id="snowTypeSelector">
-	            <button type="button" class="select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Snow Type">
-	              <span class="select-label">Standard</span>
-	              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none"
-	                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-	                <polyline points="4.5 6.5 8 9.5 11.5 6.5"></polyline>
-	              </svg>
-	            </button>
-	            <div class="select-options" role="listbox" aria-label="Snow Type"></div>
-	          </div>
-	        </div>
-	      </div>
-	      <div class="row">
-	        <div class="label" data-i18n="labelNewYear">New Year '26</div>
-	        <label class="switch" title="Enable New Year garland" data-i18n-title="tooltipNewYear">
-	          <input type="checkbox" id="enableNewYear" aria-label="New Year" data-i18n-aria-label="labelNewYear">
-	          <span class="track"><span class="thumb"></span></span>
-	        </label>
-	      </div>
+      </div>
+
       <div class="section-header" data-i18n="sectionAnimations">Animations</div>
 	      <div class="row">
 	        <div class="label" data-i18n="labelDisableAnimations">__MSG_labelDisableAnimations__</div>

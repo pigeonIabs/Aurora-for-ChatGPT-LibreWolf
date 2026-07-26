@@ -33,8 +33,6 @@
       'cgpt-cinema-mode',
       'cgpt-blur-chat-history',
       'cgpt-blur-avatar',
-      'cgpt-snow-on',
-      'cgpt-snow-logo',
       'cgpt-theme-transitioning',
       'cgpt-tab-hidden',
       'cgpt-snapshot-mode'
@@ -44,10 +42,6 @@
     root.removeAttribute('data-voice-color');
     root.style.removeProperty('--cgpt-bg-blur-radius');
     root.style.removeProperty('--cgpt-object-fit');
-    root.style.removeProperty('--aurora-santa-hat-image');
-    root.style.removeProperty('--aurora-snowdrift-left-image');
-    root.style.removeProperty('--aurora-snowdrift-right-image');
-    root.style.removeProperty('--aurora-snow-image');
     root.style.removeProperty('--bg-opacity');
 
     // Optional engines / UI.
@@ -72,9 +66,6 @@
 
     document.getElementById(QS_BUTTON_ID)?.remove();
     document.getElementById(QS_PANEL_ID)?.remove();
-
-    document.getElementById('aurora-snow-container')?.remove();
-    document.getElementById('aurora-garland-container')?.remove();
 
     document.getElementById('aurora-welcome-overlay')?.remove();
     document.getElementById('aurora-success-overlay')?.remove();

@@ -1,5 +1,5 @@
 // modules/aurora/welcome.js
-// Welcome / onboarding overlay shown once per install.
+// Welcome and onboarding overlay shown once per install.
 (() => {
   'use strict';
 
@@ -9,7 +9,6 @@
   const cfg = A.config || {};
   const BLUE_WALLPAPER_URL = cfg.BLUE_WALLPAPER_URL || '';
   const GROK_HORIZON_URL = cfg.GROK_HORIZON_URL || '';
-  const CHRISTMAS_BG_URL = cfg.CHRISTMAS_BG_URL || '';
   const QS_BUTTON_ID = cfg.QS_BUTTON_ID || 'cgpt-qs-btn';
 
   const getMessage = A.i18n?.getMessage || ((k) => k);
@@ -36,19 +35,6 @@
         </div>
 
         <div id="aurora-style-bar" class="aurora-setup-bar">
-          <div class="setup-section holiday-section">
-            <div class="holiday-mode-toggle">
-              <span class="holiday-emoji">🎄</span>
-              <span class="holiday-label">${getMessage('labelHolidayMode')}</span>
-              <label class="switch">
-                <input type="checkbox" id="welcome-holiday-mode">
-                <span class="track"><span class="thumb"></span></span>
-              </label>
-            </div>
-          </div>
-
-          <div class="setup-divider"></div>
-
           <div class="setup-section">
             <label class="section-label">${getMessage('welcomeLabelBgPreset')}</label>
             <div class="preset-grid">
@@ -60,13 +46,13 @@
                 <div class="preview animated"></div>
                 <span>${getMessage('welcomePresetAnimated')}</span>
               </button>
-              <button class="preset-tile christmas-tile" data-bg-url="christmas">
-                <div class="preview christmas"></div>
-                <span>🎄 Christmas</span>
-              </button>
               <button class="preset-tile" data-bg-url="grokHorizon">
                 <div class="preview grok"></div>
                 <span>${getMessage('welcomePresetHorizon')}</span>
+              </button>
+              <button class="preset-tile" data-bg-url="blue">
+                <div class="preview blue"></div>
+                <span>${getMessage('welcomePresetBlue')}</span>
               </button>
             </div>
           </div>
@@ -96,18 +82,16 @@
         <div id="aurora-support-screen" class="support-screen">
           <div class="support-card">
             <div class="support-header">
-              <span class="support-icon">💖</span>
+              <span class="support-icon">A</span>
               <h2>${getMessage('welcomeSupportTitle')}</h2>
             </div>
             <p class="support-description">${getMessage('welcomeSupportDescription')}</p>
 
             <div class="support-buttons">
               <a href="https://ko-fi.com/testtm" target="_blank" rel="noopener" class="support-btn donate-btn">
-                <span class="btn-icon">☕</span>
                 <span>${getMessage('welcomeSupportDonate')}</span>
               </a>
-              <a href="https://github.com/AuroraForChatGPT/Aurora-for-ChatGPT" target="_blank" rel="noopener" class="support-btn github-btn">
-                <span class="btn-icon">⭐</span>
+              <a href="https://github.com/TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT" target="_blank" rel="noopener" class="support-btn github-btn">
                 <span>${getMessage('welcomeSupportStar')}</span>
               </a>
             </div>
@@ -144,7 +128,7 @@
     if (wrapper.firstElementChild) document.body.appendChild(wrapper.firstElementChild);
 
     const settings = getSettings();
-    let tempSettings = { ...settings };
+    const tempSettings = { ...settings };
 
     const getStartedBtn = document.getElementById('get-started-btn');
     const nextToSupportBtn = document.getElementById('next-to-support-btn');
@@ -165,7 +149,6 @@
           successOverlay.classList.add('active');
           setTimeout(() => {
             welcomeOverlay?.remove();
-            // Add sparkle hint to Quick Settings button for new users.
             setTimeout(() => {
               const qsBtn = document.getElementById(QS_BUTTON_ID);
               if (!qsBtn) return;
@@ -185,34 +168,30 @@
       });
     };
 
-    if (getStartedBtn) {
-      getStartedBtn.addEventListener('click', () => {
-        welcomeOverlay?.classList.add('setup-active');
+    getStartedBtn?.addEventListener('click', () => {
+      welcomeOverlay?.classList.add('setup-active');
 
-        if (welcomeContainer) {
-          welcomeContainer.classList.add('exiting');
-          setTimeout(() => styleBar?.classList.add('active'), 150);
-          setTimeout(() => {
-            welcomeContainer.style.display = 'none';
-          }, 500);
-        } else {
-          styleBar?.classList.add('active');
-        }
+      if (welcomeContainer) {
+        welcomeContainer.classList.add('exiting');
+        setTimeout(() => styleBar?.classList.add('active'), 150);
+        setTimeout(() => {
+          welcomeContainer.style.display = 'none';
+        }, 500);
+      } else {
+        styleBar?.classList.add('active');
+      }
 
-        const defaultTile = document.querySelector('#aurora-style-bar .preset-tile[data-bg-url="default"]');
-        defaultTile?.classList.add('active');
-      });
-    }
+      const defaultTile = document.querySelector('#aurora-style-bar .preset-tile[data-bg-url="default"]');
+      defaultTile?.classList.add('active');
+    });
 
-    if (nextToSupportBtn) {
-      nextToSupportBtn.addEventListener('click', () => {
-        if (styleBar) {
-          styleBar.classList.remove('active');
-          styleBar.classList.add('exiting');
-        }
-        setTimeout(() => supportScreen?.classList.add('active'), 200);
-      });
-    }
+    nextToSupportBtn?.addEventListener('click', () => {
+      if (styleBar) {
+        styleBar.classList.remove('active');
+        styleBar.classList.add('exiting');
+      }
+      setTimeout(() => supportScreen?.classList.add('active'), 200);
+    });
 
     skipSupportBtn?.addEventListener('click', finishWelcome);
     finishBtn?.addEventListener('click', finishWelcome);
@@ -226,46 +205,13 @@
 
         if (bgChoice === 'blue') newUrl = BLUE_WALLPAPER_URL;
         else if (bgChoice === 'grokHorizon') newUrl = GROK_HORIZON_URL;
-        else if (bgChoice === 'christmas') newUrl = CHRISTMAS_BG_URL;
         else if (bgChoice === '__gpt5_animated__') newUrl = '__gpt5_animated__';
 
         tempSettings.customBgUrl = newUrl;
         settings.customBgUrl = newUrl;
         if (typeof applyAllSettings === 'function') applyAllSettings();
-
-        // If Christmas preset selected, auto-check Holiday Mode toggle.
-        const holidayToggle = document.getElementById('welcome-holiday-mode');
-        if (holidayToggle && bgChoice === 'christmas') {
-          holidayToggle.checked = true;
-          tempSettings.enableSnowfall = true;
-          tempSettings.enableNewYear = true;
-          settings.enableSnowfall = true;
-          settings.enableNewYear = true;
-          if (typeof applyAllSettings === 'function') applyAllSettings();
-        }
       });
     });
-
-    const welcomeHolidayMode = document.getElementById('welcome-holiday-mode');
-    if (welcomeHolidayMode) {
-      welcomeHolidayMode.addEventListener('change', () => {
-        const isOn = welcomeHolidayMode.checked;
-        tempSettings.enableSnowfall = isOn;
-        tempSettings.enableNewYear = isOn;
-        settings.enableSnowfall = isOn;
-        settings.enableNewYear = isOn;
-
-        if (isOn) {
-          tempSettings.customBgUrl = CHRISTMAS_BG_URL;
-          settings.customBgUrl = CHRISTMAS_BG_URL;
-          document.querySelectorAll('#aurora-style-bar .preset-tile').forEach((t) => t.classList.remove('active'));
-          const christmasTile = document.querySelector('#aurora-style-bar .preset-tile[data-bg-url="christmas"]');
-          christmasTile?.classList.add('active');
-        }
-
-        if (typeof applyAllSettings === 'function') applyAllSettings();
-      });
-    }
 
     const glassSwitch = document.getElementById('welcome-glass-switch');
     if (glassSwitch) {
@@ -284,4 +230,3 @@
 
   A.welcome.show = A.welcome.show || show;
 })();
-

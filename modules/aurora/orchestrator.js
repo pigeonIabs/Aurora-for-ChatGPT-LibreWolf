@@ -116,12 +116,6 @@
     }
   }
 
-  class AuroraHolidayController {
-    apply() {
-      A.holiday?.apply?.();
-    }
-  }
-
   class AuroraMessageQueueController {
     pulse() {
       A.queue?.pulse?.();
@@ -155,7 +149,6 @@
       this.audio = new AuroraAudioController();
       this.contrast = new AuroraContrastController();
       this.dataMasking = new AuroraDataMaskingController();
-      this.holiday = new AuroraHolidayController();
       this.queue = new AuroraMessageQueueController();
     }
 
@@ -243,7 +236,6 @@
       this.audio.attachOrDetach();
       this.contrast.apply();
       this.dataMasking.applyInitial();
-      this.holiday.apply();
 
       this.queue.pulse();
     }
@@ -423,8 +415,6 @@
         if (!isEnabled()) return;
 
         if (changes.queueWhileGenerating) this.queue.schedulePulse(0);
-
-        if (changes.enableSnowfall || changes.enableNewYear) this.holiday.apply();
 
         const rootFlagKeys = [
           'legacyComposer',

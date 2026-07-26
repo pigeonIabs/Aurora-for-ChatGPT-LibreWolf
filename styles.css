@@ -569,27 +569,6 @@ html.cgpt-light-mode #aurora-welcome-overlay .progress-dots .dot.active {
   margin: 0;
 }
 
-/* Christmas Tile Festive Glow */
-.aurora-setup-bar .christmas-tile {
-  animation: christmas-glow 2s ease-in-out infinite;
-  position: relative;
-}
-@keyframes christmas-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 139, 34, 0); }
-  50% { box-shadow: 0 0 12px 2px rgba(34, 139, 34, 0.4), 0 0 20px 4px rgba(178, 34, 34, 0.2); }
-}
-.aurora-setup-bar .christmas-tile::after {
-  content: '✨';
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  font-size: 12px;
-  animation: sparkle-float 1.5s ease-in-out infinite;
-}
-@keyframes sparkle-float {
-  0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
-  50% { transform: translateY(-3px) scale(1.1); opacity: 0.8; }
-}
 
 /* Success Checkmark Overlay */
 .success-overlay {
@@ -828,36 +807,10 @@ html.cgpt-light-mode .aurora-setup-bar .preset-tile:hover { background: rgba(0,0
 .aurora-setup-bar .preset-tile .preview { width: 100%; height: 40px; border-radius: 8px; margin-bottom: 8px; background-size: cover; background-position: center; }
 .aurora-setup-bar .preview.default { background-image: url('https://persistent.oaistatic.com/burrito-nux/640.webp'); }
 .aurora-setup-bar .preview.animated { background: linear-gradient(45deg, #ff99c8, #a9d6ff, #fcf6bd); }
-.aurora-setup-bar .preview.grok { background-image: url('chrome-extension://__MSG_@@extension_id__/Aurora/grok-4.webp'); }
+.aurora-setup-bar .preview.grok { background-image: url('assets/grok-4.webp'); }
 .aurora-setup-bar .preview.blue { background-color: #3b82f6; }
-.aurora-setup-bar .preview.christmas { background: linear-gradient(135deg, #1a472a 0%, #2d5a27 50%, #8b0000 100%); background-size: cover; }
 
-/* Holiday Mode Section in Setup Bar */
-.aurora-setup-bar .holiday-section { 
-  background: linear-gradient(135deg, rgba(34, 139, 34, 0.15) 0%, rgba(178, 34, 34, 0.15) 100%);
-  border: 1px solid rgba(34, 139, 34, 0.25);
-  border-radius: 12px;
-  padding: 10px 14px;
-}
-.aurora-setup-bar .holiday-mode-toggle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.aurora-setup-bar .holiday-emoji {
-  font-size: 20px;
-  animation: holiday-tree-bounce 2s ease-in-out infinite;
-}
-@keyframes holiday-tree-bounce {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-}
-.aurora-setup-bar .holiday-label {
-  font-weight: 500;
-  font-size: 14px;
-  color: var(--theme-text-primary);
-  white-space: nowrap;
-}
+
 .aurora-setup-bar .setup-divider {
   width: 1px;
   height: 40px;
@@ -1189,15 +1142,6 @@ html.cgpt-light-mode #cgpt-qs-panel {
 html.cgpt-light-mode .qs-row:hover { background: rgba(0,0,0,0.06); }
 .qs-row label:not(.switch) { font-size: 13px; opacity: 0.95; }
 
-/* Holiday Mode special styling */
-.qs-row.qs-holiday-mode {
-  background: linear-gradient(135deg, rgba(34, 139, 34, 0.12) 0%, rgba(178, 34, 34, 0.12) 100%);
-  border: 1px solid rgba(34, 139, 34, 0.25);
-  margin-bottom: 4px;
-}
-.qs-row.qs-holiday-mode:hover {
-  background: linear-gradient(135deg, rgba(34, 139, 34, 0.2) 0%, rgba(178, 34, 34, 0.2) 100%);
-}
 
 .qs-row .switch { position: relative; width: 42px; height: 24px; flex: 0 0 auto; }
 .qs-row .switch input { display: none; }

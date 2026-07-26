@@ -1,12 +1,12 @@
 {
   "extensionName": {
-    "message": "Aurora for ChatGPT"
+    "message": "Aurora for ChatGPT LibreWolf"
   },
   "extensionDescription": {
-    "message": "使用惊艳的玻璃拟态主题、实时令牌计数器、隐私套件和节日效果来升级您的 ChatGPT。"
+    "message": "Upgrade ChatGPT with a Glassmorphism theme, real-time token counter, privacy suite, custom backgrounds, and workflow controls."
   },
   "actionTitle": {
-    "message": "Aurora for ChatGPT — 设置"
+    "message": "Aurora for ChatGPT LibreWolf Settings"
   },
   "buttonChooseFile": {
     "message": "使用本地文件"
@@ -70,27 +70,6 @@
   },
   "tooltipLegacyComposer": {
     "message": "使用网站的标准编辑器样式"
-  },
-  "sectionHolidayEffects": {
-    "message": "节日特效"
-  },
-  "labelSnowfall": {
-    "message": "下雪吧"
-  },
-  "tooltipSnowfall": {
-    "message": "启用下雪动画"
-  },
-  "labelNewYear": {
-    "message": "新年 '26"
-  },
-  "tooltipNewYear": {
-    "message": "启用新年彩灯串"
-  },
-  "labelHolidayMode": {
-    "message": "节日模式"
-  },
-  "tooltipHolidayMode": {
-    "message": "雪花、彩灯和节日背景"
   },
   "labelCinemaMode": {
     "message": "影院模式"
@@ -230,9 +209,6 @@
   "bgPresetOptionGrokHorizon": {
     "message": "Grok地平线"
   },
-  "bgPresetOptionChristmas": {
-    "message": "🎄 圣诞"
-  },
   "bgPresetOptionCustom": {
     "message": "自定义"
   },
@@ -315,10 +291,10 @@
     "message": "预览主题"
   },
   "welcomeTitle": {
-    "message": "节日快乐！🎄"
+    "message": "Welcome to Aurora"
   },
   "welcomeDescription": {
-    "message": "Aurora祝您节日快乐。使用环境背景、玻璃效果和节日氛围来个性化您的ChatGPT。"
+    "message": "Personalize ChatGPT with ambient backgrounds, glass effects, privacy controls, and workflow upgrades."
   },
   "welcomeBtnGetStarted": {
     "message": "开始使用"

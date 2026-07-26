@@ -25,8 +25,6 @@ const DEFAULTS = {
   smartSelectors: true,
   dataMaskingEnabled: false,
   maskingRandomMode: false,
-  enableSnowfall: false,
-  enableNewYear: false,
   cinemaMode: false,
   extensionEnabled: true
 };

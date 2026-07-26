@@ -1,12 +1,12 @@
 {
   "extensionName": {
-    "message": "Aurora for ChatGPT"
+    "message": "Aurora for ChatGPT LibreWolf"
   },
   "extensionDescription": {
-    "message": "Mejora ChatGPT con un impresionante tema de Glassmorphism, contador de tokens en tiempo real, suite de privacidad y efectos festivos de temporada."
+    "message": "Upgrade ChatGPT with a Glassmorphism theme, real-time token counter, privacy suite, custom backgrounds, and workflow controls."
   },
   "actionTitle": {
-    "message": "Aurora for ChatGPT — Ajustes"
+    "message": "Aurora for ChatGPT LibreWolf Settings"
   },
   "buttonChooseFile": {
     "message": "Usar archivo local"
@@ -76,27 +76,6 @@
   },
   "tooltipLegacyComposer": {
     "message": "Usa el estilo estándar del editor del sitio"
-  },
-  "sectionHolidayEffects": {
-    "message": "Efectos festivos"
-  },
-  "labelSnowfall": {
-    "message": "Que nieve"
-  },
-  "tooltipSnowfall": {
-    "message": "Activar animación de nieve"
-  },
-  "labelNewYear": {
-    "message": "Año Nuevo '26"
-  },
-  "tooltipNewYear": {
-    "message": "Activar guirnalda de Año Nuevo"
-  },
-  "labelHolidayMode": {
-    "message": "Modo Festivo"
-  },
-  "tooltipHolidayMode": {
-    "message": "Nieve, luces y fondo festivo"
   },
   "labelCinemaMode": {
     "message": "Modo Cine"
@@ -230,9 +209,6 @@
   "bgPresetOptionGrokHorizon": {
     "message": "Horizonte Grok"
   },
-  "bgPresetOptionChristmas": {
-    "message": "🎄 Navidad"
-  },
   "bgScalingOptionContain": {
     "message": "Contener (ajustar)"
   },
@@ -315,10 +291,10 @@
     "message": "Previsualizar Tema"
   },
   "welcomeTitle": {
-    "message": "¡Felices Fiestas! 🎄"
+    "message": "Welcome to Aurora"
   },
   "welcomeDescription": {
-    "message": "Aurora te desea una temporada mágica. Personaliza tu ChatGPT con fondos ambientales, efectos de vidrio y ambiente festivo."
+    "message": "Personalize ChatGPT with ambient backgrounds, glass effects, privacy controls, and workflow upgrades."
   },
   "welcomeBtnGetStarted": {
     "message": "Comenzar"

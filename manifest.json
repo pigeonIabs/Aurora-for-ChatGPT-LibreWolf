@@ -1,10 +1,13 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "default_locale": "en",
   "description": "__MSG_extensionDescription__",
   "background": {
+    "scripts": [
+      "background.js"
+    ],
     "service_worker": "background.js"
   },
   "icons": {
@@ -14,9 +17,35 @@
     "128": "icons/logo-128.png"
   },
   "permissions": [
-    "storage",
-    "scripting"
+    "storage"
   ],
+  "host_permissions": [
+    "https://chat.openai.com/*",
+    "https://chatgpt.com/*",
+    "https://openai.com/*",
+    "https://auroraforchatgpt.tnemoroccan.workers.dev/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "aurora-for-chatgpt-librewolf@local",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ],
+        "optional": [
+          "personalCommunications",
+          "technicalAndInteraction"
+        ]
+      },
+      "strict_min_version": "140.0"
+    },
+    "gecko_android": {
+      "strict_min_version": "142.0"
+    }
+  },
   "commands": {
     "toggle-visibility": {
       "suggested_key": {
@@ -69,7 +98,6 @@
         "modules/aurora/audio.js",
         "modules/aurora/masking.js",
         "modules/aurora/token-counter-bridge.js",
-        "modules/aurora/holiday.js",
         "modules/aurora/welcome.js",
         "modules/aurora/queue.js",
         "modules/aurora/disable.js",
@@ -88,13 +116,7 @@
     {
       "resources": [
         "icons/*",
-        "assets/santa_hat_cutout_v2.png",
-        "assets/Left.png",
-        "assets/Right.png",
-        "assets/ChatGPT-Logo.svg.png",
-        "assets/Santa.mp4",
         "assets/grok-4.webp",
-        "assets/christmas-bg.webp",
         "_locales/*/messages.json",
         "vendor/tiktoken-lite/*",
         "vendor/tiktoken-lite/encoders/*"

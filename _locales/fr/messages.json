@@ -1,12 +1,12 @@
 {
   "extensionName": {
-    "message": "Aurora for ChatGPT"
+    "message": "Aurora for ChatGPT LibreWolf"
   },
   "extensionDescription": {
-    "message": "Améliorez ChatGPT avec un superbe thème Glassmorphism, un compteur de tokens en temps réel, une suite de confidentialité et des effets festifs."
+    "message": "Upgrade ChatGPT with a Glassmorphism theme, real-time token counter, privacy suite, custom backgrounds, and workflow controls."
   },
   "actionTitle": {
-    "message": "Aurora for ChatGPT — Paramètres"
+    "message": "Aurora for ChatGPT LibreWolf Settings"
   },
   "buttonChooseFile": {
     "message": "Utiliser un fichier local"
@@ -70,27 +70,6 @@
   },
   "tooltipLegacyComposer": {
     "message": "Utiliser le style d'éditeur standard du site"
-  },
-  "sectionHolidayEffects": {
-    "message": "Effets des fêtes"
-  },
-  "labelSnowfall": {
-    "message": "Qu'il neige"
-  },
-  "tooltipSnowfall": {
-    "message": "Activer l'animation de neige"
-  },
-  "labelNewYear": {
-    "message": "Nouvel An '26"
-  },
-  "tooltipNewYear": {
-    "message": "Activer la guirlande du Nouvel An"
-  },
-  "labelHolidayMode": {
-    "message": "Mode Fêtes"
-  },
-  "tooltipHolidayMode": {
-    "message": "Neige, lumières et arrière-plan festif"
   },
   "labelCinemaMode": {
     "message": "Mode Cinéma"
@@ -230,9 +209,6 @@
   "bgPresetOptionGrokHorizon": {
     "message": "Horizon Grok"
   },
-  "bgPresetOptionChristmas": {
-    "message": "🎄 Noël"
-  },
   "bgPresetOptionCustom": {
     "message": "Personnalisé"
   },
@@ -315,10 +291,10 @@
     "message": "Aperçu du thème"
   },
   "welcomeTitle": {
-    "message": "Joyeuses Fêtes ! 🎄"
+    "message": "Welcome to Aurora"
   },
   "welcomeDescription": {
-    "message": "Aurora vous souhaite une saison magique. Personnalisez votre ChatGPT avec des arrière-plans ambiants, des effets de verre et une ambiance festive."
+    "message": "Personalize ChatGPT with ambient backgrounds, glass effects, privacy controls, and workflow upgrades."
   },
   "welcomeBtnGetStarted": {
     "message": "Commencer"
