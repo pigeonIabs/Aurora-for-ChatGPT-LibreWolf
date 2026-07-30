@@ -44,23 +44,45 @@
     wrap.style.setProperty('--cgpt-object-fit', 'cover');
     Object.assign(wrap.style, { position: 'fixed', inset: '0', zIndex: '-1', pointerEvents: 'none', overflow: 'hidden' });
 
-    const createLayerContent = () => `
-      <div class="animated-bg">
-        <div class="blob"></div><div class="blob"></div><div class="blob"></div>
-      </div>
-      <video playsinline autoplay muted loop></video>
-      <picture>
-        <source type="image/webp" srcset="">
-        <img alt="" aria-hidden="true" sizes="100vw" loading="eager" fetchpriority="high" src="" srcset="">
-      </picture>
-    `;
+    const createLayer = (layerId, active = false) => {
+      const layer = document.createElement('div');
+      layer.className = `media-layer${active ? ' active' : ''}`;
+      layer.dataset.layerId = layerId;
 
-    wrap.innerHTML = `
-      <div class="media-layer active" data-layer-id="a">${createLayerContent()}</div>
-      <div class="media-layer" data-layer-id="b">${createLayerContent()}</div>
-      <div class="haze"></div>
-      <div class="overlay"></div>
-    `;
+      const animatedBg = document.createElement('div');
+      animatedBg.className = 'animated-bg';
+      for (let index = 0; index < 3; index += 1) {
+        const blob = document.createElement('div');
+        blob.className = 'blob';
+        animatedBg.appendChild(blob);
+      }
+
+      const video = document.createElement('video');
+      video.playsInline = true;
+      video.autoplay = true;
+      video.muted = true;
+      video.loop = true;
+
+      const picture = document.createElement('picture');
+      const source = document.createElement('source');
+      source.type = 'image/webp';
+      const image = document.createElement('img');
+      image.alt = '';
+      image.setAttribute('aria-hidden', 'true');
+      image.sizes = '100vw';
+      image.loading = 'eager';
+      image.setAttribute('fetchpriority', 'high');
+      picture.append(source, image);
+
+      layer.append(animatedBg, video, picture);
+      return layer;
+    };
+
+    const haze = document.createElement('div');
+    haze.className = 'haze';
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay';
+    wrap.append(createLayer('a', true), createLayer('b'), haze, overlay);
     return wrap;
   }
 

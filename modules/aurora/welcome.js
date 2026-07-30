@@ -13,6 +13,11 @@
 
   const getMessage = A.i18n?.getMessage || ((k) => k);
   const getSettings = () => (A.getSettings ? A.getSettings() : {});
+  const escapeHtml = (value) =>
+    String(value ?? '').replace(/[&<>"']/g, (character) => {
+      const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+      return entities[character];
+    });
 
   function getWelcomeScreenHTML() {
     const logoUrl = chrome?.runtime?.getURL ? chrome.runtime.getURL('icons/logo-48.png') : '';
@@ -21,51 +26,53 @@
         <div class="welcome-container">
           <div id="screen-1" class="screen active">
             <div class="content-panel">
-              <img src="${logoUrl}" alt="Aurora" class="aurora-logo-img">
-              <h1>${getMessage('welcomeTitle')}</h1>
-              <p>${getMessage('welcomeDescription')}</p>
+              <img src="${escapeHtml(logoUrl)}" alt="Aurora" class="aurora-logo-img">
+              <h1>${escapeHtml(getMessage('welcomeTitle'))}</h1>
+              <p>${escapeHtml(getMessage('welcomeDescription'))}</p>
               <div class="progress-dots">
                 <span class="dot active"></span>
                 <span class="dot"></span>
                 <span class="dot"></span>
               </div>
-              <button id="get-started-btn" class="welcome-btn primary">${getMessage('welcomeBtnGetStarted')}</button>
+              <button id="get-started-btn" class="welcome-btn primary">${escapeHtml(
+                getMessage('welcomeBtnGetStarted')
+              )}</button>
             </div>
           </div>
         </div>
 
         <div id="aurora-style-bar" class="aurora-setup-bar">
           <div class="setup-section">
-            <label class="section-label">${getMessage('welcomeLabelBgPreset')}</label>
+            <label class="section-label">${escapeHtml(getMessage('welcomeLabelBgPreset'))}</label>
             <div class="preset-grid">
               <button class="preset-tile" data-bg-url="default">
                 <div class="preview default"></div>
-                <span>${getMessage('welcomePresetDefault')}</span>
+                <span>${escapeHtml(getMessage('welcomePresetDefault'))}</span>
               </button>
               <button class="preset-tile" data-bg-url="__gpt5_animated__">
                 <div class="preview animated"></div>
-                <span>${getMessage('welcomePresetAnimated')}</span>
+                <span>${escapeHtml(getMessage('welcomePresetAnimated'))}</span>
               </button>
               <button class="preset-tile" data-bg-url="grokHorizon">
                 <div class="preview grok"></div>
-                <span>${getMessage('welcomePresetHorizon')}</span>
+                <span>${escapeHtml(getMessage('welcomePresetHorizon'))}</span>
               </button>
               <button class="preset-tile" data-bg-url="blue">
                 <div class="preview blue"></div>
-                <span>${getMessage('welcomePresetBlue')}</span>
+                <span>${escapeHtml(getMessage('welcomePresetBlue'))}</span>
               </button>
             </div>
           </div>
 
           <div class="setup-section">
-            <label class="section-label">${getMessage('welcomeLabelGlassStyle')}</label>
+            <label class="section-label">${escapeHtml(getMessage('welcomeLabelGlassStyle'))}</label>
             <div class="aurora-glass-switch" id="welcome-glass-switch" data-switch-state="0">
               <div class="aurora-switch-glider"></div>
-              <button type="button" class="aurora-switch-btn" data-value="0" data-appearance="clear">${getMessage(
-                'welcomeGlassClear'
+              <button type="button" class="aurora-switch-btn" data-value="0" data-appearance="clear">${escapeHtml(
+                getMessage('welcomeGlassClear')
               )}</button>
-              <button type="button" class="aurora-switch-btn" data-value="1" data-appearance="dimmed">${getMessage(
-                'welcomeGlassDimmed'
+              <button type="button" class="aurora-switch-btn" data-value="1" data-appearance="dimmed">${escapeHtml(
+                getMessage('welcomeGlassDimmed')
               )}</button>
             </div>
           </div>
@@ -76,23 +83,25 @@
             <span class="dot"></span>
           </div>
 
-          <button id="next-to-support-btn" class="welcome-btn primary finish-button">${getMessage('welcomeBtnNext')}</button>
+          <button id="next-to-support-btn" class="welcome-btn primary finish-button">${escapeHtml(
+            getMessage('welcomeBtnNext')
+          )}</button>
         </div>
 
         <div id="aurora-support-screen" class="support-screen">
           <div class="support-card">
             <div class="support-header">
               <span class="support-icon">A</span>
-              <h2>${getMessage('welcomeSupportTitle')}</h2>
+              <h2>${escapeHtml(getMessage('welcomeSupportTitle'))}</h2>
             </div>
-            <p class="support-description">${getMessage('welcomeSupportDescription')}</p>
+            <p class="support-description">${escapeHtml(getMessage('welcomeSupportDescription'))}</p>
 
             <div class="support-buttons">
               <a href="https://ko-fi.com/testtm" target="_blank" rel="noopener" class="support-btn donate-btn">
-                <span>${getMessage('welcomeSupportDonate')}</span>
+                <span>${escapeHtml(getMessage('welcomeSupportDonate'))}</span>
               </a>
               <a href="https://github.com/TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT" target="_blank" rel="noopener" class="support-btn github-btn">
-                <span>${getMessage('welcomeSupportStar')}</span>
+                <span>${escapeHtml(getMessage('welcomeSupportStar'))}</span>
               </a>
             </div>
 
@@ -102,8 +111,10 @@
               <span class="dot active"></span>
             </div>
 
-            <button id="finish-btn" class="welcome-btn primary">${getMessage('welcomeBtnFinish')}</button>
-            <button id="skip-support-btn" class="welcome-btn-link">${getMessage('welcomeBtnSkip')}</button>
+            <button id="finish-btn" class="welcome-btn primary">${escapeHtml(getMessage('welcomeBtnFinish'))}</button>
+            <button id="skip-support-btn" class="welcome-btn-link">${escapeHtml(
+              getMessage('welcomeBtnSkip')
+            )}</button>
           </div>
         </div>
 
@@ -123,9 +134,9 @@
     if (!document.body) return;
     if (document.getElementById('aurora-welcome-overlay')) return;
 
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = getWelcomeScreenHTML();
-    if (wrapper.firstElementChild) document.body.appendChild(wrapper.firstElementChild);
+    const welcomeDocument = new DOMParser().parseFromString(getWelcomeScreenHTML(), 'text/html');
+    const parsedOverlay = welcomeDocument.getElementById('aurora-welcome-overlay');
+    if (parsedOverlay) document.body.appendChild(document.importNode(parsedOverlay, true));
 
     const settings = getSettings();
     const tempSettings = { ...settings };

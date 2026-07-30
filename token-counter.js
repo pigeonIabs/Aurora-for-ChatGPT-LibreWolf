@@ -27,6 +27,10 @@ const debounce = (fn, delay) => {
 
 const DEFAULT_ENCODING = 'o200k_base';
 const SECONDARY_ENCODING = 'cl100k_base';
+const ENCODER_MODULE_LOADERS = Object.freeze({
+    o200k_base: () => import('./vendor/tiktoken-lite/encoders/o200k_base.js'),
+    cl100k_base: () => import('./vendor/tiktoken-lite/encoders/cl100k_base.js')
+});
 const ENCODING_HINTS = [
     { regex: /(gpt-4o|gpt-4\.1|o4|4\.1|4o|o3|o1|gpt-5)/i, encoding: 'o200k_base' },
     { regex: /(gpt-4|gpt-3\.5|3\.5|turbo|davinci|curie|babbage|ada)/i, encoding: 'cl100k_base' }
@@ -143,10 +147,9 @@ function getTokenColorClass(percentage) {
 
 async function loadTiktokenModule() {
     if (!tiktokenModulePromise) {
-        const jsUrl = getRuntimeUrl('vendor/tiktoken-lite/tiktoken.js');
         const wasmUrl = getRuntimeUrl('vendor/tiktoken-lite/tiktoken_bg.wasm');
 
-        tiktokenModulePromise = import(jsUrl).then(async (module) => {
+        tiktokenModulePromise = import('./vendor/tiktoken-lite/tiktoken.js').then(async (module) => {
             await module.init(wasmUrl);
             return module;
         }).catch((err) => {
@@ -161,10 +164,14 @@ async function loadTiktokenModule() {
 async function getEncoder(encodingName) {
     if (encoderCache[encodingName]) return encoderCache[encodingName];
     if (!encoderPromises[encodingName]) {
+        const loadEncoderModule = ENCODER_MODULE_LOADERS[encodingName];
+        if (!loadEncoderModule) {
+            throw new Error(`Unsupported tokenizer encoding: ${encodingName}`);
+        }
         encoderPromises[encodingName] = (async () => {
             const [{ Tiktoken }, dataModule] = await Promise.all([
                 loadTiktokenModule(),
-                import(getRuntimeUrl(`vendor/tiktoken-lite/encoders/${encodingName}.js`))
+                loadEncoderModule()
             ]);
             const data = dataModule.default || dataModule;
             const encoder = new Tiktoken(data.bpe_ranks, data.special_tokens, data.pat_str);

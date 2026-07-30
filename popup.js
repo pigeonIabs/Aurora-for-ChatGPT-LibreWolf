@@ -315,12 +315,27 @@ function initOrUpdateSelects(settings) {
     if (!container.dataset.built) {
       container.dataset.built = 'true';
       
-      // Build options HTML
-      optsContainer.innerHTML = cfg.options.filter(o => !o.hidden).map(opt => {
+      // Build option nodes without interpreting labels or values as markup.
+      const optionNodes = cfg.options.filter(o => !o.hidden).map(opt => {
         const txt = opt.labelKey ? getMessage(opt.labelKey) : (opt.label || opt.value);
-        const dotHtml = opt.color ? `<span class="color-dot" style="background-color:${opt.color};display:block;"></span>` : '';
-        return `<div class="select-option" data-value="${opt.value}">${dotHtml}<span>${txt}</span></div>`;
-      }).join('');
+        const optionEl = document.createElement('div');
+        optionEl.className = 'select-option';
+        optionEl.dataset.value = opt.value;
+
+        if (opt.color) {
+          const optionDot = document.createElement('span');
+          optionDot.className = 'color-dot';
+          optionDot.style.backgroundColor = opt.color;
+          optionDot.style.display = 'block';
+          optionEl.appendChild(optionDot);
+        }
+
+        const optionLabel = document.createElement('span');
+        optionLabel.textContent = txt;
+        optionEl.appendChild(optionLabel);
+        return optionEl;
+      });
+      optsContainer.replaceChildren(...optionNodes);
       
       // Attach trigger click listener ONCE
       trigger.addEventListener('click', (e) => {

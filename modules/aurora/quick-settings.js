@@ -39,17 +39,39 @@
     const resolveVoiceLabel = (option) => getMessage(option.labelKey);
 
     const renderVoiceOptions = (selectedValue) => {
-      optionsContainer.innerHTML = voiceColorOptions
-        .map(
-          (option) => `
-        <div class="qs-select-option" role="option" data-value="${option.value}" aria-selected="${option.value === selectedValue}">
-          <span class="qs-color-dot" style="background-color: ${option.color};"></span>
-          <span class="qs-select-label">${resolveVoiceLabel(option)}</span>
-          <svg class="qs-checkmark" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        </div>
-      `
-        )
-        .join('');
+      const optionNodes = voiceColorOptions.map((option) => {
+        const optionEl = document.createElement('div');
+        optionEl.className = 'qs-select-option';
+        optionEl.setAttribute('role', 'option');
+        optionEl.dataset.value = option.value;
+        optionEl.setAttribute('aria-selected', String(option.value === selectedValue));
+
+        const colorDot = document.createElement('span');
+        colorDot.className = 'qs-color-dot';
+        colorDot.style.backgroundColor = option.color;
+
+        const label = document.createElement('span');
+        label.className = 'qs-select-label';
+        label.textContent = resolveVoiceLabel(option);
+
+        const checkmark = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        checkmark.setAttribute('class', 'qs-checkmark');
+        checkmark.setAttribute('width', '16');
+        checkmark.setAttribute('height', '16');
+        checkmark.setAttribute('viewBox', '0 0 24 24');
+        checkmark.setAttribute('fill', 'none');
+        checkmark.setAttribute('stroke', 'currentColor');
+        checkmark.setAttribute('stroke-width', '3');
+        checkmark.setAttribute('stroke-linecap', 'round');
+        checkmark.setAttribute('stroke-linejoin', 'round');
+        const checkPath = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        checkPath.setAttribute('points', '20 6 9 17 4 12');
+        checkmark.appendChild(checkPath);
+
+        optionEl.append(colorDot, label, checkmark);
+        return optionEl;
+      });
+      optionsContainer.replaceChildren(...optionNodes);
 
       optionsContainer.querySelectorAll('.qs-select-option').forEach((optionEl) => {
         optionEl.addEventListener('click', () => {
@@ -144,35 +166,72 @@
       });
     }
 
-    panel.innerHTML = `
-      <div class="qs-section-title">${getMessage('quickSettingsSectionVisibility')}</div>
-      <div class="qs-row" data-setting="focusMode">
-        <label>${getMessage('labelFocusMode')}</label>
-        <label class="switch"><input type="checkbox" id="qs-focusMode"><span class="track"><span class="thumb"></span></span></label>
-      </div>
-      <div class="qs-row" data-setting="hideUpgradeButtons">
-        <label>${getMessage('quickSettingsLabelHideUpgradeButtons')}</label>
-        <label class="switch"><input type="checkbox" id="qs-hideUpgradeButtons"><span class="track"><span class="thumb"></span></span></label>
-      </div>
-      <div class="qs-row" data-setting="blurChatHistory">
-        <label>${getMessage('quickSettingsLabelStreamerMode')}</label>
-        <label class="switch"><input type="checkbox" id="qs-blurChatHistory"><span class="track"><span class="thumb"></span></span></label>
-      </div>
-      <div class="qs-section-title">${getMessage('tabBehavior')}</div>
-      <div class="qs-row" data-setting="queueWhileGenerating">
-        <label>${getMessage('labelQueueWhileGenerating')}</label>
-        <label class="switch"><input type="checkbox" id="qs-queueWhileGenerating"><span class="track"><span class="thumb"></span></span></label>
-      </div>
-      <div class="qs-section-title">${getMessage('sectionAppearance')}</div>
-      <div class="qs-row" data-setting="appearance">
-        <label>${getMessage('quickSettingsLabelGlassStyle')}</label>
-        <div class="aurora-glass-switch" id="qs-appearance-toggle" data-switch-state="${settings.appearance === 'dimmed' ? '1' : '0'}">
-          <div class="aurora-switch-glider"></div>
-          <button type="button" class="aurora-switch-btn" data-value="0" data-setting-value="clear">${getMessage('glassAppearanceOptionClear')}</button>
-          <button type="button" class="aurora-switch-btn" data-value="1" data-setting-value="dimmed">${getMessage('glassAppearanceOptionDimmed')}</button>
-        </div>
-      </div>
-    `;
+    const createSectionTitle = (messageKey) => {
+      const title = document.createElement('div');
+      title.className = 'qs-section-title';
+      title.textContent = getMessage(messageKey);
+      return title;
+    };
+
+    const createToggleRow = (setting, messageKey) => {
+      const row = document.createElement('div');
+      row.className = 'qs-row';
+      row.dataset.setting = setting;
+
+      const title = document.createElement('label');
+      title.textContent = getMessage(messageKey);
+
+      const switchLabel = document.createElement('label');
+      switchLabel.className = 'switch';
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.id = `qs-${setting}`;
+      const track = document.createElement('span');
+      track.className = 'track';
+      const thumb = document.createElement('span');
+      thumb.className = 'thumb';
+      track.appendChild(thumb);
+      switchLabel.append(input, track);
+      row.append(title, switchLabel);
+      return row;
+    };
+
+    const appearanceRow = document.createElement('div');
+    appearanceRow.className = 'qs-row';
+    appearanceRow.dataset.setting = 'appearance';
+    const appearanceLabel = document.createElement('label');
+    appearanceLabel.textContent = getMessage('quickSettingsLabelGlassStyle');
+    const appearanceSwitch = document.createElement('div');
+    appearanceSwitch.className = 'aurora-glass-switch';
+    appearanceSwitch.id = 'qs-appearance-toggle';
+    appearanceSwitch.dataset.switchState = settings.appearance === 'dimmed' ? '1' : '0';
+    const appearanceGlider = document.createElement('div');
+    appearanceGlider.className = 'aurora-switch-glider';
+    appearanceSwitch.appendChild(appearanceGlider);
+    [
+      ['0', 'clear', 'glassAppearanceOptionClear'],
+      ['1', 'dimmed', 'glassAppearanceOptionDimmed'],
+    ].forEach(([value, settingValue, messageKey]) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'aurora-switch-btn';
+      button.dataset.value = value;
+      button.dataset.settingValue = settingValue;
+      button.textContent = getMessage(messageKey);
+      appearanceSwitch.appendChild(button);
+    });
+    appearanceRow.append(appearanceLabel, appearanceSwitch);
+
+    panel.replaceChildren(
+      createSectionTitle('quickSettingsSectionVisibility'),
+      createToggleRow('focusMode', 'labelFocusMode'),
+      createToggleRow('hideUpgradeButtons', 'quickSettingsLabelHideUpgradeButtons'),
+      createToggleRow('blurChatHistory', 'quickSettingsLabelStreamerMode'),
+      createSectionTitle('tabBehavior'),
+      createToggleRow('queueWhileGenerating', 'labelQueueWhileGenerating'),
+      createSectionTitle('sectionAppearance'),
+      appearanceRow
+    );
 
     const qsToggles = ['focusMode', 'hideUpgradeButtons', 'blurChatHistory', 'queueWhileGenerating'];
     qsToggles.forEach((key) => {
