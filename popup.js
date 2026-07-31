@@ -9,7 +9,7 @@ const PURE_BLACK_BACKGROUND = '__pure_black__';
 const FEEDBACK_API_URL = 'https://auroraforchatgpt.tnemoroccan.workers.dev';
 
 const DEFAULTS = {
-  legacyComposer: false, theme: 'auto', appearance: 'clear', hideGpt5Limit: false,
+  legacyComposer: false, theme: 'auto', appearance: 'clear', glassIntensity: 100, hideGpt5Limit: false,
   glassUserMessages: true,
   hideUpgradeButtons: false, disableAnimations: false, focusMode: false,
   hideQuickSettings: false, queueWhileGenerating: false, customBgUrl: '', backgroundBlur: '60',
@@ -104,6 +104,8 @@ function cacheElements() {
   // Individual elements
   $.blurSlider = document.getElementById('blurSlider');
   $.blurValue = document.getElementById('blurValue');
+  $.glassIntensitySlider = document.getElementById('glassIntensitySlider');
+  $.glassIntensityValue = document.getElementById('glassIntensityValue');
   $.bgUrl = document.getElementById('bgUrl');
   $.bgFile = document.getElementById('bgFile');
   $.clearBg = document.getElementById('clearBg');
@@ -178,6 +180,14 @@ function renderUi(settings, localData = {}) {
     $.blurSlider.value = settings.backgroundBlur;
     $.blurValue.textContent = settings.backgroundBlur;
   }
+  if ($.glassIntensitySlider && $.glassIntensityValue) {
+    const storedIntensity = Number(settings.glassIntensity);
+    const intensity = Number.isFinite(storedIntensity)
+      ? Math.max(0, Math.min(100, storedIntensity))
+      : (settings.appearance === 'clear' ? 100 : 0);
+    $.glassIntensitySlider.value = String(intensity);
+    $.glassIntensityValue.textContent = String(intensity);
+  }
 
   // Text Inputs
   if ($.bgUrl) {
@@ -248,7 +258,11 @@ const SELECT_CONFIGS = [
     options: [
       { value: 'clear', labelKey: 'glassAppearanceOptionClear' },
       { value: 'dimmed', labelKey: 'glassAppearanceOptionDimmed' }
-    ]
+    ],
+    onSelect: (val) => chrome.storage.sync.set({
+      appearance: val,
+      glassIntensity: val === 'clear' ? 100 : 0
+    })
   },
   {
     id: 'fontSelector', key: 'customFont',
@@ -460,6 +474,18 @@ function setupChangeListeners() {
       sliderTimeout = setTimeout(() => {
         chrome.storage.sync.set({ backgroundBlur: $.blurSlider.value });
       }, 150);
+    });
+  }
+
+  if ($.glassIntensitySlider) {
+    let glassIntensityTimeout;
+    $.glassIntensitySlider.addEventListener('input', () => {
+      const value = $.glassIntensitySlider.value;
+      if ($.glassIntensityValue) $.glassIntensityValue.textContent = value;
+      clearTimeout(glassIntensityTimeout);
+      glassIntensityTimeout = setTimeout(() => {
+        chrome.storage.sync.set({ glassIntensity: Number(value) });
+      }, 100);
     });
   }
 

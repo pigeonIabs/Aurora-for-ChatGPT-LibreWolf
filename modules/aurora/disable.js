@@ -43,6 +43,10 @@
     root.style.removeProperty('--cgpt-bg-blur-radius');
     root.style.removeProperty('--cgpt-object-fit');
     root.style.removeProperty('--bg-opacity');
+    root.style.removeProperty('--aurora-glass-mix');
+    root.style.removeProperty('--aurora-glass-blur');
+    root.style.removeProperty('--aurora-glass-saturate');
+    root.removeAttribute('data-glass-intensity');
 
     // Optional engines / UI.
     A.fonts?.cleanup?.();

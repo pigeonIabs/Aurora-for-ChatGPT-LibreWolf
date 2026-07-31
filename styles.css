@@ -55,6 +55,11 @@
   --aurora-glass-blur: var(--composer-blur);
   --aurora-glass-saturate: var(--glass-saturate);
   --aurora-glass-glow: transparent;
+  --aurora-glass-mix: 0%;
+  --aurora-clear-bg: var(--clear-bg);
+  --aurora-clear-border: var(--clear-border);
+  --aurora-clear-shadow: var(--clear-shadow);
+  --aurora-clear-glow: var(--clear-glow);
 
   /* CSS Variable-Driven State Defaults */
   --aurora-display-limit: block;
@@ -122,13 +127,6 @@ html.cgpt-appearance-clear {
   --switch-glider-shadow: inset 0 0 1px 0 var(--clear-glow), 0 4px 15px rgba(0,0,0,0.15);
   --switch-glider-blur: blur(12px) saturate(160%);
 
-  /* Semantic Layer Update for CLEAR Theme */
-  --aurora-glass-bg: var(--clear-bg);
-  --aurora-glass-border: var(--clear-border);
-  --aurora-glass-shadow: var(--clear-shadow);
-  --aurora-glass-blur: var(--clear-blur);
-  --aurora-glass-saturate: var(--clear-saturate);
-  --aurora-glass-glow: var(--clear-glow);
 }
 
 html.cgpt-appearance-clear.cgpt-light-mode {
@@ -139,11 +137,21 @@ html.cgpt-appearance-clear.cgpt-light-mode {
   --switch-glider-border: var(--clear-border-light);
   --switch-glider-shadow: 0 2px 8px rgba(0,0,0,0.08);
 
-  /* Semantic Layer Update for CLEAR + LIGHT Theme */
-  --aurora-glass-bg: var(--clear-bg-light);
-  --aurora-glass-border: var(--clear-border-light);
-  --aurora-glass-shadow: var(--clear-shadow-light);
-  --aurora-glass-glow: var(--clear-glow-light);
+}
+
+html.cgpt-light-mode {
+  --aurora-clear-bg: var(--clear-bg-light);
+  --aurora-clear-border: var(--clear-border-light);
+  --aurora-clear-shadow: var(--clear-shadow-light);
+  --aurora-clear-glow: var(--clear-glow-light);
+}
+
+/* The glass slider mixes the dimmed and clear material continuously. */
+html.cgpt-ambient-on {
+  --aurora-glass-bg: color-mix(in srgb, var(--aurora-clear-bg) var(--aurora-glass-mix), var(--composer-bg));
+  --aurora-glass-border: color-mix(in srgb, var(--aurora-clear-border) var(--aurora-glass-mix), var(--composer-border));
+  --aurora-glass-shadow: var(--composer-shadow);
+  --aurora-glass-glow: color-mix(in srgb, var(--aurora-clear-glow) var(--aurora-glass-mix), transparent);
 }
 
 /* --- Base Transparency --- */

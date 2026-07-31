@@ -19,7 +19,7 @@
   "version": {
     "license": "MIT",
     "release_notes": {
-      "en-US": "Removes Firefox manifest compatibility warnings, restricts tokenizer module loading to bundled static paths, and replaces dynamic HTML insertion with safe DOM construction."
+      "en-US": "Adds a 0 to 100 glass clarity slider that continuously blends the dimmed and clear glass materials while preserving the existing appearance presets."
     },
     "approval_notes": "This is an unofficial MIT-licensed fork of TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT. The upstream copyright and MIT license are preserved. There is no build step. The submitted extension contains the human-readable source used at runtime. The unlimitedStorage permission is used only for custom image and video backgrounds selected by the user and stored locally, with a 15 MB file limit. The optional feedback form posts user-entered feedback, a random ticket ID, the extension version, and the browser user agent to auroraforchatgpt.tnemoroccan.workers.dev only after the user initiates submission and grants the optional Firefox data permission."
   }

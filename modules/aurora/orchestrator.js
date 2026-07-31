@@ -427,6 +427,7 @@
           'customFont',
           'voiceColor',
           'appearance',
+          'glassIntensity',
           'cinemaMode',
           'glassUserMessages',
         ];

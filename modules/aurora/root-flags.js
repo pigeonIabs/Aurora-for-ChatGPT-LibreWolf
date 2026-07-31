@@ -39,6 +39,17 @@
     root.classList.toggle('cgpt-blur-chat-history', !!s.blurChatHistory);
     root.classList.toggle('cgpt-blur-avatar', !!s.blurAvatar);
 
+    const storedGlassIntensity = Number(s.glassIntensity);
+    const fallbackGlassIntensity = s.appearance === 'clear' ? 100 : 0;
+    const glassIntensity = Number.isFinite(storedGlassIntensity)
+      ? Math.max(0, Math.min(100, storedGlassIntensity))
+      : fallbackGlassIntensity;
+    const glassRatio = glassIntensity / 100;
+    root.style.setProperty('--aurora-glass-mix', `${glassIntensity}%`);
+    root.style.setProperty('--aurora-glass-blur', `${Math.round(14 + glassRatio * 10)}px`);
+    root.style.setProperty('--aurora-glass-saturate', `${Math.round(140 + glassRatio * 40)}%`);
+    root.setAttribute('data-glass-intensity', String(glassIntensity));
+
     // Custom font support.
     const customFont = s.customFont || 'system';
     root.setAttribute('data-custom-font', customFont);

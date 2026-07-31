@@ -2,6 +2,7 @@ const DEFAULTS = {
   legacyComposer: false,
   theme: 'auto',
   appearance: 'clear',
+  glassIntensity: 100,
   glassUserMessages: true,
   hideGpt5Limit: false,
   hideUpgradeButtons: false,
@@ -87,7 +88,9 @@ chrome.runtime.onInstalled.addListener((details) => {
       const newSettings = {};
       Object.keys(DEFAULTS).forEach((key) => {
         if (items[key] === undefined) {
-          newSettings[key] = DEFAULTS[key];
+          newSettings[key] = key === 'glassIntensity'
+            ? (items.appearance === 'dimmed' ? 0 : DEFAULTS[key])
+            : DEFAULTS[key];
         }
       });
       if (normalizeDefaultModel(items.defaultModel) !== items.defaultModel) {
