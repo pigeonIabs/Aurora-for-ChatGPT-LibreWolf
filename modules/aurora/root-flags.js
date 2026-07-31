@@ -45,8 +45,15 @@
       ? Math.max(0, Math.min(100, storedGlassIntensity))
       : fallbackGlassIntensity;
     // This control changes only the opacity of the glass fill. Appearance
-    // presets continue to provide the border, blur, saturation, and shadow.
+    // presets continue to provide the border, saturation, and shadow.
     root.style.setProperty('--aurora-glass-fill-opacity', `${100 - glassIntensity}%`);
+    const storedBackgroundBlur = Number(s.backgroundBlur);
+    const backgroundBlur = Number.isFinite(storedBackgroundBlur)
+      ? Math.max(0, Math.min(150, storedBackgroundBlur))
+      : 60;
+    const maxGlassBlur = s.appearance === 'clear' ? 24 : 14;
+    const glassBlur = Math.round(maxGlassBlur * Math.min(1, backgroundBlur / 60));
+    root.style.setProperty('--aurora-glass-blur', `${glassBlur}px`);
     root.setAttribute('data-glass-intensity', String(glassIntensity));
 
     // Custom font support.

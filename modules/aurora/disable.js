@@ -44,6 +44,7 @@
     root.style.removeProperty('--cgpt-object-fit');
     root.style.removeProperty('--bg-opacity');
     root.style.removeProperty('--aurora-glass-fill-opacity');
+    root.style.removeProperty('--aurora-glass-blur');
     root.removeAttribute('data-glass-intensity');
 
     // Optional engines / UI.

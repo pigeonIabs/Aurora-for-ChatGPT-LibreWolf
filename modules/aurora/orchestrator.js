@@ -428,6 +428,7 @@
           'voiceColor',
           'appearance',
           'glassIntensity',
+          'backgroundBlur',
           'cinemaMode',
           'glassUserMessages',
         ];
