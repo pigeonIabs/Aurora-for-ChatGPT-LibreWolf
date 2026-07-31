@@ -154,6 +154,43 @@ html.cgpt-ambient-on {
   --aurora-glass-glow: color-mix(in srgb, var(--aurora-clear-glow) var(--aurora-glass-mix), transparent);
 }
 
+/* At 100 the material is fully clear, with no frosted layer left on top. */
+html[data-glass-intensity="100"] {
+  --aurora-glass-bg: transparent !important;
+  --aurora-glass-border: transparent !important;
+  --aurora-glass-shadow: none !important;
+  --aurora-glass-blur: 0px !important;
+  --aurora-glass-saturate: 100% !important;
+  --aurora-glass-glow: transparent !important;
+  --aurora-clear-bg: transparent !important;
+  --aurora-clear-border: transparent !important;
+  --aurora-clear-shadow: none !important;
+  --aurora-clear-glow: transparent !important;
+  --clear-bg: transparent !important;
+  --clear-border: transparent !important;
+  --clear-blur: 0px !important;
+  --clear-saturate: 100% !important;
+  --clear-shadow: none !important;
+  --clear-glow: transparent !important;
+  --clear-bg-light: transparent !important;
+  --clear-border-light: transparent !important;
+  --clear-shadow-light: none !important;
+  --clear-glow-light: transparent !important;
+  --glass-bg: transparent !important;
+  --glass-border: transparent !important;
+  --glass-shadow: none !important;
+  --glass-inner-highlight: transparent !important;
+  --composer-bg: transparent !important;
+  --composer-border: transparent !important;
+  --composer-shadow: none !important;
+  --composer-blur: 0px !important;
+  --sidebar-glass-bg: transparent !important;
+  --sidebar-glass-stroke: transparent !important;
+  --sidebar-glass-shadow: none !important;
+  --sidebar-glass-blur: 0px !important;
+  --sidebar-glass-sat: 100% !important;
+}
+
 /* --- Base Transparency --- */
 html.cgpt-ambient-on,
 html.cgpt-ambient-on body {

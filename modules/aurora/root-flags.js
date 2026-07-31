@@ -46,8 +46,8 @@
       : fallbackGlassIntensity;
     const glassRatio = glassIntensity / 100;
     root.style.setProperty('--aurora-glass-mix', `${glassIntensity}%`);
-    root.style.setProperty('--aurora-glass-blur', `${Math.round(14 + glassRatio * 10)}px`);
-    root.style.setProperty('--aurora-glass-saturate', `${Math.round(140 + glassRatio * 40)}%`);
+    root.style.setProperty('--aurora-glass-blur', `${Math.round(40 * (1 - glassRatio))}px`);
+    root.style.setProperty('--aurora-glass-saturate', `${Math.round(180 - glassRatio * 80)}%`);
     root.setAttribute('data-glass-intensity', String(glassIntensity));
 
     // Custom font support.
