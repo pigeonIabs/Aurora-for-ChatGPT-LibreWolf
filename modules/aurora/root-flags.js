@@ -44,10 +44,9 @@
     const glassIntensity = Number.isFinite(storedGlassIntensity)
       ? Math.max(0, Math.min(100, storedGlassIntensity))
       : fallbackGlassIntensity;
-    const glassRatio = glassIntensity / 100;
-    root.style.setProperty('--aurora-glass-mix', `${glassIntensity}%`);
-    root.style.setProperty('--aurora-glass-blur', `${Math.round(40 * (1 - glassRatio))}px`);
-    root.style.setProperty('--aurora-glass-saturate', `${Math.round(180 - glassRatio * 80)}%`);
+    // This control changes only the opacity of the glass fill. Appearance
+    // presets continue to provide the border, blur, saturation, and shadow.
+    root.style.setProperty('--aurora-glass-fill-opacity', `${100 - glassIntensity}%`);
     root.setAttribute('data-glass-intensity', String(glassIntensity));
 
     // Custom font support.

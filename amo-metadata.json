@@ -19,7 +19,7 @@
   "version": {
     "license": "MIT",
     "release_notes": {
-      "en-US": "Corrects the glass clarity slider so 100 is fully transparent and blur free while 0 keeps the frosted glass treatment."
+      "en-US": "Makes the glass transparency slider control only the fill opacity. Borders, shadows, and blur now stay independent at every value."
     },
     "approval_notes": "This is an unofficial MIT-licensed fork of TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT. The upstream copyright and MIT license are preserved. There is no build step. The submitted extension contains the human-readable source used at runtime. The unlimitedStorage permission is used only for custom image and video backgrounds selected by the user and stored locally, with a 15 MB file limit. The optional feedback form posts user-entered feedback, a random ticket ID, the extension version, and the browser user agent to auroraforchatgpt.tnemoroccan.workers.dev only after the user initiates submission and grants the optional Firefox data permission."
   }

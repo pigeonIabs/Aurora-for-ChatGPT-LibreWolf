@@ -55,7 +55,8 @@
   --aurora-glass-blur: var(--composer-blur);
   --aurora-glass-saturate: var(--glass-saturate);
   --aurora-glass-glow: transparent;
-  --aurora-glass-mix: 0%;
+  --aurora-glass-fill-opacity: 100%;
+  --aurora-glass-fill: var(--aurora-glass-bg);
   --aurora-clear-bg: var(--clear-bg);
   --aurora-clear-border: var(--clear-border);
   --aurora-clear-shadow: var(--clear-shadow);
@@ -146,49 +147,18 @@ html.cgpt-light-mode {
   --aurora-clear-glow: var(--clear-glow-light);
 }
 
-/* The glass slider mixes the dimmed and clear material continuously. */
 html.cgpt-ambient-on {
-  --aurora-glass-bg: color-mix(in srgb, var(--aurora-clear-bg) var(--aurora-glass-mix), var(--composer-bg));
-  --aurora-glass-border: color-mix(in srgb, var(--aurora-clear-border) var(--aurora-glass-mix), var(--composer-border));
-  --aurora-glass-shadow: var(--composer-shadow);
-  --aurora-glass-glow: color-mix(in srgb, var(--aurora-clear-glow) var(--aurora-glass-mix), transparent);
+  --aurora-glass-fill: color-mix(in srgb, var(--aurora-glass-bg) var(--aurora-glass-fill-opacity), transparent);
 }
 
-/* At 100 the material is fully clear, with no frosted layer left on top. */
-html[data-glass-intensity="100"] {
-  --aurora-glass-bg: transparent !important;
-  --aurora-glass-border: transparent !important;
-  --aurora-glass-shadow: none !important;
-  --aurora-glass-blur: 0px !important;
-  --aurora-glass-saturate: 100% !important;
-  --aurora-glass-glow: transparent !important;
-  --aurora-clear-bg: transparent !important;
-  --aurora-clear-border: transparent !important;
-  --aurora-clear-shadow: none !important;
-  --aurora-clear-glow: transparent !important;
-  --clear-bg: transparent !important;
-  --clear-border: transparent !important;
-  --clear-blur: 0px !important;
-  --clear-saturate: 100% !important;
-  --clear-shadow: none !important;
-  --clear-glow: transparent !important;
-  --clear-bg-light: transparent !important;
-  --clear-border-light: transparent !important;
-  --clear-shadow-light: none !important;
-  --clear-glow-light: transparent !important;
-  --glass-bg: transparent !important;
-  --glass-border: transparent !important;
-  --glass-shadow: none !important;
-  --glass-inner-highlight: transparent !important;
-  --composer-bg: transparent !important;
-  --composer-border: transparent !important;
-  --composer-shadow: none !important;
-  --composer-blur: 0px !important;
-  --sidebar-glass-bg: transparent !important;
-  --sidebar-glass-stroke: transparent !important;
-  --sidebar-glass-shadow: none !important;
-  --sidebar-glass-blur: 0px !important;
-  --sidebar-glass-sat: 100% !important;
+html.cgpt-ambient-on.cgpt-appearance-clear {
+  --aurora-glass-bg: var(--aurora-clear-bg);
+  --aurora-glass-border: var(--aurora-clear-border);
+  --aurora-glass-shadow: var(--aurora-clear-shadow);
+  --aurora-glass-blur: var(--clear-blur);
+  --aurora-glass-saturate: var(--clear-saturate);
+  --aurora-glass-glow: var(--aurora-clear-glow);
+  --aurora-glass-fill: color-mix(in srgb, var(--aurora-glass-bg) var(--aurora-glass-fill-opacity), transparent);
 }
 
 /* --- Base Transparency --- */
@@ -284,7 +254,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(
   div.absolute.top-full > div[class*="bg-surface"]
 ) {
   /* Default: "Dimmed" Glass Style */
-  background: var(--aurora-glass-bg) !important;
+  background: var(--aurora-glass-fill) !important;
   border: 1px solid var(--aurora-glass-border) !important;
   box-shadow: inset 0 0 2px 0 var(--aurora-glass-glow), var(--aurora-glass-shadow) !important;
   -webkit-backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate)) !important;
@@ -314,7 +284,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aurora-code-block="true"] 
   [role="button"]
 ) {
   border-color: color-mix(in oklab, var(--aurora-glass-border) 82%, transparent) !important;
-  background: color-mix(in oklab, var(--aurora-glass-bg) 72%, transparent) !important;
+  background: color-mix(in oklab, var(--aurora-glass-fill) 72%, transparent) !important;
   -webkit-backdrop-filter: blur(10px) saturate(140%) !important;
   backdrop-filter: blur(10px) saturate(140%) !important;
 }
@@ -369,7 +339,7 @@ html.cgpt-ambient-on:not(.cgpt-animations-disabled):not(.cgpt-legacy-composer) :
 
 /* User Message Bubble */
 html.cgpt-ambient-on.cgpt-glass-user-messages:not(.cgpt-legacy-composer) div[data-message-author-role="user"] .user-message-bubble-color {
-  background: var(--aurora-glass-bg) !important;
+  background: var(--aurora-glass-fill) !important;
   border: 1px solid var(--aurora-glass-border) !important;
   box-shadow: inset 0 0 2px 0 var(--aurora-glass-glow), var(--aurora-glass-shadow) !important;
   -webkit-backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate)) !important;
@@ -454,8 +424,8 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([role="tooltip"], .bg-token-
 
 /* 1. Apply Glass to the Tooltip Container (Base & Root .bg-black override) */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([role="tooltip"], .bg-token-bg-tooltip, [class*="bg-token-bg-tooltip"], .bg-black[data-state*="open"]) {
-  background: var(--aurora-glass-bg) !important;
-  background-color: var(--aurora-glass-bg) !important; /* Explicitly override color */
+  background: var(--aurora-glass-fill) !important;
+  background-color: var(--aurora-glass-fill) !important; /* Explicitly override color */
   border: 1px solid var(--aurora-glass-border) !important;
   box-shadow: inset 0 0 2px 0 var(--aurora-glass-glow), var(--aurora-glass-shadow) !important;
   -webkit-backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate)) !important;
@@ -1158,7 +1128,7 @@ html.cgpt-light-mode #cgpt-qs-btn svg { color: #000; }
   z-index: 99997;
   width: 260px;
   /* Dynamic Glass Style (Dimmed by default) */
-  background: var(--aurora-glass-bg);
+  background: var(--aurora-glass-fill);
   border: 1px solid var(--aurora-glass-border);
   -webkit-backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate));
   backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate));
@@ -1299,7 +1269,7 @@ html:not(.cgpt-light-mode) .qs-color-dot {
   padding: 6px;
   margin: 0;
   /* OPTIMIZED: Uses Semantic Variables */
-  background: var(--aurora-glass-bg);
+  background: var(--aurora-glass-fill);
   border: 1px solid var(--aurora-glass-border);
   box-shadow: inset 0 0 2px 0 var(--aurora-glass-glow), var(--aurora-glass-shadow);
   -webkit-backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate));
@@ -2061,7 +2031,7 @@ html.cgpt-ambient-on [role="dialog"] .dark\:hover\:bg-white\/10:hover {
 
 /* Settings Dialog Sidebar (Tab List) Glass Blur */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[data-settings-tab-list="true"] {
-  background: color-mix(in oklab, var(--aurora-glass-bg) 60%, transparent) !important;
+  background: color-mix(in oklab, var(--aurora-glass-fill) 60%, transparent) !important;
   border-inline-end: 1px solid var(--aurora-glass-border) !important;
   -webkit-backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate)) !important;
   backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate)) !important;
@@ -2196,7 +2166,7 @@ html.cgpt-light-mode .aurora-queue-btn:hover {
   overflow: hidden;
   border-radius: 14px;
   padding: 10px;
-  background: var(--aurora-glass-bg);
+  background: var(--aurora-glass-fill);
   border: 1px solid var(--aurora-glass-border);
   -webkit-backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate));
   backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate));
