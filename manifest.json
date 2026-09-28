@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "1.7.9",
+  "version": "1.8.0",
   "default_locale": "en",
   "description": "__MSG_extensionDescription__",
   "background": {
@@ -76,10 +76,12 @@
         "https://chatgpt.com/*"
       ],
       "js": [
+        "modules/aurora/dom.js",
         "data-masking.js",
         "token-counter.js",
         "modules/message-queue.js",
         "modules/aurora/namespace.js",
+        "modules/aurora/central-observer.js",
         "modules/aurora/config.js",
         "modules/aurora/utils.js",
         "modules/aurora/i18n.js",
@@ -103,7 +105,8 @@
       ],
       "css": [
         "styles.css",
-        "new-features.css"
+        "new-features.css",
+        "app-skin.css"
       ],
       "run_at": "document_start"
     }

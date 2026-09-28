@@ -97,6 +97,7 @@
     pendingUrl: null,
     abortController: null,
     transitionTimeout: null,
+    generation: 0,
     TRANSITION_MS: 750,
     LOAD_TIMEOUT_MS: 5000,
 
@@ -325,8 +326,7 @@
     async switchTo(url) {
       if (this.state !== 'idle') {
         this.pendingUrl = url;
-        this.abort();
-        await new Promise((r) => setTimeout(r, 50));
+        return;
       }
 
       if (url === this.currentUrl && this.state === 'idle') return;
@@ -337,6 +337,7 @@
       const activeLayer = this.getActiveLayer();
       const inactiveLayer = this.getInactiveLayer();
       if (!activeLayer || !inactiveLayer) return;
+      const generation = this.generation;
 
       try {
         this.state = 'loading';
@@ -366,9 +367,11 @@
           await this.loadDefault(inactiveLayer);
         }
 
+        if (generation !== this.generation) return;
         container.classList.toggle('pure-black-mode', url === '__pure_black__');
         this.state = 'transitioning';
         await this.crossfade(inactiveLayer, activeLayer);
+        if (generation !== this.generation) return;
 
         this.cleanLayer(activeLayer);
 
@@ -382,6 +385,7 @@
           this.switchTo(pending);
         }
       } catch (err) {
+        if (generation !== this.generation) return;
         this.state = 'idle';
         if (err.message !== 'Aborted') console.error('Aurora BG switch error:', err);
       }
@@ -404,7 +408,7 @@
     if (!bgNode) return;
 
     const s = A.getSettings?.() || {};
-    const blurPx = `${s.backgroundBlur || '60'}px`;
+    const blurPx = `${s.backgroundBlur ?? '60'}px`;
     const scaling = s.backgroundScaling || 'cover';
 
     bgNode.style.setProperty('--cgpt-bg-blur-radius', blurPx);
@@ -415,6 +419,7 @@
     if (!isEnabled()) return;
     let node = document.getElementById(ID);
     if (!node) {
+      A.background.reset?.();
       node = makeBgNode();
       const add = () => {
         document.body.prepend(node);
@@ -441,6 +446,7 @@
   A.background.reset =
     A.background.reset ||
     (() => {
+      BackgroundManager.generation += 1;
       try {
         BackgroundManager.abort();
       } catch (e) {

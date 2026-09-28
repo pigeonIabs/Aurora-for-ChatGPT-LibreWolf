@@ -241,7 +241,7 @@ html.theme-light .tab-link.active {
 .switch { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
 .switch input { display: none; }
 .track {
-  position: absolute; inset: 0; border-radius: 11px;
+  position: absolute; inset: 0; border-radius: 6px;
   background-color: rgba(255, 255, 255, 0.1); /* Glassy base */
   border: 1px solid rgba(255, 255, 255, 0.12); /* Subtle border */
   transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
@@ -515,13 +515,13 @@ textarea#feedbackInput:focus {
   box-shadow: none;
 }
 
-/* Send Button - Pill Shape */
+/* Send button */
 .feedback-send-btn {
   width: 100%;
   padding: 8px;
   font-weight: 700;
   font-size: 13px;
-  border-radius: 999px; /* Pill shape */
+  border-radius: 7px;
   cursor: pointer;
   border: none;
   transition: opacity 0.2s;
@@ -671,7 +671,7 @@ html.theme-light .feedback-send-btn {
   text-decoration: none;
   font-weight: 700;
   font-size: 14px;
-  border-radius: 999px;
+  border-radius: 7px;
   margin-bottom: 12px;
   transition: transform 0.2s, box-shadow 0.2s;
   box-sizing: border-box;

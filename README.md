@@ -14,6 +14,10 @@ Install the signed release from Firefox Add-ons, then open `https://chatgpt.com`
 
 For local development, open `about:debugging#/runtime/this-firefox`, choose `Load Temporary Add-on`, and select `manifest.json`.
 
+## Build XPI
+
+Requires Python 3.8 and Git. From the repository root, run `python scripts/build_xpi.py`. It packages tracked files and manifest resources with stable ordering, normalized text line endings, and fixed ZIP timestamps. The XPI is written under `build/` using the version in `manifest.json`.
+
 ## LibreWolf Changes
 
 - Manifest V3 background registration now includes Firefox event page scripts.

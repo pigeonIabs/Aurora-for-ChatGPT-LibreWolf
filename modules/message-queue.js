@@ -24,6 +24,7 @@
 
   class AuroraComposerLocator {
     static findActive() {
+      if (window.AuroraExt?.dom) return window.AuroraExt.dom.findActiveComposer();
       for (const selector of COMPOSER_SELECTORS) {
         const candidates = document.querySelectorAll(selector);
         for (const el of candidates) {
@@ -345,10 +346,19 @@
 
       // Safety: never auto-send a queued message into a different chat.
       if (this.lastHref !== location.href) {
+        const identity = document.querySelector('[data-user-message-bubble]');
+        const canonicalized = new URL(this.lastHref).pathname.startsWith('/c/local-chatgpt') &&
+          /^\/c\/(?!local-chatgpt)/.test(location.pathname) && identity &&
+          this.queue.length > 0 && this.queue.every(item => item.identity === identity);
         this.lastHref = location.href;
-        this.queue = [];
-        this.pending = null;
-        this.ui.removeAll();
+        if (canonicalized) {
+          this.queue.forEach(item => { item.href = location.href; });
+          if (this.pending) this.pending.href = location.href;
+        } else {
+          this.queue = [];
+          this.pending = null;
+          this.ui.removeAll();
+        }
       }
 
       if (!this.isExtensionEnabled?.()) {
@@ -478,7 +488,8 @@
         timeLabel = String(at);
       }
 
-      this.queue.push({ text, href: location.href, at, timeLabel });
+      const identity = document.querySelector('[data-user-message-bubble]');
+      this.queue.push({ text, href: location.href, at, timeLabel, identity });
       AuroraComposerLocator.setText(composer, '');
       this.ui.updateBadge(this.queue.length);
       this.schedulePulse(0);
@@ -557,6 +568,7 @@
     }
 
     findStopButton(form) {
+      if (window.AuroraExt?.dom) return window.AuroraExt.dom.findComposerButton(AuroraComposerLocator.findActive(), 'stop');
       const roots = form ? [form, form.parentElement].filter(Boolean) : [];
       const selectors = [
         'button[data-testid="stop-button"]',
@@ -587,6 +599,7 @@
     }
 
     findSendButton(form) {
+      if (window.AuroraExt?.dom) return window.AuroraExt.dom.findComposerButton(AuroraComposerLocator.findActive(), 'send');
       const roots = form ? [form, form.parentElement].filter(Boolean) : [];
       const localSelectors = [
         'button[data-testid="send-button"]',

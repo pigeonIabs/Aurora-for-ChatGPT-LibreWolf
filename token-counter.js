@@ -28,8 +28,8 @@ const debounce = (fn, delay) => {
 const DEFAULT_ENCODING = 'o200k_base';
 const SECONDARY_ENCODING = 'cl100k_base';
 const ENCODER_MODULE_LOADERS = Object.freeze({
-    o200k_base: () => import('./vendor/tiktoken-lite/encoders/o200k_base.js'),
-    cl100k_base: () => import('./vendor/tiktoken-lite/encoders/cl100k_base.js')
+    o200k_base: () => import(getRuntimeUrl('vendor/tiktoken-lite/encoders/o200k_base.js')),
+    cl100k_base: () => import(getRuntimeUrl('vendor/tiktoken-lite/encoders/cl100k_base.js'))
 });
 const ENCODING_HINTS = [
     { regex: /(gpt-4o|gpt-4\.1|o4|4\.1|4o|o3|o1|gpt-5)/i, encoding: 'o200k_base' },
@@ -91,7 +91,7 @@ function estimateTokens(wordCount) {
 }
 
 function detectModelLabel() {
-    const button = document.querySelector('[data-testid="model-switcher-dropdown-button"]');
+    const button = window.AuroraExt?.dom?.findModelSwitcher() || document.querySelector('[data-testid="model-switcher-dropdown-button"]');
     if (!button) return '';
     return (button.getAttribute('aria-label') || button.textContent || '').trim().toLowerCase();
 }
@@ -109,6 +109,8 @@ function resolveEncodingName() {
  */
 function getModelTokenLimit() {
     const modelLabel = detectModelLabel();
+    // The unified picker exposes effort only. Its label is not a context limit.
+    if (!modelLabel || modelLabel === 'select chatgpt model') return null;
 
     // 1. Try exact or fuzzy match from defined limits
     for (const [slug, limit] of Object.entries(MODEL_TOKEN_LIMITS)) {
@@ -149,7 +151,7 @@ async function loadTiktokenModule() {
     if (!tiktokenModulePromise) {
         const wasmUrl = getRuntimeUrl('vendor/tiktoken-lite/tiktoken_bg.wasm');
 
-        tiktokenModulePromise = import('./vendor/tiktoken-lite/tiktoken.js').then(async (module) => {
+        tiktokenModulePromise = import(getRuntimeUrl('vendor/tiktoken-lite/tiktoken.js')).then(async (module) => {
             await module.init(wasmUrl);
             return module;
         }).catch((err) => {
@@ -281,8 +283,11 @@ function renderCounter(wordCount, tokenCount, approximate) {
     if (wordElement) wordElement.textContent = wordCount;
     if (tokenElement) tokenElement.textContent = approximate ? `~${tokenCount}` : `${tokenCount}`;
 
-    // Update budget bar
-    if (budgetFill && budgetText && tokenCount > 0) {
+    const budget = counter.querySelector('.token-budget-bar-container');
+    const modelLimit = getModelTokenLimit();
+    if (budget) budget.hidden = !modelLimit;
+    // Update budget bar only when the host exposes a recognized model.
+    if (budgetFill && budgetText && tokenCount > 0 && modelLimit) {
         const percentage = calculateTokenPercentage(tokenCount);
         const limit = getModelTokenLimit();
         const colorClass = getTokenColorClass(percentage);
@@ -367,6 +372,7 @@ function isLikelyVisibleComposer(el) {
 }
 
 function findComposerTextarea() {
+    if (window.AuroraExt?.dom) return window.AuroraExt.dom.findActiveComposer();
     // Try multiple selectors to find the textarea
     const selectors = [
         '#prompt-textarea',
@@ -451,9 +457,12 @@ function setupTextareaMonitoring() {
     console.log('[Aurora Token Counter] Monitoring textarea');
     
     // Debounce the expensive token counting (150ms), but update word count immediately
+    let lastInputText = null;
     currentTextareaListener = () => {
         if (!isTokenCounterEnabled) return;
         const text = textarea.value || textarea.textContent || '';
+        if (text === lastInputText) return;
+        lastInputText = text;
         // Show word count immediately (cheap operation)
         const wordCount = countWords(text);
         renderLoading(wordCount);
@@ -477,6 +486,10 @@ function setupTextareaMonitoring() {
     textareaObserverCallback = () => {
         // Early exit if feature disabled (defensive check for race conditions)
         if (!isTokenCounterEnabled || !textareaObserverCallback) return;
+        if (currentTextarea?.isConnected && window.AuroraExt?.dom?.isVisible(currentTextarea)) {
+            currentTextareaListener?.();
+            return;
+        }
         const newTextarea = findComposerTextarea();
         if (newTextarea && newTextarea !== currentTextarea) {
             setupTextareaMonitoring();

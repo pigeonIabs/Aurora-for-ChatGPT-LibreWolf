@@ -13,7 +13,7 @@
   --overlay-gradient: linear-gradient( to top, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.75) 18%, rgba(0, 0, 0, 0.50) 36%, rgba(0, 0, 0, 0.24) 60%, rgba(0, 0, 0, 0.00) 80% );
   
   /* --- THEME: DIMMED GLASS (DEFAULT) --- */
-  --glass-blur: 40px;
+  --glass-blur: var(--aurora-glass-blur, 40px);
   --glass-saturate: 180%;
   --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
   --glass-bg: rgba(44, 44, 51, 0.75);
@@ -21,12 +21,12 @@
   --glass-inner-highlight: rgba(255, 255, 255, 0.1);
   --glass-radius: 24px;
   --menu-item-hover: color-mix(in oklab, currentColor 12%, transparent);
-  --composer-blur: 14px;
+  --composer-blur: var(--aurora-glass-blur, 14px);
   --composer-bg: rgba(0,0,0,0.35);
   --composer-border: rgba(255,255,255,0.14);
   --composer-shadow: 0 8px 30px rgba(0,0,0,.40);
   --user-bubble-border: rgba(255, 255, 255, 0.25);
-  --sidebar-glass-blur: 22px;
+  --sidebar-glass-blur: var(--aurora-glass-blur, 22px);
   --sidebar-glass-sat: 140%;
   --sidebar-glass-bg: rgba(18, 18, 18, 0.14);
   --sidebar-glass-stroke: rgba(255, 255, 255, 0.08);
@@ -36,7 +36,7 @@
   --sidebar-glass-radius: 16px;
 
   /* --- THEME: CLEAR GLASS (LIQUID) --- */
-  --clear-blur: 24px;
+  --clear-blur: var(--aurora-glass-blur, 24px);
   --clear-saturate: 180%;
   --clear-shadow: 0 16px 50px rgba(0,0,0,0.4);
   --clear-bg: rgba(255, 255, 255, 0.08);
@@ -52,11 +52,12 @@
   --aurora-glass-bg: var(--composer-bg);
   --aurora-glass-border: var(--composer-border);
   --aurora-glass-shadow: var(--composer-shadow);
-  --aurora-glass-blur: var(--composer-blur);
+  --aurora-glass-blur: 14px;
   --aurora-glass-saturate: var(--glass-saturate);
   --aurora-glass-glow: transparent;
   --aurora-glass-fill-opacity: 100%;
   --aurora-glass-fill: var(--aurora-glass-bg);
+  --aurora-sidebar-glass-fill: color-mix(in srgb, var(--sidebar-glass-bg) var(--aurora-glass-fill-opacity), transparent);
   --aurora-clear-bg: var(--clear-bg);
   --aurora-clear-border: var(--clear-border);
   --aurora-clear-shadow: var(--clear-shadow);
@@ -80,7 +81,7 @@
   --switch-text-color: var(--theme-text-secondary);
   --switch-active-text-color: #fff;
   --switch-active-text-shadow: 0 1px 2px rgba(0,0,0,0.25);
-  --switch-glider-blur: blur(8px) saturate(120%);
+  --switch-glider-blur: blur(var(--aurora-glass-blur)) saturate(120%);
 }
 
 html.cgpt-ambient-on.cgpt-light-mode {
@@ -126,7 +127,7 @@ html.cgpt-appearance-clear {
   --switch-glider-bg: rgba(255, 255, 255, 0.15);
   --switch-glider-border: var(--clear-border);
   --switch-glider-shadow: inset 0 0 1px 0 var(--clear-glow), 0 4px 15px rgba(0,0,0,0.15);
-  --switch-glider-blur: blur(12px) saturate(160%);
+  --switch-glider-blur: blur(var(--aurora-glass-blur)) saturate(160%);
 
 }
 
@@ -257,8 +258,8 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(
   background: var(--aurora-glass-fill) !important;
   border: 1px solid var(--aurora-glass-border) !important;
   box-shadow: inset 0 0 2px 0 var(--aurora-glass-glow), var(--aurora-glass-shadow) !important;
-  -webkit-backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate)) !important;
-  backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, none) !important;
   /* Removed background transition to prevent open glitches */
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   will-change: filter, backdrop-filter;
@@ -342,8 +343,8 @@ html.cgpt-ambient-on.cgpt-glass-user-messages:not(.cgpt-legacy-composer) div[dat
   background: var(--aurora-glass-fill) !important;
   border: 1px solid var(--aurora-glass-border) !important;
   box-shadow: inset 0 0 2px 0 var(--aurora-glass-glow), var(--aurora-glass-shadow) !important;
-  -webkit-backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate)) !important;
-  backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, none) !important;
 }
 
 /* Danger Button (Special Case) */
@@ -428,8 +429,8 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([role="tooltip"], .bg-token-
   background-color: var(--aurora-glass-fill) !important; /* Explicitly override color */
   border: 1px solid var(--aurora-glass-border) !important;
   box-shadow: inset 0 0 2px 0 var(--aurora-glass-glow), var(--aurora-glass-shadow) !important;
-  -webkit-backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate)) !important;
-  backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, none) !important;
   color: var(--theme-text-primary) !important;
 }
 
@@ -866,9 +867,9 @@ html.cgpt-light-mode .aurora-setup-bar .setup-divider {
   background: rgba(0, 0, 0, 0.1);
 }
 
-.aurora-setup-bar .pill-group { display: flex; gap: 8px; background: rgba(0,0,0,0.2); border-radius: 999px; padding: 4px; }
+.aurora-setup-bar .pill-group { display: flex; gap: 8px; background: rgba(0,0,0,0.2); border-radius: 6px; padding: 4px; }
 html.cgpt-light-mode .aurora-setup-bar .pill-group { background: rgba(0,0,0,0.1); }
-.aurora-setup-bar .pill-btn { flex-grow: 1; border: none; background: transparent; color: var(--theme-text-secondary) !important; font-family: inherit; font-size: 14px; padding: 8px 16px; border-radius: 999px; cursor: pointer; transition: all 0.2s ease; }
+.aurora-setup-bar .pill-btn { flex-grow: 1; border: none; background: transparent; color: var(--theme-text-secondary) !important; font-family: inherit; font-size: 14px; padding: 8px 16px; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; }
 .aurora-setup-bar .pill-btn.active { background: rgba(255, 255, 255, 0.15); color: var(--theme-text-primary) !important; font-weight: 500; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
 html.cgpt-light-mode .aurora-setup-bar .pill-btn.active { background: rgba(255, 255, 255, 0.5); }
 
@@ -890,7 +891,7 @@ html.cgpt-light-mode .aurora-setup-bar .voice-pill .qs-color-dot { border-color:
 .aurora-setup-bar .cute-ui-control { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--theme-text-primary); }
 .aurora-setup-bar .switch { position: relative; width: 42px; height: 24px; flex-shrink: 0; }
 .aurora-setup-bar .switch input { display: none; }
-.aurora-setup-bar .track { position: absolute; inset: 0; border-radius: 999px; background: rgba(0,0,0,0.3); transition: background .2s ease; }
+.aurora-setup-bar .track { position: absolute; inset: 0; border-radius: 6px; background: rgba(0,0,0,0.3); transition: background .2s ease; }
 html.cgpt-light-mode .aurora-setup-bar .track { background: rgba(0,0,0,0.2); }
 .aurora-setup-bar input:checked + .track { background: #4f8cff; }
 .aurora-setup-bar .thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: white; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s ease; }
@@ -1130,8 +1131,8 @@ html.cgpt-light-mode #cgpt-qs-btn svg { color: #000; }
   /* Dynamic Glass Style (Dimmed by default) */
   background: var(--aurora-glass-fill);
   border: 1px solid var(--aurora-glass-border);
-  -webkit-backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate));
-  backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate));
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none);
+  backdrop-filter: var(--aurora-glass-backdrop, none);
   box-shadow: inset 0 0 2px 0 var(--aurora-glass-glow), var(--aurora-glass-shadow);
   /* End of New Style */
   border-radius: 14px;
@@ -1191,7 +1192,7 @@ html.cgpt-light-mode .qs-row:hover { background: rgba(0,0,0,0.06); }
 
 .qs-row .switch { position: relative; width: 42px; height: 24px; flex: 0 0 auto; }
 .qs-row .switch input { display: none; }
-.qs-row .track { position: absolute; inset: 0; border-radius: 999px; background: rgba(0,0,0,0.3); transition: background .2s ease; }
+.qs-row .track { position: absolute; inset: 0; border-radius: 6px; background: rgba(0,0,0,0.3); transition: background .2s ease; }
 html.cgpt-light-mode .qs-row .track { background: rgba(0,0,0,0.2); }
 .qs-row input:checked + .track { background: #4f8cff; }
 .qs-row .thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: white; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s ease; }
@@ -1272,8 +1273,8 @@ html:not(.cgpt-light-mode) .qs-color-dot {
   background: var(--aurora-glass-fill);
   border: 1px solid var(--aurora-glass-border);
   box-shadow: inset 0 0 2px 0 var(--aurora-glass-glow), var(--aurora-glass-shadow);
-  -webkit-backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate));
-  backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate));
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none);
+  backdrop-filter: var(--aurora-glass-backdrop, none);
   /* End Optimized */
   transition: border-color 0.4s ease, box-shadow 0.4s ease;
   border-radius: 12px;
@@ -1564,7 +1565,7 @@ html.cgpt-ambient-on ::-webkit-scrollbar-track {
 }
 html.cgpt-ambient-on ::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.15);
-  border-radius: 999px;
+  border-radius: 6px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
@@ -1644,7 +1645,7 @@ html.cgpt-ambient-on ::-webkit-scrollbar-track {
 }
 html.cgpt-ambient-on ::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.15);
-  border-radius: 999px;
+  border-radius: 6px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
@@ -1858,13 +1859,13 @@ div.bg-token-main-surface-primary.sticky.top-14.z-10 {
   padding-bottom: 0 !important;
 }
 
-/* 7b. Uniform Glass Pills for Filter Items */
+/* 7b. Uniform Glass Filter Controls */
 /* Target all filter items (both active tab-style and chips) and unify them */
 div.bg-token-main-surface-primary.sticky.top-14.z-10 div.cursor-pointer,
 div.bg-token-main-surface-primary.sticky.top-14.z-10 div.cursor-pointer.border-b-2 {
   background: var(--switch-bg) !important;
   border: 1px solid var(--switch-border) !important;
-  border-radius: 9999px !important; /* Force pill shape */
+  border-radius: 6px !important; /* Compact control corners */
   padding: 6px 16px !important;
   margin-right: 6px !important;
   -webkit-backdrop-filter: blur(8px) !important;
@@ -2033,8 +2034,8 @@ html.cgpt-ambient-on [role="dialog"] .dark\:hover\:bg-white\/10:hover {
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[data-settings-tab-list="true"] {
   background: color-mix(in oklab, var(--aurora-glass-fill) 60%, transparent) !important;
   border-inline-end: 1px solid var(--aurora-glass-border) !important;
-  -webkit-backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate)) !important;
-  backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, none) !important;
 }
 
 /* Light mode adjustments for dropdown */
@@ -2124,7 +2125,7 @@ html.cgpt-light-mode .aurora-queue-btn:hover {
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
-  border-radius: 999px;
+  border-radius: 6px;
   background: #4f8cff;
   color: #fff;
   font-size: 11px;
@@ -2143,7 +2144,7 @@ html.cgpt-light-mode .aurora-queue-btn:hover {
   opacity: 0;
   z-index: 999999;
   padding: 8px 12px;
-  border-radius: 999px;
+  border-radius: 6px;
   background: rgba(0, 0, 0, 0.75);
   color: #fff;
   font-size: 12px;
@@ -2168,8 +2169,8 @@ html.cgpt-light-mode .aurora-queue-btn:hover {
   padding: 10px;
   background: var(--aurora-glass-fill);
   border: 1px solid var(--aurora-glass-border);
-  -webkit-backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate));
-  backdrop-filter: blur(var(--aurora-glass-blur)) saturate(var(--aurora-glass-saturate));
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none);
+  backdrop-filter: var(--aurora-glass-backdrop, none);
   box-shadow: inset 0 0 2px 0 var(--aurora-glass-glow), var(--aurora-glass-shadow);
   color: #fff;
 }

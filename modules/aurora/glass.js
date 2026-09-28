@@ -17,6 +17,12 @@
 
   const GLASS_SELECTORS_FAST = [
     /* Popups, Menus, Dialogs */
+    '[role="menu"][data-state="open"]',
+    '[role="dialog"][data-state="open"]',
+    '[role="listbox"][data-state="open"]',
+    '[data-radix-menu-content][data-state="open"]',
+    '[data-radix-popper-content-wrapper] > [role="menu"]',
+    '[data-radix-popper-content-wrapper] > [role="dialog"]',
     '.popover.bg-token-main-surface-primary[data-radix-menu-content]',
     '.popover.bg-token-main-surface-primary[role="dialog"]',
     'div[role="dialog"][class*="shadow-long"]',
@@ -27,6 +33,13 @@
     'div.absolute.top-full > div.bg-surface-primary',
     'div.absolute.top-full > div[class*="bg-surface"]',
     /* Composer & Code Blocks */
+    '[data-composer-dark][data-composer-layout][role="presentation"]',
+    '[class*="composer-surface-primary"]',
+    '[data-testid="chatgpt-writing-block"]',
+    '[data-markdown-copy="code-block"]',
+    '[data-composer-surface-variant]',
+    '[data-composer-overlay-floating-ui] > div',
+    'dialog[open]',
     'form[data-type="unified-composer"] > div > div',
     /* Buttons & UI Elements */
     '#cgpt-qs-panel',
@@ -64,8 +77,12 @@
   const CODE_CONTENT_SELECTOR = [
     'div[data-message-author-role="assistant"] pre',
     '.agent-turn pre',
+    '[data-chatgpt-search-unit-key$=":assistant"] pre',
+    '[data-testid="chatgpt-writing-block"] pre',
     'div[data-message-author-role="assistant"] code[class*="language-"]',
     '.agent-turn code[class*="language-"]',
+    '[data-chatgpt-search-unit-key$=":assistant"] code[class*="language-"]',
+    '[data-testid="chatgpt-writing-block"] code[class*="language-"]',
     'div[data-message-author-role="assistant"] [class*="code-block"]',
     '.agent-turn [class*="code-block"]',
   ].join(',');
@@ -78,8 +95,11 @@
     for (const content of candidates) {
       const turn =
         content.closest?.('div[data-message-author-role="assistant"]') ||
-        content.closest?.('.agent-turn');
+        content.closest?.('.agent-turn') ||
+        content.closest?.('[data-chatgpt-search-unit-key$=":assistant"]') ||
+        content.closest?.('[data-testid="chatgpt-writing-block"]');
       let wrapper = content.tagName === 'PRE' ? content.parentElement : content;
+      if (content.closest('[data-testid="chatgpt-writing-block"]')) continue;
       let best = wrapper;
 
       for (let depth = 0; wrapper && wrapper !== turn && depth < 5; depth += 1) {
@@ -115,6 +135,17 @@
     }
 
     tagCodeBlocks(root);
+  }
+
+  function untag(root = document) {
+    const glassNodes = [];
+    const codeNodes = [];
+    if (root?.nodeType === 1 && root.hasAttribute?.('data-aurora-glass')) glassNodes.push(root);
+    if (root?.nodeType === 1 && root.hasAttribute?.('data-aurora-code-block')) codeNodes.push(root);
+    root?.querySelectorAll?.('[data-aurora-glass]').forEach((node) => glassNodes.push(node));
+    root?.querySelectorAll?.('[data-aurora-code-block]').forEach((node) => codeNodes.push(node));
+    glassNodes.forEach((node) => node.removeAttribute('data-aurora-glass'));
+    codeNodes.forEach((node) => node.removeAttribute('data-aurora-code-block'));
   }
 
   // Full document scan is throttled and scheduled in idle time to avoid jank.
@@ -176,5 +207,6 @@
   A.glass.hasSlowHints = A.glass.hasSlowHints || hasSlowHints;
   A.glass.tagAncestorsForSlowHints = A.glass.tagAncestorsForSlowHints || tagAncestorsForSlowHints;
   A.glass.tagCodeBlocks = A.glass.tagCodeBlocks || tagCodeBlocks;
+  A.glass.untag = A.glass.untag || untag;
 })();
 

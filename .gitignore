@@ -1,4 +1,6 @@
 # IDE
 .vs/
 .amo-upload-uuid
+build/
+work/
 

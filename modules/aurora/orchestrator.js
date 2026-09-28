@@ -138,6 +138,7 @@
     constructor() {
       this.observersStarted = false;
       this.welcomeScreenChecked = false;
+      this.settingsRequestRevision = 0;
 
       this.background = new AuroraBackgroundController();
       this.quickSettings = new AuroraQuickSettingsController();
@@ -153,7 +154,8 @@
     }
 
     init() {
-      if (!chrome?.runtime?.sendMessage) return;
+      const extensionApi = globalThis.chrome;
+      if (!extensionApi?.runtime?.sendMessage && !extensionApi?.storage?.sync?.get) return false;
 
       // Initialize i18n system with ChatGPT language detection (optional).
       (async () => {
@@ -175,12 +177,20 @@
         initialLoad();
       }
 
-      chrome.storage.onChanged.addListener((changes, area) => this.onStorageChanged(changes, area));
+      try {
+        extensionApi.storage?.onChanged?.addListener((changes, area) => this.onStorageChanged(changes, area));
+      } catch (e) {
+        // Content features can still start when storage events are unavailable.
+      }
+      return true;
     }
 
     refreshSettingsAndApply() {
-      chrome.runtime.sendMessage({ type: 'GET_SETTINGS' }, (freshSettings) => {
-        if (chrome.runtime.lastError || !freshSettings) return;
+      const extensionApi = globalThis.chrome;
+      const revision = ++this.settingsRequestRevision;
+
+      const applyFreshSettings = (freshSettings) => {
+        if (revision !== this.settingsRequestRevision || !freshSettings) return;
 
         // Welcome screen once per session.
         if (!this.welcomeScreenChecked) {
@@ -200,10 +210,47 @@
         Object.assign(A.state.settings, freshSettings);
 
         this.applyAllSettings();
-      });
+      };
+
+      const readStorageFallback = () => {
+        try {
+          extensionApi?.storage?.sync?.get?.(null, (storedSettings) => {
+            if (extensionApi?.runtime?.lastError || !storedSettings) return;
+            applyFreshSettings({
+              ...storedSettings,
+              extensionEnabled: storedSettings.extensionEnabled !== false,
+            });
+          });
+        } catch (e) {
+          // Keep the page usable if the extension context has been invalidated.
+        }
+      };
+
+      if (!extensionApi?.runtime?.sendMessage) {
+        readStorageFallback();
+        return;
+      }
+
+      try {
+        extensionApi.runtime.sendMessage({ type: 'GET_SETTINGS' }, (freshSettings) => {
+          if (extensionApi.runtime.lastError || !freshSettings) {
+            readStorageFallback();
+            return;
+          }
+          applyFreshSettings(freshSettings);
+        });
+      } catch (e) {
+        readStorageFallback();
+      }
     }
 
     applyAllSettings() {
+      if (!this.isSupportedRoute()) {
+        this.queue.shutdown();
+        A.disable?.all?.();
+        return;
+      }
+
       if (!isEnabled()) {
         this.queue.shutdown();
         A.disable?.all?.();
@@ -238,6 +285,11 @@
       this.dataMasking.applyInitial();
 
       this.queue.pulse();
+    }
+
+    isSupportedRoute() {
+      const path = window.location.pathname.replace(/\/+$/, '') || '/';
+      return path !== '/codex';
     }
 
     startObservers() {
@@ -275,7 +327,8 @@
       const checkUrl = debounce(() => {
         if (location.href === lastUrl) return;
         lastUrl = location.href;
-        this.applyAllSettings();
+        if (this.isSupportedRoute()) this.refreshSettingsAndApply();
+        else this.applyAllSettings();
       }, 50);
 
       window.addEventListener('popstate', checkUrl, { passive: true });
@@ -300,96 +353,53 @@
       }, 150);
 
       let renderFrameId = null;
+      const pendingNodes = new Set();
       this.domObserverCallback = ({ addedElements }) => {
-        if (document.hidden || !isEnabled()) return;
-        if (renderFrameId) return;
-
-        let urgentUiUpdate = false;
-        const newNodesToProcess = [];
-        const slowGlassNodes = [];
-        
-        // Fast paths - preallocate arrays and avoid function calls in the hot loop
-        const elements = addedElements || [];
-        const len = elements.length;
-
-        for (let i = 0; i < len; i++) {
-            const n = elements[i];
-            newNodesToProcess.push(n);
-
-            // We use a high-performance TreeWalker rather than querySelector/getElementsByClassName
-            // This is O(N) over only the exact sub-nodes, bypassing the browser's CSS matcher
-            let needsWalk = !urgentUiUpdate || (slowGlassNodes.length < 3);
-            
-            if (needsWalk) {
-                const walker = document.createTreeWalker(n, NodeFilter.SHOW_ELEMENT, null, false);
-                let current = walker.currentNode;
-                
-                while (current) {
-                    // 1. Check for Urgent UI Updates (popovers, dialogs, menus)
-                    if (!urgentUiUpdate) {
-                        const cl = current.classList;
-                        if (cl && cl.contains('popover')) {
-                            urgentUiUpdate = true;
-                        } else {
-                            const role = current.getAttribute && current.getAttribute('role');
-                            if (role === 'dialog' || role === 'menu') {
-                                urgentUiUpdate = true;
-                            }
-                        }
-                    }
-
-                    // 2. Check for slow glass hints
-                    if (slowGlassNodes.length < 3 && this.glass.hasSlowHints(current)) {
-                        slowGlassNodes.push(current);
-                    }
-
-                    // Early exit if we found everything we need in this subtree
-                    if (urgentUiUpdate && slowGlassNodes.length >= 3) {
-                       break;
-                    }
-
-                    current = walker.nextNode();
-                }
-            }
+        checkUrl();
+        if (document.hidden || !isEnabled() || !this.isSupportedRoute()) return;
+        for (const node of addedElements || []) {
+          if (node.isConnected) pendingNodes.add(node);
         }
-
+        if (renderFrameId) return;
         renderFrameId = requestAnimationFrame(() => {
-          if (!isEnabled()) {
-            renderFrameId = null;
-            return;
-          }
-
-          if (urgentUiUpdate) this.upgrade.applyUpgradeButtons();
-
-          newNodesToProcess.forEach((node) => this.glass.tagFast(node));
-          if (slowGlassNodes.length) {
-            slowGlassNodes.forEach((node) => {
-              this.glass.tagAncestorsForSlowHints(node);
-              this.glass.tagAll(node);
-            });
-          }
-          if (urgentUiUpdate || slowGlassNodes.length) this.glass.scheduleFullScan();
-
-          // Message queue (throttled; ChatGPT mutates DOM constantly during generation).
-          if (this.queue.isEnabled() || this.queue.hasWork()) {
-            this.queue.schedulePulse(0);
-          }
-
           renderFrameId = null;
+          const nodes = [...pendingNodes];
+          pendingNodes.clear();
+          if (!isEnabled()) return;
+          // The app hydrates after DOMContentLoaded and can replace body nodes.
+          if (!document.getElementById(ID)) this.background.ensure();
+          if (!document.documentElement.classList.contains(cfg.HTML_CLASS || 'cgpt-ambient-on') ||
+              !document.documentElement.style.getPropertyValue('--aurora-glass-fill-opacity')) {
+            this.rootFlags.apply();
+          }
+          for (const node of nodes) {
+            if (!node.isConnected || nodes.some(parent => parent !== node && parent.contains(node))) continue;
+            this.glass.tagFast(node);
+            if (this.glass.hasSlowHints(node)) this.glass.tagAncestorsForSlowHints(node);
+          }
+          if (this.queue.isEnabled() || this.queue.hasWork()) this.queue.schedulePulse(0);
+          debouncedOtherChecks();
         });
-
-        if (isEnabled()) debouncedOtherChecks();
       };
 
       if (window.AuroraExt?.centralObserver) {
           window.AuroraExt.centralObserver.subscribe(this.domObserverCallback);
       }
 
+      const hostTheme = () => document.documentElement.classList.contains('light') || document.documentElement.classList.contains('light-mode');
+      let lastHostLight = hostTheme();
       const themeObserver = new MutationObserver(() => {
+        if (!isEnabled() || !this.isSupportedRoute()) return;
         const s = getSettings();
-        if (s.theme === 'auto') this.rootFlags.apply();
+        const root = document.documentElement;
+        const hostLight = hostTheme();
+        const changed = hostLight !== lastHostLight;
+        lastHostLight = hostLight;
+        if (!root.classList.contains(cfg.HTML_CLASS || 'cgpt-ambient-on') ||
+            !root.style.getPropertyValue('--aurora-glass-fill-opacity') ||
+            (s.theme === 'auto' && changed)) this.rootFlags.apply();
       });
-      themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+      themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'style'] });
     }
 
     onStorageChanged(changes, area) {
@@ -402,6 +412,7 @@
         });
 
         if (changedKeys.includes('extensionEnabled')) {
+          this.settingsRequestRevision += 1;
           this.queue.shutdown();
           if (!isEnabled()) {
             A.disable?.all?.();

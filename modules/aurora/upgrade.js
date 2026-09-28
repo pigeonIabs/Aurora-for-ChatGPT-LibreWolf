@@ -108,6 +108,11 @@
     }
 
     const upgradeElements = [
+      ...Array.from(document.querySelectorAll('button, a, [role="menuitem"]')).filter(el =>
+        /^(upgrade(?: your plan| plan| to .+)?|get chatgpt (?:plus|pro|go))$/i.test(
+          (el.getAttribute('aria-label') || el.textContent || '').trim()
+        )
+      ),
       getCachedElement('upgradePanelButton', () =>
         Array.from(document.querySelectorAll(SELECTORS.UPGRADE_MENU_ITEM || 'a.__menu-item')).find((el) =>
           (el.textContent || '').toLowerCase().includes('upgrade')

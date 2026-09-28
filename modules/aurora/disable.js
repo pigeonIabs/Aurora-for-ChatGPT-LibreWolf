@@ -35,7 +35,8 @@
       'cgpt-blur-avatar',
       'cgpt-theme-transitioning',
       'cgpt-tab-hidden',
-      'cgpt-snapshot-mode'
+      'cgpt-snapshot-mode',
+      'cgpt-glass-user-messages'
     );
 
     root.removeAttribute('data-custom-font');
@@ -45,7 +46,12 @@
     root.style.removeProperty('--bg-opacity');
     root.style.removeProperty('--aurora-glass-fill-opacity');
     root.style.removeProperty('--aurora-glass-blur');
+    root.style.removeProperty('--aurora-glass-backdrop');
     root.removeAttribute('data-glass-intensity');
+    root.removeAttribute('data-aurora-zero-blur');
+    root.removeAttribute('data-aurora-codex');
+    ['--aurora-glass-saturate', '--sidebar-glass-blur', '--clear-blur', '--composer-blur', '--glass-blur'].forEach(name => root.style.removeProperty(name));
+    A.glass?.untag?.();
 
     // Optional engines / UI.
     A.fonts?.cleanup?.();
@@ -67,8 +73,7 @@
       // ignore
     }
 
-    document.getElementById(QS_BUTTON_ID)?.remove();
-    document.getElementById(QS_PANEL_ID)?.remove();
+    A.quickSettings?.remove?.();
 
     document.getElementById('aurora-welcome-overlay')?.remove();
     document.getElementById('aurora-success-overlay')?.remove();

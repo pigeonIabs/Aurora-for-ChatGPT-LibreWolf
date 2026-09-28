@@ -26,7 +26,7 @@
         let target = document.body || document.documentElement;
         if (target) {
             this.running = true;
-            this.observer.observe(target, { childList: true, subtree: true });
+            this.observer.observe(target, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['data-state', 'contenteditable', 'hidden', 'aria-hidden'] });
         }
       }
     }
@@ -45,6 +45,10 @@
       const addedTexts = [];
 
       for (const m of mutations) {
+        const target = m.target.nodeType === 1 ? m.target : m.target.parentElement;
+        if (target?.closest?.('#cgpt-ambient-bg,#cgpt-qs-panel,#aurora-token-counter,#aurora-queue-panel,#aurora-queue-btn,#aurora-queue-toast')) continue;
+        if (m.type === 'characterData' && m.target.nodeValue.trim()) addedTexts.push(m.target);
+        if (m.type === 'attributes') addedElements.push(m.target);
         for (const n of m.addedNodes) {
           if (n.nodeType === 1) addedElements.push(n);
           else if (n.nodeType === 3 && n.nodeValue.trim()) addedTexts.push(n);

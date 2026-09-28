@@ -19,12 +19,22 @@
   // Perf: avoid spamming storage.local with repeated detectedTheme writes.
   let lastDetectedTheme = null;
   let lastDetectedThemeWriteAt = 0;
+  let themeObserverInstalled = false;
+
+  function observeTheme(root) {
+    if (themeObserverInstalled || typeof MutationObserver !== 'function') return;
+    themeObserverInstalled = true;
+    new MutationObserver(() => {
+      if (getSettings().theme === 'auto') apply();
+    }).observe(root, { attributes: true, attributeFilter: ['data-theme', 'data-appearance-theme'] });
+  }
 
   function apply() {
     if (!isEnabled()) return;
 
     const s = getSettings();
     const root = document.documentElement;
+    observeTheme(root);
 
     root.classList.toggle(HTML_CLASS, true);
     root.classList.toggle(LEGACY_CLASS, !!s.legacyComposer);
@@ -54,6 +64,14 @@
     const maxGlassBlur = s.appearance === 'clear' ? 24 : 14;
     const glassBlur = Math.round(maxGlassBlur * Math.min(1, backgroundBlur / 60));
     root.style.setProperty('--aurora-glass-blur', `${glassBlur}px`);
+    root.style.setProperty('--aurora-glass-backdrop', backgroundBlur === 0 ? 'none' : `blur(${glassBlur}px)`);
+    root.style.setProperty('--aurora-glass-saturate', '100%');
+    root.style.setProperty('--sidebar-glass-blur', `${glassBlur}px`);
+    root.style.setProperty('--clear-blur', `${glassBlur}px`);
+    root.style.setProperty('--composer-blur', `${glassBlur}px`);
+    root.style.setProperty('--glass-blur', `${glassBlur}px`);
+    root.toggleAttribute('data-aurora-zero-blur', backgroundBlur === 0);
+    root.toggleAttribute('data-aurora-codex', location.pathname.startsWith('/codex/cloud'));
     root.setAttribute('data-glass-intensity', String(glassIntensity));
 
     // Custom font support.
@@ -61,7 +79,12 @@
     root.setAttribute('data-custom-font', customFont);
     A.fonts?.ensure?.(customFont);
 
-    const applyLightMode = s.theme === 'light' || (s.theme === 'auto' && root.classList.contains('light'));
+    const pageTheme = root.getAttribute('data-theme') || root.getAttribute('data-appearance-theme');
+    const applyLightMode = s.theme === 'light' || (s.theme === 'auto' && (
+      pageTheme === 'light' ||
+      root.classList.contains('light') ||
+      root.classList.contains('light-mode')
+    ));
     root.classList.toggle(LIGHT_CLASS, applyLightMode);
 
     // Store detected theme (used by popup for correct default), throttled.

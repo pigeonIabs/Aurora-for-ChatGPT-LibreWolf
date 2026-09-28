@@ -629,6 +629,9 @@
   "buttonImported": {
     "message": "✓ Imported!"
   },
+  "fontOptionFiraCode": {
+    "message": "Fira Code (Dev)"
+  },
   "sectionStreamerMode": {
     "message": "Streamer Mode"
   }

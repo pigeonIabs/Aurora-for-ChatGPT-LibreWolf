@@ -70,6 +70,7 @@
             this.scanQueue = []; // [{ root, walker }]
             this.scanScheduled = false;
             this.queuedRoots = new WeakSet();
+            this.onEditorInput = (event) => this.maskEditor(event.target);
         }
 
         async init() {
@@ -122,6 +123,8 @@
 
         startObserver() {
             if (this.observerCallback) return;
+            document.addEventListener('input', this.onEditorInput, true);
+            document.querySelectorAll('[contenteditable="true"],textarea').forEach(editor => this.maskEditor(editor));
 
             this.observerCallback = ({ addedElements, addedTexts }) => {
                 if (!this.settings.dataMaskingEnabled || !this.settings.extensionEnabled) return;
@@ -148,6 +151,9 @@
         }
 
         stopObserver() {
+            document.removeEventListener('input', this.onEditorInput, true);
+            document.querySelectorAll('[data-aurora-sensitive-editor]').forEach(editor => editor.removeAttribute('data-aurora-sensitive-editor'));
+            this.restore();
             if (this.observerCallback) {
                 window.AuroraExt?.centralObserver?.unsubscribe(this.observerCallback);
                 this.observerCallback = null;
@@ -190,6 +196,9 @@
             if (!node?.textContent?.trim()) return;
             const parent = node.parentElement;
             if (!parent || ['SCRIPT', 'STYLE', 'NOSCRIPT', 'IFRAME', 'INPUT', 'TEXTAREA'].includes(parent.tagName)) return;
+            if (parent.closest('[contenteditable="true"],#cgpt-qs-panel,#aurora-token-counter')) return;
+            const previous = this.originalData.get(node);
+            if (previous && previous.masked === node.textContent) return;
 
             let text = node.textContent;
             let modified = false;
@@ -202,11 +211,24 @@
                 });
             }
 
-            if (modified) node.textContent = text;
+            if (modified) {
+                this.originalData.set(node, { original: node.textContent, masked: text });
+                node.textContent = text;
+            }
+        }
+
+        maskEditor(target) {
+            if (!this.settings.dataMaskingEnabled || !this.settings.extensionEnabled) return;
+            const editor = target?.closest?.('[contenteditable="true"],textarea');
+            if (!editor) return;
+            const text = editor.value ?? editor.textContent ?? '';
+            const sensitive = Object.values(PATTERNS).some(pattern => { pattern.lastIndex = 0; return pattern.test(text); });
+            editor.toggleAttribute('data-aurora-sensitive-editor', sensitive);
         }
 
         maskElement(element) {
             if (!element || !this.settings.dataMaskingEnabled || !this.settings.extensionEnabled) return;
+            this.maskEditor(element);
             // Queue scans; chunk processing avoids blocking the main thread for large inserts.
             this.enqueueScan(element);
         }
@@ -298,6 +320,9 @@
         }
 
         restore() {
+            for (const [node, value] of this.originalData) {
+                if (node.isConnected && node.textContent === value.masked) node.textContent = value.original;
+            }
             this.originalData.clear();
         }
     }

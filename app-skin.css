@@ -1,0 +1,227 @@
+/* Current ChatGPT app shell, lightweight web shell, and Codex Cloud.
+ * Stable data attributes and component roles take precedence over utility names.
+ * Only the outer surface owns a glass filter. Nested content stays transparent.
+ */
+[data-aurora-sensitive-editor] { filter: blur(5px) !important; }
+html:root.cgpt-ambient-on {
+  --glass-radius: 14px;
+  --switch-radius: 6px;
+  --aurora-control-radius: 6px;
+  --aurora-surface-radius: 14px;
+  --aurora-glass-saturate: 100%;
+  --color-text: var(--theme-text-primary);
+  --color-text-secondary: var(--theme-text-secondary);
+  --color-text-tertiary: var(--theme-text-secondary);
+  --darkreader-text--color-text: var(--theme-text-primary) !important;
+  --darkreader-text--color-text-secondary: var(--theme-text-secondary) !important;
+  --darkreader-text--color-text-tertiary: var(--theme-text-secondary) !important;
+  --darkreader-border--aurora-glass-border: var(--aurora-glass-border) !important;
+  --darkreader-bg--aurora-glass-fill: var(--aurora-glass-fill) !important;
+  --darkreader-bg--aurora-glass-shadow: var(--aurora-glass-shadow) !important;
+  --color-surface: transparent;
+  --color-surface-secondary: transparent;
+  --color-surface-tertiary: var(--aurora-glass-fill);
+  --color-surface-elevated: var(--aurora-glass-fill);
+  --color-surface-elevated-secondary: var(--aurora-glass-fill);
+  --color-background-primary-ghost-hover: color-mix(in srgb, currentColor 9%, transparent);
+}
+
+html:root.cgpt-ambient-on :is(#root, #web-mobile-root, [class~="text-default"], [class~="text-primary"], [class~="text-user-message"]) {
+  color: var(--theme-text-primary) !important;
+}
+html:root.cgpt-ambient-on :is(#root .text-secondary, #root .text-tertiary, #root .text-muted) {
+  color: var(--theme-text-secondary) !important;
+}
+
+html:root.cgpt-ambient-on :is([class~="bg-surface"], [class~="bg-surface-secondary"], [class~="electron:bg-surface"], [class~="browser:bg-surface"]) {
+  background: transparent !important;
+}
+
+html:root.cgpt-ambient-on :is(
+  #root, #web-mobile-root, [data-app-shell-main-surface],
+  [class*="MainContentClip-"], [class*="MainContentViewport-"],
+  [class*="MainContentFrame-"], [class*="ComposerModeSurface-"],
+  [data-app-shell-main-content-layout], [data-request-input-activity-root],
+  [data-app-action-timeline-scroll], [data-thread-scroll-footer],
+  [data-pip-obstacle="thread-footer"], [data-composer-body],
+  [data-composer-input-layout], [data-rich-text-layout],
+  [class~="bg-background-composer-action-bar"],
+  [data-composer-markdown], #mobile-composer-prompt,
+  #app-shell-sidebar, #app-shell-sidebar nav, [data-app-navigation-rail],
+  .app-shell-left-panel [class~="bg-surface"],
+  .app-shell-left-panel [class~="bg-surface-secondary"],
+  [data-testid="desktop-app-shell"], [data-testid="mobile-app-shell-scroll-container"]
+) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Fades must reveal the wallpaper instead of painting a solid page over it. */
+html:root.cgpt-ambient-on :is([data-thread-scroll-footer], [data-app-shell-main-content-top-fade])::before,
+html:root.cgpt-ambient-on :is([data-thread-scroll-footer], [data-app-shell-main-content-top-fade])::after,
+html:root.cgpt-ambient-on [data-request-input-activity-root] [aria-hidden="true"][class*="from-surface"],
+html:root.cgpt-ambient-on [data-request-input-activity-root] [aria-hidden="true"][class*="via-surface"] {
+  background: transparent !important;
+  backdrop-filter: none !important;
+}
+
+html:root.cgpt-ambient-on :is(
+  [data-aurora-glass="true"], [data-aurora-code-block="true"],
+  [role="menu"], [role="dialog"], dialog[open], [role="tooltip"],
+  [data-radix-popper-content-wrapper] > [data-state="open"],
+  [data-testid="chatgpt-writing-block"], [data-composer-surface-variant],
+  [data-markdown-copy="code-block"],
+  [class*="composer-surface-primary"],
+  #octane-mobile-composer-actions-popover,
+  :where(#web-mobile-root) form:has(:where(#mobile-composer-prompt)),
+  #cgpt-qs-panel, #aurora-token-counter, .aurora-queue-panel,
+  [data-composer-overlay-floating-ui] > div
+) {
+  background: var(--aurora-glass-fill) !important;
+  background-image: none !important;
+  border: 1px solid var(--aurora-glass-border) !important;
+  border-radius: var(--aurora-surface-radius) !important;
+  box-shadow: var(--aurora-surface-shadow, var(--aurora-glass-shadow)) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+}
+
+html:root.cgpt-ambient-on :is(.app-shell-left-panel, [data-app-shell-titlebar]) {
+  background: var(--aurora-glass-fill) !important;
+  border: solid var(--aurora-glass-border) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+}
+html:root.cgpt-ambient-on .app-shell-left-panel { border-width: 0 1px 0 0 !important; }
+html:root.cgpt-ambient-on [data-app-shell-titlebar] { border-width: 0 0 1px !important; }
+/* The thread composer resets borders in the host's important component layer.
+ * An inset stroke retains the same one-pixel frame without changing layer order. */
+html:root.cgpt-ambient-on [data-composer-surface-variant]:not([data-composer-utility-bar-variant="home"]) {
+  --aurora-surface-shadow: inset 0 0 0 1px var(--aurora-glass-border), var(--aurora-glass-shadow);
+  --darkreader-bg--aurora-surface-shadow: var(--aurora-surface-shadow) !important;
+}
+html:root.cgpt-ambient-on [data-markdown-copy="code-block"] :is(.cm-editor, .cm-content, [class*="bg-"], [data-markdown-copy="exclude"]) {
+  background: transparent !important;
+}
+html:root.cgpt-ambient-on [data-markdown-copy="code-block"] .cm-content { color: var(--theme-text-primary) !important; }
+html:root.cgpt-ambient-on [data-app-shell-titlebar] [class*="indicator-"] {
+  background: color-mix(in srgb, var(--theme-text-primary) 12%, transparent) !important;
+  border: 1px solid var(--aurora-glass-border) !important;
+}
+html:root.cgpt-ambient-on [role="tooltip"] { --aurora-surface-radius: 6px; }
+
+html:root.cgpt-ambient-on :is([role="menu"], [role="dialog"], dialog[open]) :is(
+  [role="listbox"], [role="group"], [role="tabpanel"],
+  [class~="bg-surface"], [class~="bg-surface-secondary"], [class~="bg-surface-tertiary"],
+  [class~="bg-surface-elevated"], [class~="bg-surface-elevated-secondary"]
+) {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+html:root.cgpt-ambient-on :is([data-testid="chatgpt-writing-block"], [data-aurora-code-block="true"]) {
+  --wb-surface-primary: transparent !important;
+  --wb-surface-secondary: transparent !important;
+  --oai-wb-surface-primary: transparent !important;
+  --oai-wb-surface-secondary: transparent !important;
+  --wb-radius: 14px !important;
+  --oai-wb-radius: 14px !important;
+}
+html:root.cgpt-ambient-on :is([data-testid="chatgpt-writing-block"], [data-aurora-code-block="true"]) :is(pre, code, header, .writing-block-editor, [class*="bg-surface"], [class*="bg-token"], [class*="oai-wb-surface-primary"], [class*="oai-wb-surface-secondary"]) {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+html:root.cgpt-ambient-on.cgpt-glass-user-messages [data-user-message-bubble] {
+  background: var(--aurora-glass-fill) !important;
+  border: 1px solid var(--user-bubble-border) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--aurora-glass-shadow) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+}
+html:root.cgpt-ambient-on [data-user-message-bubble] { border-radius: 14px !important; }
+
+/* Controls use compact corners, retaining the host application's layout. */
+html:root.cgpt-ambient-on :is(
+  button, [role="button"], [role="tab"], [role="menuitem"], [role="menuitemradio"],
+  [role="option"], input:not([type="range"]), select, [data-pill],
+  .rounded-full, [class*="rounded-3xl"]
+) { border-radius: var(--aurora-control-radius) !important; }
+
+html:root.cgpt-ambient-on :is([role="menuitem"], [role="menuitemradio"], [role="option"]):is(:hover, [data-highlighted], [aria-selected="true"]) {
+  background: var(--menu-item-hover) !important;
+}
+html:root.cgpt-ambient-on :is(button, [role="button"], [role="tab"]):focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+html:root.cgpt-ambient-on :is([class~="group/settings"], [data-app-shell-main-surface]) :is(input:not([type="checkbox"]):not([type="range"]), select, textarea:not(#prompt-textarea)) {
+  background-color: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+}
+html:root.cgpt-ambient-on [class~="group/settings"] > div {
+  background-color: transparent !important;
+}
+html:root.cgpt-ambient-on [class~="group/settings"] [class~="border-default"] {
+  background-color: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+  border-radius: 12px !important;
+  backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+}
+html:root.cgpt-ambient-on :is(#settings-search, input[role="combobox"]) { background: transparent !important; box-shadow: none !important; }
+html:root.cgpt-ambient-on .aurora-switch-glider { border-radius: 4px !important; }
+
+html:root.cgpt-ambient-on[data-aurora-codex] :is([class~="bg-token-bg-primary"], [class~="bg-token-bg-secondary"], [class~="bg-token-bg-tertiary"]) {
+  background-color: transparent !important;
+}
+html:root.cgpt-ambient-on[data-aurora-codex] :is([role="tablist"], main#main > header) {
+  background: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+}
+
+/* The separate blur control owns every glass filter, including legacy paths. */
+html:root.cgpt-ambient-on[data-aurora-zero-blur] :is(
+  [data-aurora-glass], [data-aurora-code-block], [data-user-message-bubble], [data-markdown-copy="code-block"],
+  [role="menu"], [role="dialog"], [role="tooltip"], [role="listbox"],
+  [class*="backdrop-blur"], #app-shell-sidebar, .app-shell-left-panel,
+  [data-app-shell-titlebar], [data-composer-surface-variant],
+  [data-testid="chatgpt-writing-block"], #cgpt-qs-panel, #cgpt-qs-btn,
+  .aurora-switch-glider, .aurora-queue-panel, .aurora-queue-btn,
+  .qs-select-options, #stage-slideover-sidebar, #aurora-token-counter
+) { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+html:root.cgpt-ambient-on[data-aurora-zero-blur] #cgpt-ambient-bg :is(img, video) { filter: none !important; }
+
+html:root.cgpt-ambient-on.cgpt-blur-chat-history :is(#app-shell-sidebar [data-thread-title], #app-shell-sidebar [data-marquee-text]) {
+  filter: blur(5px) !important;
+  transition: filter 160ms ease;
+}
+html:root.cgpt-ambient-on.cgpt-blur-chat-history #app-shell-sidebar a[href^="/c/"] { filter: blur(5px) !important; }
+html:root.cgpt-ambient-on.cgpt-blur-chat-history #app-shell-sidebar a[href^="/c/"]:is(:hover, :focus-within) { filter: none !important; }
+html:root.cgpt-ambient-on.cgpt-blur-chat-history :is(#app-shell-sidebar [data-thread-title], #app-shell-sidebar [data-marquee-text]):hover { filter: none !important; }
+html:root.cgpt-ambient-on.cgpt-blur-avatar button[aria-label="Open profile menu"] img { filter: blur(6px) !important; }
+html:root.cgpt-ambient-on.cgpt-focus-mode-on :is(.app-shell-left-panel, [data-app-shell-titlebar], [data-user-message-bubble], [data-chatgpt-search-unit-key$=":assistant"]) {
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+html:root.cgpt-ambient-on.cgpt-focus-mode-on :is(.app-shell-left-panel, [data-app-shell-titlebar], [data-user-message-bubble], [data-chatgpt-search-unit-key$=":assistant"]):is(:hover, :focus-within) { opacity: 1; }
+html:root.cgpt-ambient-on .qs-row .track { border-radius: 6px !important; }
+html:root.cgpt-ambient-on .qs-row .thumb { border-radius: 4px !important; }
+html:root.cgpt-ambient-on :is(.aurora-queue-count, .aurora-queue-btn) { border-radius: 5px !important; }
+html:root.cgpt-ambient-on :is(.token-budget-bar, .token-budget-fill) { border-radius: 2px !important; }
+html:root.cgpt-ambient-on .token-budget-bar-container[hidden] { display: none !important; }
+html:root.cgpt-ambient-on [data-composer-overlay-floating-ui] button { border-radius: 6px !important; }
+html:root.cgpt-ambient-on [data-model-picker-power-slider] :is([class^="Track-"], [class^="Thumb-"]) {
+  border-radius: 5px !important;
+  background: var(--aurora-glass-fill) !important;
+  border: 1px solid var(--aurora-glass-border) !important;
+}
+html:root.cgpt-ambient-on :is(.sr-only, [class~="sr-only"])[data-aurora-glass] {
+  border: 0 !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+

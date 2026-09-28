@@ -19,8 +19,8 @@
   "version": {
     "license": "MIT",
     "release_notes": {
-      "en-US": "Makes the glass transparency slider control only fill opacity and connects the separate blur control to glass backdrop blur."
+      "en-US": "Updates Aurora for the redesigned ChatGPT app shell and Codex Cloud. Restores glass styling for composers, navigation, menus, settings, writing blocks, and editable code blocks. Keeps glass transparency independent from blur, with fully transparent fills at maximum transparency and zero filtering at zero blur. Repairs default model selection, exact token counting, queued replies, quick settings, and visual privacy masking for the new editor. Improves light theme compatibility with Dark Reader and uses compact control corners."
     },
-    "approval_notes": "This is an unofficial MIT-licensed fork of TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT. The upstream copyright and MIT license are preserved. There is no build step. The submitted extension contains the human-readable source used at runtime. The unlimitedStorage permission is used only for custom image and video backgrounds selected by the user and stored locally, with a 15 MB file limit. The optional feedback form posts user-entered feedback, a random ticket ID, the extension version, and the browser user agent to auroraforchatgpt.tnemoroccan.workers.dev only after the user initiates submission and grants the optional Firefox data permission."
+    "approval_notes": "This is an unofficial MIT-licensed fork of TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT. The upstream copyright and MIT license are preserved. The XPI build script packages the human-readable runtime source without compilation or transpilation. The unlimitedStorage permission is used only for custom image and video backgrounds selected by the user and stored locally, with a 15 MB file limit. The optional feedback form posts user-entered feedback, a random ticket ID, the extension version, and the browser user agent to auroraforchatgpt.tnemoroccan.workers.dev only after the user initiates submission and grants the optional Firefox data permission."
   }
 }
