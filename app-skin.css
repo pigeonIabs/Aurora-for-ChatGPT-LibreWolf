@@ -94,7 +94,7 @@ html:root.cgpt-ambient-on :is(.app-shell-left-panel, [data-app-shell-titlebar]) 
   backdrop-filter: var(--aurora-glass-backdrop, none) !important;
 }
 html:root.cgpt-ambient-on .app-shell-left-panel { border-width: 0 1px 0 0 !important; }
-html:root.cgpt-ambient-on [data-app-shell-titlebar] { border-width: 0 0 1px !important; }
+html:root.cgpt-ambient-on [data-app-shell-titlebar] { border-width: 0 !important; }
 /* The thread composer resets borders in the host's important component layer.
  * An inset stroke retains the same one-pixel frame without changing layer order. */
 html:root.cgpt-ambient-on [data-composer-surface-variant]:not([data-composer-utility-bar-variant="home"]) {
