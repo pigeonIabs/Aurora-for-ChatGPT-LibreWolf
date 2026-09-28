@@ -72,6 +72,7 @@
     root.style.setProperty('--glass-blur', `${glassBlur}px`);
     root.toggleAttribute('data-aurora-zero-blur', backgroundBlur === 0);
     root.toggleAttribute('data-aurora-codex', location.pathname.startsWith('/codex/cloud'));
+    root.toggleAttribute('data-aurora-temporary-chat', new URLSearchParams(location.search).get('temporary-chat') === 'true');
     root.setAttribute('data-glass-intensity', String(glassIntensity));
 
     // Custom font support.

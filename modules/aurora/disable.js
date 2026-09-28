@@ -50,6 +50,7 @@
     root.removeAttribute('data-glass-intensity');
     root.removeAttribute('data-aurora-zero-blur');
     root.removeAttribute('data-aurora-codex');
+    root.removeAttribute('data-aurora-temporary-chat');
     ['--aurora-glass-saturate', '--sidebar-glass-blur', '--clear-blur', '--composer-blur', '--glass-blur'].forEach(name => root.style.removeProperty(name));
     A.glass?.untag?.();
 

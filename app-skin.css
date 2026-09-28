@@ -143,6 +143,10 @@ html:root.cgpt-ambient-on.cgpt-glass-user-messages [data-user-message-bubble] {
   backdrop-filter: var(--aurora-glass-backdrop, none) !important;
 }
 html:root.cgpt-ambient-on [data-user-message-bubble] { border-radius: 14px !important; }
+/* Temporary chats already draw their own dashed message outline. */
+html:root.cgpt-ambient-on.cgpt-glass-user-messages[data-aurora-temporary-chat] [data-user-message-bubble] {
+  border: 0 !important;
+}
 
 /* Controls use compact corners, retaining the host application's layout. */
 html:root.cgpt-ambient-on :is(
