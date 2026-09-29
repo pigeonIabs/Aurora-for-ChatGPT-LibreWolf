@@ -197,3 +197,29 @@ html.cgpt-ambient-on.cgpt-animations-disabled [data-aurora-surface] * {
 html.cgpt-ambient-on [data-aurora-surface] [data-aurora-surface] {
   backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
 }
+
+/* Claude's current CDS palette also covers native surfaces outside older selectors. */
+html.cgpt-ambient-on[data-aurora-site="claude"],
+html.cgpt-ambient-on[data-aurora-site="claude"] body {
+  --cds-text-primary: var(--theme-text-primary);
+  --cds-text-secondary: var(--theme-text-secondary);
+  --cds-text-disabled: color-mix(in srgb, var(--theme-text-primary) 40%, transparent);
+  --cds-surface-0: var(--composer-bg);
+  --cds-surface-1: var(--composer-bg);
+  --cds-surface-2: var(--composer-bg);
+  --cds-surface-3: var(--composer-bg);
+  --cds-surface-panel: var(--aurora-glass-fill);
+  --cds-surface-popover: var(--aurora-glass-fill);
+  --cds-border: var(--aurora-glass-border);
+  --cds-border-strong: color-mix(in srgb, var(--theme-text-primary) 25%, transparent);
+  --cds-border-stronger: color-mix(in srgb, var(--theme-text-primary) 40%, transparent);
+  --cds-bg-neutral: color-mix(in srgb, var(--theme-text-primary) 5%, transparent);
+  --cds-bg-neutral-hover: var(--menu-item-hover);
+  --cds-bg-neutral-chip: var(--aurora-glass-fill);
+  --cds-bg-neutral-chip-hover: var(--menu-item-hover);
+  --cds-bg-user-message: var(--composer-bg);
+}
+html.cgpt-ambient-on.cgpt-glass-user-messages[data-aurora-site="claude"],
+html.cgpt-ambient-on.cgpt-glass-user-messages[data-aurora-site="claude"] body {
+  --cds-bg-user-message: var(--aurora-glass-fill);
+}
