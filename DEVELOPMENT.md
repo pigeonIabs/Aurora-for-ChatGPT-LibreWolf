@@ -30,6 +30,6 @@ The master switch changes only the enable preference. Existing backups from the 
 
 The workflow changes receive focused critical checks for draft preservation, chat changes, duplicate-send prevention, failed editor writes, disabling, URL canonicalization, and masking restoration. Syntax checks and manifest-resource validation cover the packaged scripts.
 
-Live DOM inspection informed Gemini's desktop and mobile composer selectors and Grok's composer, picker, and palette. Claude's current CDS palette was inspected directly and its chat integration uses semantic selectors. The Claude page available in the development browser redirected to its login view, so its chat selectors still require live user verification. Functional and visual use across account-specific layouts belongs to the user's testing pass.
+Live DOM inspection informed Gemini's desktop and mobile composer selectors and Grok's composer, picker, and palette. Claude's `/new` page supplied its current CDS editor, composer boundary, send button, model trigger and label, sidebar, avatar, and nested theme roots. Its native model menu remained collapsed in this browser, so menu choices retain semantic fallbacks. Functional and visual use across account-specific layouts belongs to the user's testing pass.
 
 Keep selectors scoped to known composers. Preserve native handlers and account restrictions. Avoid document-wide send fallbacks or continuous full-page scans. Cleanup removes owned tags, cancels pending workflow operations, and restores app stacking properties.

@@ -198,9 +198,9 @@ html.cgpt-ambient-on [data-aurora-surface] [data-aurora-surface] {
   backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
 }
 
-/* Claude's current CDS palette also covers native surfaces outside older selectors. */
+/* CDS roots also occur inside the frame and portaled menus. */
 html.cgpt-ambient-on[data-aurora-site="claude"],
-html.cgpt-ambient-on[data-aurora-site="claude"] body {
+html.cgpt-ambient-on[data-aurora-site="claude"] :is(body, .cds-root) {
   --cds-text-primary: var(--theme-text-primary);
   --cds-text-secondary: var(--theme-text-secondary);
   --cds-text-disabled: color-mix(in srgb, var(--theme-text-primary) 40%, transparent);
@@ -220,6 +220,15 @@ html.cgpt-ambient-on[data-aurora-site="claude"] body {
   --cds-bg-user-message: var(--composer-bg);
 }
 html.cgpt-ambient-on.cgpt-glass-user-messages[data-aurora-site="claude"],
-html.cgpt-ambient-on.cgpt-glass-user-messages[data-aurora-site="claude"] body {
+html.cgpt-ambient-on.cgpt-glass-user-messages[data-aurora-site="claude"] :is(body, .cds-root) {
   --cds-bg-user-message: var(--aurora-glass-fill);
 }
+
+/* CDS paints button fills on an inner span above the button background. */
+html.cgpt-ambient-on[data-aurora-site="claude"] [data-aurora-surface="composer"] button [data-cds-part="paint"] {
+  background: transparent !important;
+}
+html.cgpt-ambient-on[data-aurora-site="claude"] [data-aurora-surface="composer"] :is([data-cds="SegmentedControl"], [role="radio"]) {
+  border-radius: 6px !important;
+}
+html.cgpt-ambient-on[data-aurora-site="claude"] .dframe-root { --df-radius-pill: 6px; }
