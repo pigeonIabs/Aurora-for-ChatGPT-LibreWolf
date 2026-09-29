@@ -1,16 +1,16 @@
 # Privacy Policy for Aurora for ChatGPT LibreWolf
 
-Last updated July 25, 2026
+Last updated September 28, 2026
 
 ## Overview
 
-Aurora for ChatGPT LibreWolf is an unofficial browser extension that changes the appearance and behavior of ChatGPT. Its theme, token counting, privacy masking, and settings features run locally in the browser.
+Aurora for ChatGPT LibreWolf is an unofficial browser extension that changes the appearance and behavior of ChatGPT. Its theme, privacy masking, and settings features run locally in the browser.
 
 ## Local data
 
 The extension stores appearance, behavior, privacy, and workflow preferences using Firefox browser storage. Custom background files are stored locally. Firefox may synchronize settings through the browser's own sync service when the user enables browser synchronization.
 
-Chat content used for local token counting, styling, queueing, and data masking remains inside the browser and is not transmitted by the extension.
+Chat content used for styling, queueing, and data masking remains inside the browser and is not transmitted by the extension.
 
 ## Optional feedback
 

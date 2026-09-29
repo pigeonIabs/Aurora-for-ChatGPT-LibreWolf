@@ -84,9 +84,6 @@
     document.querySelectorAll(`.${HIDE_LIMIT_CLASS}`).forEach((el) => el.classList.remove(HIDE_LIMIT_CLASS));
     document.querySelectorAll(`.${HIDE_UPGRADE_CLASS}`).forEach((el) => el.classList.remove(HIDE_UPGRADE_CLASS));
 
-    // Token counter (bridge only).
-    A.tokenCounter?.disable?.();
-
     // Data masking engine.
     A.masking?.stop?.();
   }

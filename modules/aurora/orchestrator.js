@@ -75,12 +75,6 @@
     }
   }
 
-  class AuroraTokenCounterController {
-    apply() {
-      A.tokenCounter?.apply?.();
-    }
-  }
-
   class AuroraAudioController {
     ensureContext() {
       const s = getSettings();
@@ -146,7 +140,6 @@
       this.upgrade = new AuroraUpgradeController();
       this.glass = new AuroraGlassController();
       this.defaultModel = new AuroraDefaultModelController();
-      this.tokenCounter = new AuroraTokenCounterController();
       this.audio = new AuroraAudioController();
       this.contrast = new AuroraContrastController();
       this.dataMasking = new AuroraDataMaskingController();
@@ -274,9 +267,6 @@
       this.glass.scheduleFullScan();
 
       this.defaultModel.maybeApply();
-
-      // Token counter (do not modify its implementation; only toggle).
-      this.tokenCounter.apply();
 
       // Optional engines.
       this.audio.ensureContext();
@@ -461,8 +451,6 @@
         }
 
         if (changes.defaultModel) this.defaultModel.maybeApply();
-
-        if (changes.showTokenCounter) this.tokenCounter.apply();
 
         if (changes.soundEnabled || changes.soundVolume) {
           this.audio.ensureContext();

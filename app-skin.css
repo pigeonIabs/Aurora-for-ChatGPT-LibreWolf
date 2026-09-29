@@ -74,7 +74,7 @@ html:root.cgpt-ambient-on :is(
   [class*="composer-surface-primary"],
   #octane-mobile-composer-actions-popover,
   :where(#web-mobile-root) form:has(:where(#mobile-composer-prompt)),
-  #cgpt-qs-panel, #aurora-token-counter, .aurora-queue-panel,
+  #cgpt-qs-panel, .aurora-queue-panel,
   [data-composer-overlay-floating-ui] > div
 ) {
   background: var(--aurora-glass-fill) !important;
@@ -207,7 +207,7 @@ html:root.cgpt-ambient-on[data-aurora-zero-blur] :is(
   [data-app-shell-titlebar], [data-composer-surface-variant],
   [data-testid="chatgpt-writing-block"], #cgpt-qs-panel, #cgpt-qs-btn,
   .aurora-switch-glider, .aurora-queue-panel, .aurora-queue-btn,
-  .qs-select-options, #stage-slideover-sidebar, #aurora-token-counter
+  .qs-select-options, #stage-slideover-sidebar
 ) { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
 html:root.cgpt-ambient-on[data-aurora-zero-blur] #cgpt-ambient-bg :is(img, video) { filter: none !important; }
 
@@ -227,8 +227,6 @@ html:root.cgpt-ambient-on.cgpt-focus-mode-on :is(.app-shell-left-panel, [data-ap
 html:root.cgpt-ambient-on .qs-row .track { border-radius: 6px !important; }
 html:root.cgpt-ambient-on .qs-row .thumb { border-radius: 4px !important; }
 html:root.cgpt-ambient-on :is(.aurora-queue-count, .aurora-queue-btn) { border-radius: 5px !important; }
-html:root.cgpt-ambient-on :is(.token-budget-bar, .token-budget-fill) { border-radius: 2px !important; }
-html:root.cgpt-ambient-on .token-budget-bar-container[hidden] { display: none !important; }
 html:root.cgpt-ambient-on [data-composer-overlay-floating-ui] button { border-radius: 6px !important; }
 html:root.cgpt-ambient-on [data-model-picker-power-slider] :is([class^="Track-"], [class^="Thumb-"]) {
   border-radius: 5px !important;

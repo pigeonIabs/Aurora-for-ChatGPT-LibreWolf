@@ -3,10 +3,10 @@
     "en-US": "Aurora for ChatGPT LibreWolf"
   },
   "summary": {
-    "en-US": "Personalize ChatGPT with glass themes, privacy controls, token counting, custom backgrounds, and workflow tools."
+    "en-US": "Personalize ChatGPT with glass themes, privacy controls, custom backgrounds, and workflow tools."
   },
   "description": {
-    "en-US": "An unofficial LibreWolf-focused port of Aurora for ChatGPT. It adds glass themes, custom image and video backgrounds, local token and word counting, privacy masking, streamer mode, focus controls, queued messages, custom fonts, voice styling, and settings import and export.\n\nThe extension stores preferences locally. Chat content used for styling, token counting, queueing, and masking stays inside the browser. Its optional feedback form sends only the text a user chooses to submit, a generated ticket ID, the extension version, and browser user agent after Firefox grants the optional data permission.\n\nThis project is independently maintained and is not affiliated with OpenAI, LibreWolf, or the upstream Aurora maintainers."
+    "en-US": "An unofficial LibreWolf-focused port of Aurora for ChatGPT. It adds glass themes, custom image and video backgrounds, privacy masking, streamer mode, focus controls, queued messages, custom fonts, voice styling, and settings import and export.\n\nThe extension stores preferences locally. Chat content used for styling, queueing, and masking stays inside the browser. Its optional feedback form sends only the text a user chooses to submit, a generated ticket ID, the extension version, and browser user agent after Firefox grants the optional data permission.\n\nThis project is independently maintained and is not affiliated with OpenAI, LibreWolf, or the upstream Aurora maintainers."
   },
   "categories": [
     "appearance",
@@ -19,7 +19,7 @@
   "version": {
     "license": "MIT",
     "release_notes": {
-      "en-US": "Aurora 1.8 is the complete overhaul for the redesigned ChatGPT app shell and Codex Cloud. Restores glass styling for composers, navigation, menus, settings, writing blocks, editable code blocks, and the prompt bar voice button. Keeps glass transparency independent from blur, with fully transparent fills at maximum transparency and zero filtering at zero blur. Repairs default model selection, exact token counting, queued replies, quick settings, and visual privacy masking for the new editor. Improves light theme compatibility with Dark Reader and uses compact control corners. Preserves the dotted message border in temporary chats and keeps the top bar seamless."
+      "en-US": "Aurora 1.8 is the complete overhaul for the redesigned ChatGPT app shell and Codex Cloud. Restores glass styling for composers, navigation, menus, settings, writing blocks, editable code blocks, and the prompt bar voice button. Keeps glass transparency independent from blur, with fully transparent fills at maximum transparency and zero filtering at zero blur. Repairs default model selection, queued replies, quick settings, and visual privacy masking for the new editor. Improves light theme compatibility with Dark Reader and uses compact control corners. Preserves the dotted message border in temporary chats and keeps the top bar seamless."
     },
     "approval_notes": "This is an unofficial MIT-licensed fork of TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT. The upstream copyright and MIT license are preserved. The XPI build script packages the human-readable runtime source without compilation or transpilation. The unlimitedStorage permission is used only for custom image and video backgrounds selected by the user and stored locally, with a 15 MB file limit. The optional feedback form posts user-entered feedback, a random ticket ID, the extension version, and the browser user agent to auroraforchatgpt.tnemoroccan.workers.dev only after the user initiates submission and grants the optional Firefox data permission."
   }

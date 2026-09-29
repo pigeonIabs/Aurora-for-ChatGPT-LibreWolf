@@ -3,7 +3,7 @@
     "message": "Aurora for ChatGPT LibreWolf"
   },
   "extensionDescription": {
-    "message": "Upgrade ChatGPT with a Glassmorphism theme, real-time token counter, privacy suite, custom backgrounds, and workflow controls."
+    "message": "Upgrade ChatGPT with a Glassmorphism theme, privacy suite, custom backgrounds, and workflow controls."
   },
   "actionTitle": {
     "message": "Aurora for ChatGPT LibreWolf Settings"
@@ -403,24 +403,6 @@
   },
   "fontOptionPoppins": {
     "message": "Poppins"
-  },
-  "labelShowTokenCounter": {
-    "message": "Mostrar contador de tokens/palabras"
-  },
-  "tooltipShowTokenCounter": {
-    "message": "Mostrar un contador de palabras y tokens estimados en tus mensajes"
-  },
-  "tokenCounterWords": {
-    "message": "palabras"
-  },
-  "tokenCounterTokens": {
-    "message": "~tokens"
-  },
-  "tokenCounterInput": {
-    "message": "Entrada"
-  },
-  "tokenCounterResponse": {
-    "message": "Respuesta"
   },
   "labelAutoScroll": {
     "message": "Desplazamiento automático"

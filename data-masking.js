@@ -196,7 +196,7 @@
             if (!node?.textContent?.trim()) return;
             const parent = node.parentElement;
             if (!parent || ['SCRIPT', 'STYLE', 'NOSCRIPT', 'IFRAME', 'INPUT', 'TEXTAREA'].includes(parent.tagName)) return;
-            if (parent.closest('[contenteditable="true"],#cgpt-qs-panel,#aurora-token-counter')) return;
+            if (parent.closest('[contenteditable="true"],#cgpt-qs-panel')) return;
             const previous = this.originalData.get(node);
             if (previous && previous.masked === node.textContent) return;
 

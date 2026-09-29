@@ -15,7 +15,7 @@ const DEFAULTS = {
   hideQuickSettings: false, queueWhileGenerating: false, customBgUrl: '', backgroundBlur: '60',
   backgroundScaling: 'cover', voiceColor: 'default', cuteVoiceUI: false,
   hasSeenWelcomeScreen: false, defaultModel: '', customFont: 'system',
-  showTokenCounter: false, blurChatHistory: false, blurAvatar: false,
+  blurChatHistory: false, blurAvatar: false,
   soundEnabled: false, soundVolume: 'low', autoContrast: false,
   smartSelectors: true, dataMaskingEnabled: false, maskingRandomMode: false,
   cinemaMode: false,
@@ -24,7 +24,7 @@ const DEFAULTS = {
 
 const TOGGLE_KEYS = [
   'legacyComposer', 'hideGpt5Limit', 'hideUpgradeButtons', 'disableAnimations',
-  'focusMode', 'hideQuickSettings', 'queueWhileGenerating', 'showTokenCounter', 'blurChatHistory',
+  'focusMode', 'hideQuickSettings', 'queueWhileGenerating', 'blurChatHistory',
   'blurAvatar', 'soundEnabled', 'autoContrast', 'dataMaskingEnabled',
   'maskingRandomMode', 'cuteVoiceUI', 'cinemaMode', 'glassUserMessages'
 ];

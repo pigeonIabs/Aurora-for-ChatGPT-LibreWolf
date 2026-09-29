@@ -2,7 +2,7 @@
 
 Unofficial LibreWolf focused fork of Aurora for ChatGPT.
 
-This build keeps the glass theme engine, custom backgrounds, real time token counter, privacy controls, streamer mode, default model picker, queue while generating, audio haptics, custom fonts, and quick settings.
+This build keeps the glass theme engine, custom backgrounds, privacy controls, streamer mode, default model picker, queue while generating, audio haptics, custom fonts, and quick settings.
 
 Seasonal Christmas and New Year theme code has been removed.
 
@@ -14,7 +14,7 @@ This project is independently maintained and is not affiliated with OpenAI, Libr
 
 - Restores glass across the prompt bar, navigation, menus, settings, writing blocks, and code blocks.
 - Separates glass transparency from blur and improves the light theme alongside Dark Reader.
-- Updates model selection, token counting, queued replies, quick settings, and privacy masking for the new editor.
+- Updates model selection, queued replies, quick settings, and privacy masking for the new editor.
 - Preserves the dotted message border in temporary chats and keeps the top bar seamless.
 - Gives the prompt bar's voice button matching glass styling and theme colors.
 
@@ -33,7 +33,6 @@ Requires Python 3.8 and Git. From the repository root, run `python scripts/build
 ## LibreWolf Changes
 
 - Manifest V3 background registration now includes Firefox event page scripts.
-- WebAssembly is allowed through extension CSP so the local token counter can load its bundled tokenizer.
 - A Gecko extension id is included for Firefox and LibreWolf builds.
 - ChatGPT and feedback host permissions are declared explicitly.
 - Holiday UI, content module, styles, strings, and media assets were removed.
@@ -45,7 +44,6 @@ Requires Python 3.8 and Git. From the repository root, run `python scripts/build
 - Custom image and video backgrounds with a dedicated Firefox-safe upload page and local file storage.
 - Pure Black OLED background preset.
 - Glass styling for fenced code and copyable writing blocks.
-- Real time token and word counting with local WASM files.
 - Privacy suite with data masking, streamer mode, and avatar blur.
 - Focus mode, upgrade element hiding, and GPT limit message handling.
 - Queue while generating for composing the next message.

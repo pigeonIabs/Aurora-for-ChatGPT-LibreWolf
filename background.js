@@ -18,7 +18,6 @@ const DEFAULTS = {
   hasSeenWelcomeScreen: false,
   defaultModel: '',
   customFont: 'system',
-  showTokenCounter: false,
   blurChatHistory: false,
   blurAvatar: false,
   soundEnabled: false,

@@ -46,7 +46,7 @@
 
       for (const m of mutations) {
         const target = m.target.nodeType === 1 ? m.target : m.target.parentElement;
-        if (target?.closest?.('#cgpt-ambient-bg,#cgpt-qs-panel,#aurora-token-counter,#aurora-queue-panel,#aurora-queue-btn,#aurora-queue-toast')) continue;
+        if (target?.closest?.('#cgpt-ambient-bg,#cgpt-qs-panel,#aurora-queue-panel,#aurora-queue-btn,#aurora-queue-toast')) continue;
         if (m.type === 'characterData' && m.target.nodeValue.trim()) addedTexts.push(m.target);
         if (m.type === 'attributes') addedElements.push(m.target);
         for (const n of m.addedNodes) {
@@ -56,7 +56,7 @@
       }
 
       // Important: even if arrays are empty, some modules might just want to know a mutation happened
-      // (like token-counter checking for textarea replacement)
+      // Subscribers also receive mutations without added content.
       this.callbacks.forEach(cb => {
         try {
           cb({ mutations, addedElements, addedTexts });
