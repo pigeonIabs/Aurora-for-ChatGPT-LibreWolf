@@ -4,8 +4,8 @@
   'use strict';
   const A = window.AuroraExt;
   const selectors = A.site?.selectors || {};
-  const ownUI = '#cgpt-ambient-bg, #cgpt-qs-panel, #cgpt-qs-btn';
-  const surfaceRoles = ['composer', 'sidebar', 'menu', 'message'];
+  const ownUI = '#cgpt-ambient-bg, #cgpt-qs-panel, #cgpt-qs-btn, #aurora-queue-panel, #aurora-queue-btn, #aurora-queue-toast';
+  const surfaceRoles = ['composer', 'sidebar', 'menu', 'message', 'code', 'toolbar'];
 
   function each(root, selector, apply) {
     if (!selector || !root?.querySelectorAll) return;
@@ -41,18 +41,24 @@
       const composer = editor.closest(selectors.composer) || editor.parentElement;
       if (composer) tagSurface(composer, 'composer');
     });
-    for (const role of ['history', 'avatar', 'plane']) {
+    for (const role of ['history', 'avatar', 'plane', 'content', 'upgrade']) {
       each(root, selectors[role], node => {
         if (!node.closest(ownUI) && !node.hasAttribute('data-aurora-surface')) node.setAttribute(`data-aurora-${role}`, '');
       });
     }
   }
 
+  A.upgrade = {
+    applyUpgradeButtons() {
+      document.documentElement.classList.toggle('cgpt-hide-upgrade', A.isActive() && !!A.getSettings().hideUpgradeButtons);
+    },
+  };
+
   A.glass = {
     tagFast,
     tagAll: tagFast,
     untag() {
-      const attrs = ['data-aurora-surface', 'data-aurora-plane', 'data-aurora-history', 'data-aurora-avatar'];
+      const attrs = ['data-aurora-surface', 'data-aurora-plane', 'data-aurora-history', 'data-aurora-avatar', 'data-aurora-content', 'data-aurora-upgrade'];
       document.querySelectorAll(attrs.map(attr => `[${attr}]`).join(',')).forEach(node => {
         attrs.forEach(attr => node.removeAttribute(attr));
       });

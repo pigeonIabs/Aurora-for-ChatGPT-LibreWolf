@@ -3,7 +3,7 @@
     "message": "Aurora Universal"
   },
   "extensionDescription": {
-    "message": "Thèmes de verre et arrière-plans personnalisés pour ChatGPT, Claude et Gemini."
+    "message": "Thèmes de verre et arrière-plans personnalisés pour ChatGPT, Claude, Gemini et Grok."
   },
   "actionTitle": {
     "message": "Paramètres Aurora Universal"
@@ -571,5 +571,32 @@
   },
   "sectionStreamerMode": {
     "message": "Mode Streamer"
+  },
+  "labelWebsite": {
+    "message": "Site web"
+  },
+  "labelSiteEnabled": {
+    "message": "Activé"
+  },
+  "useCurrentModel": {
+    "message": "Utiliser le modèle actuel"
+  },
+  "openSiteForModel": {
+    "message": "Ouvrez ce site pour lire son modèle actuel"
+  },
+  "queueRetry": {
+    "message": "Réessayer"
+  },
+  "queueNeedsRetry": {
+    "message": "Vérifiez le chat avant de réessayer"
+  },
+  "queueSending": {
+    "message": "Envoi en cours"
+  },
+  "queueWaitingForDraft": {
+    "message": "En attente de votre brouillon"
+  },
+  "queueFull": {
+    "message": "La file est pleine"
   }
 }

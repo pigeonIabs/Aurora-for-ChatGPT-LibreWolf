@@ -23,6 +23,7 @@
     "https://chatgpt.com/*",
     "https://claude.ai/*",
     "https://gemini.google.com/*",
+    "https://grok.com/*",
     "https://auroraforchatgpt.tnemoroccan.workers.dev/*"
   ],
   "content_security_policy": {
@@ -120,6 +121,9 @@
       "js": [
         "modules/aurora/sites.js",
         "modules/aurora/adapters/claude.js",
+        "modules/aurora/dom.js",
+        "data-masking.js",
+        "modules/message-queue.js",
         "modules/aurora/namespace.js",
         "modules/aurora/central-observer.js",
         "modules/aurora/config.js",
@@ -131,6 +135,10 @@
         "modules/aurora/surfaces.js",
         "modules/aurora/quick-settings.js",
         "modules/aurora/root-flags.js",
+        "modules/aurora/audio.js",
+        "modules/aurora/masking.js",
+        "modules/aurora/model-preferences.js",
+        "modules/aurora/queue.js",
         "modules/aurora/disable.js",
         "modules/aurora/orchestrator.js",
         "modules/aurora/init.js",
@@ -149,6 +157,9 @@
       "js": [
         "modules/aurora/sites.js",
         "modules/aurora/adapters/gemini.js",
+        "modules/aurora/dom.js",
+        "data-masking.js",
+        "modules/message-queue.js",
         "modules/aurora/namespace.js",
         "modules/aurora/central-observer.js",
         "modules/aurora/config.js",
@@ -160,6 +171,46 @@
         "modules/aurora/surfaces.js",
         "modules/aurora/quick-settings.js",
         "modules/aurora/root-flags.js",
+        "modules/aurora/audio.js",
+        "modules/aurora/masking.js",
+        "modules/aurora/model-preferences.js",
+        "modules/aurora/queue.js",
+        "modules/aurora/disable.js",
+        "modules/aurora/orchestrator.js",
+        "modules/aurora/init.js",
+        "content.js"
+      ],
+      "css": [
+        "shared.css",
+        "universal.css"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://grok.com/*"
+      ],
+      "js": [
+        "modules/aurora/sites.js",
+        "modules/aurora/adapters/grok.js",
+        "modules/aurora/dom.js",
+        "data-masking.js",
+        "modules/message-queue.js",
+        "modules/aurora/namespace.js",
+        "modules/aurora/central-observer.js",
+        "modules/aurora/config.js",
+        "modules/aurora/utils.js",
+        "modules/aurora/i18n.js",
+        "modules/aurora/fonts.js",
+        "modules/aurora/contrast.js",
+        "modules/aurora/background.js",
+        "modules/aurora/surfaces.js",
+        "modules/aurora/quick-settings.js",
+        "modules/aurora/root-flags.js",
+        "modules/aurora/audio.js",
+        "modules/aurora/masking.js",
+        "modules/aurora/model-preferences.js",
+        "modules/aurora/queue.js",
         "modules/aurora/disable.js",
         "modules/aurora/orchestrator.js",
         "modules/aurora/init.js",
@@ -182,7 +233,8 @@
       "matches": [
         "https://chatgpt.com/*",
         "https://claude.ai/*",
-        "https://gemini.google.com/*"
+        "https://gemini.google.com/*",
+        "https://grok.com/*"
       ]
     }
   ],

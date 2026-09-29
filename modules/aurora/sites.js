@@ -3,14 +3,13 @@
   'use strict';
   const A = (globalThis.AuroraExt = globalThis.AuroraExt || {});
   const chatgptOnly = new Set([
-    'legacyComposer', 'queueWhileGenerating', 'defaultModel', 'voiceColor',
-    'cuteVoiceUI', 'hideGpt5Limit', 'hideUpgradeButtons', 'soundEnabled',
-    'soundVolume', 'dataMaskingEnabled', 'maskingRandomMode', 'cinemaMode',
+    'legacyComposer', 'voiceColor', 'cuteVoiceUI', 'hideGpt5Limit',
   ]);
   const sites = [
     { id: 'chatgpt', name: 'ChatGPT', host: 'chatgpt.com' },
     { id: 'claude', name: 'Claude', host: 'claude.ai' },
     { id: 'gemini', name: 'Gemini', host: 'gemini.google.com' },
+    { id: 'grok', name: 'Grok', host: 'grok.com' },
   ];
   A.sites = {
     all: sites,
@@ -31,4 +30,5 @@
     },
   };
   A.site = A.sites.fromUrl(location.href);
+  A.isActive = () => A.isEnabled?.() && !!A.site?.isSupportedRoute(location.pathname);
 })();

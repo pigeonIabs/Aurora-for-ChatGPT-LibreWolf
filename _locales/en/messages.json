@@ -3,7 +3,7 @@
     "message": "Aurora Universal"
   },
   "extensionDescription": {
-    "message": "Glass themes and custom backgrounds for ChatGPT, Claude, and Gemini."
+    "message": "Glass themes and custom backgrounds for ChatGPT, Claude, Gemini, and Grok."
   },
   "actionTitle": {
     "message": "Aurora Universal Settings"
@@ -616,5 +616,32 @@
   },
   "sectionStreamerMode": {
     "message": "Streamer Mode"
+  },
+  "labelWebsite": {
+    "message": "Website"
+  },
+  "labelSiteEnabled": {
+    "message": "Enabled"
+  },
+  "useCurrentModel": {
+    "message": "Use current model"
+  },
+  "openSiteForModel": {
+    "message": "Open this website to read its current model"
+  },
+  "queueRetry": {
+    "message": "Retry"
+  },
+  "queueNeedsRetry": {
+    "message": "Check the chat before retrying"
+  },
+  "queueSending": {
+    "message": "Sending"
+  },
+  "queueWaitingForDraft": {
+    "message": "Waiting for your current draft"
+  },
+  "queueFull": {
+    "message": "Queue is full"
   }
 }

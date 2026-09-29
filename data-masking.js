@@ -59,109 +59,58 @@
 
     class DataMaskingEngine {
         constructor() {
-            this.originalData = new Map(); // reserved for potential restore feature
-            this.settings = { dataMaskingEnabled: false, maskingRandomMode: false, extensionEnabled: true };
-            this.initialized = false;
+            this.originalData = new Map();
+            this.settings = {};
+            this.active = false;
             this.observerCallback = null;
-            this.pendingNodes = [];
-            this.processQueued = false;
-
-            // Chunked scanning queue to avoid long tasks on large DOM subtrees.
-            this.scanQueue = []; // [{ root, walker }]
-            this.scanScheduled = false;
+            this.scanQueue = [];
             this.queuedRoots = new WeakSet();
-            this.onEditorInput = (event) => this.maskEditor(event.target);
+            this.scanHandle = null;
+            this.revision = 0;
+            this.lastPrune = 0;
+            this.onEditorInput = event => this.maskEditor(event.target);
         }
 
-        async init() {
-            if (this.initialized) return;
-            try {
-                if (chrome?.storage?.sync) {
-                    const result = await new Promise(resolve => {
-                        chrome.storage.sync.get(['dataMaskingEnabled', 'maskingRandomMode', 'extensionEnabled'], resolve);
-                    });
-                    this.settings.dataMaskingEnabled = !!result.dataMaskingEnabled;
-                    this.settings.maskingRandomMode = !!result.maskingRandomMode;
-                    this.settings.extensionEnabled = result.extensionEnabled !== false;
-                    this.initialized = true;
-
-                    if (this.settings.dataMaskingEnabled && this.settings.extensionEnabled) {
-                        this.startObserver();
-                        if (document.body) {
-                            this.maskElement(document.body);
-                        }
-                    }
-
-                    chrome.storage.onChanged.addListener((changes, area) => {
-                        if (area === 'sync') {
-                            if (changes.dataMaskingEnabled !== undefined) {
-                                this.settings.dataMaskingEnabled = !!changes.dataMaskingEnabled.newValue;
-                                if (this.settings.dataMaskingEnabled && this.settings.extensionEnabled) {
-                                    this.startObserver();
-                                    if (document.body) this.maskElement(document.body);
-                                } else {
-                                    this.stopObserver();
-                                }
-                            }
-                            if (changes.maskingRandomMode !== undefined) {
-                                this.settings.maskingRandomMode = !!changes.maskingRandomMode.newValue;
-                            }
-                            if (changes.extensionEnabled !== undefined) {
-                                this.settings.extensionEnabled = changes.extensionEnabled.newValue !== false;
-                                if (this.settings.extensionEnabled && this.settings.dataMaskingEnabled) {
-                                    this.startObserver();
-                                    if (document.body) this.maskElement(document.body);
-                                } else {
-                                    this.stopObserver();
-                                }
-                            }
-                        }
-                    });
-                }
-            } catch (e) { /* ignore */ }
-        }
-
-        startObserver() {
-            if (this.observerCallback) return;
+        configure(settings, active) {
+            const enabled = active && !!settings.dataMaskingEnabled;
+            const changed = this.settings.maskingRandomMode !== !!settings.maskingRandomMode;
+            if (!enabled || changed) this.stopObserver();
+            this.settings = { maskingRandomMode: !!settings.maskingRandomMode };
+            if (!enabled || this.active) return;
+            this.active = true;
             document.addEventListener('input', this.onEditorInput, true);
-            document.querySelectorAll('[contenteditable="true"],textarea').forEach(editor => this.maskEditor(editor));
-
             this.observerCallback = ({ addedElements, addedTexts }) => {
-                if (!this.settings.dataMaskingEnabled || !this.settings.extensionEnabled) return;
-
-                if (addedElements && addedElements.length > 0) {
-                    this.pendingNodes.push(...addedElements);
+                if (!this.isEnabled()) return;
+                if (Date.now() - this.lastPrune > 2000) {
+                    this.lastPrune = Date.now();
+                    for (const [node] of this.originalData) if (!node.isConnected) this.originalData.delete(node);
                 }
-
-                if (addedTexts && addedTexts.length > 0) {
-                    addedTexts.forEach(node => this.maskTextNode(node));
-                }
-
-                if (this.pendingNodes.length > 0 && !this.processQueued) {
-                    this.processQueued = true;
-                    requestAnimationFrame(() => {
-                        const nodes = this.pendingNodes.splice(0);
-                        nodes.forEach(n => this.maskElement(n));
-                        this.processQueued = false;
-                    });
-                }
+                for (const node of addedTexts || []) this.maskTextNode(node);
+                for (const node of addedElements || []) this.maskElement(node);
             };
-
-            window.AuroraExt?.centralObserver?.subscribe(this.observerCallback);
+            window.AuroraExt.centralObserver.subscribe(this.observerCallback);
+            this.maskElement(document.body);
         }
 
         stopObserver() {
+            this.active = false;
+            this.revision++;
             document.removeEventListener('input', this.onEditorInput, true);
+            if (this.observerCallback) window.AuroraExt.centralObserver?.unsubscribe(this.observerCallback);
+            this.observerCallback = null;
+            if (this.scanHandle !== null) {
+                if (window.cancelIdleCallback) window.cancelIdleCallback(this.scanHandle);
+                else clearTimeout(this.scanHandle);
+            }
+            this.scanHandle = null;
+            this.scanQueue = [];
+            this.queuedRoots = new WeakSet();
             document.querySelectorAll('[data-aurora-sensitive-editor]').forEach(editor => editor.removeAttribute('data-aurora-sensitive-editor'));
             this.restore();
-            if (this.observerCallback) {
-                window.AuroraExt?.centralObserver?.unsubscribe(this.observerCallback);
-                this.observerCallback = null;
-            }
         }
 
         isEnabled() {
-            return !!this.settings.dataMaskingEnabled;
+            return this.active && !!window.AuroraExt.isActive?.();
         }
 
         getMask(type, originalText) {
@@ -191,16 +140,28 @@
             return '*'.repeat(Math.min(length, 12));
         }
 
+        preview(text) {
+            if (!this.isEnabled()) return text;
+            for (const [type, pattern] of Object.entries(PATTERNS)) {
+                pattern.lastIndex = 0;
+                text = text.replace(pattern, match => this.getMask(type, match));
+            }
+            return text;
+        }
+
         maskTextNode(node) {
-            if (!this.settings.dataMaskingEnabled || !this.settings.extensionEnabled) return;
-            if (!node?.textContent?.trim()) return;
+            if (!this.isEnabled()) return;
+            if (!node?.isConnected || !node.textContent?.trim()) return;
             const parent = node.parentElement;
             if (!parent || ['SCRIPT', 'STYLE', 'NOSCRIPT', 'IFRAME', 'INPUT', 'TEXTAREA'].includes(parent.tagName)) return;
-            if (parent.closest('[contenteditable="true"],#cgpt-qs-panel')) return;
+            if (parent.closest('[contenteditable], [role="textbox"], #cgpt-qs-panel, #cgpt-qs-btn, #cgpt-ambient-bg, #aurora-queue-panel, #aurora-queue-toast')) return;
             const previous = this.originalData.get(node);
             if (previous && previous.masked === node.textContent) return;
 
-            let text = node.textContent;
+            // A streaming renderer may append to the already masked text node.
+            const original = previous && node.textContent.startsWith(previous.masked)
+                ? previous.original + node.textContent.slice(previous.masked.length) : node.textContent;
+            let text = original;
             let modified = false;
 
             for (const [type, pattern] of Object.entries(PATTERNS)) {
@@ -212,111 +173,68 @@
             }
 
             if (modified) {
-                this.originalData.set(node, { original: node.textContent, masked: text });
+                this.originalData.set(node, { original, masked: text });
                 node.textContent = text;
             }
         }
 
         maskEditor(target) {
-            if (!this.settings.dataMaskingEnabled || !this.settings.extensionEnabled) return;
+            if (!this.isEnabled()) return;
             const editor = target?.closest?.('[contenteditable="true"],textarea');
-            if (!editor) return;
+            if (!editor || editor.closest('#cgpt-qs-panel, #aurora-queue-panel')) return;
             const text = editor.value ?? editor.textContent ?? '';
             const sensitive = Object.values(PATTERNS).some(pattern => { pattern.lastIndex = 0; return pattern.test(text); });
             editor.toggleAttribute('data-aurora-sensitive-editor', sensitive);
         }
 
         maskElement(element) {
-            if (!element || !this.settings.dataMaskingEnabled || !this.settings.extensionEnabled) return;
+            if (!element?.isConnected || !this.isEnabled()) return;
             this.maskEditor(element);
-            // Queue scans; chunk processing avoids blocking the main thread for large inserts.
-            this.enqueueScan(element);
-        }
-
-        enqueueScan(root) {
-            if (!root || !this.settings.dataMaskingEnabled || !this.settings.extensionEnabled) return;
-            // WeakSet prevents flooding the queue with the same root repeatedly.
-            if (root.nodeType === Node.ELEMENT_NODE || root.nodeType === Node.DOCUMENT_NODE || root.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-                if (this.queuedRoots.has(root)) return;
-                this.queuedRoots.add(root);
-            }
-
-            this.scanQueue.push({ root, walker: null });
+            element.querySelectorAll?.('[contenteditable="true"],textarea').forEach(editor => this.maskEditor(editor));
+            if (this.queuedRoots.has(element)) return;
+            // An ancestor already waiting for a scan covers this subtree too.
+            if (this.scanQueue.some(task => !task.walker && task.root.contains(element))) return;
+            this.queuedRoots.add(element);
+            this.scanQueue.push({ root: element, walker: null });
             this.scheduleScan();
         }
 
         scheduleScan() {
-            if (this.scanScheduled) return;
-            if (!this.settings.dataMaskingEnabled || !this.settings.extensionEnabled) return;
-
-            this.scanScheduled = true;
-            const run = (deadline) => {
-                this.scanScheduled = false;
+            if (this.scanHandle !== null || !this.isEnabled()) return;
+            const revision = this.revision;
+            const run = deadline => {
+                if (revision !== this.revision) return;
+                this.scanHandle = null;
                 this.runScan(deadline);
             };
-
-            if (window.requestIdleCallback) {
-                window.requestIdleCallback(run, { timeout: 800 });
-            } else {
-                setTimeout(() => run(null), 16);
-            }
+            this.scanHandle = window.requestIdleCallback
+                ? window.requestIdleCallback(run, { timeout: 400 })
+                : setTimeout(() => run(null), 16);
         }
 
-	        runScan(deadline) {
-	            if (!this.settings.dataMaskingEnabled || !this.settings.extensionEnabled) {
-	                this.scanQueue.length = 0;
-	                // If we drop the queue early, also drop the dedupe set.
-	                // Otherwise roots (e.g. document.body) remain permanently "queued" and re-enqueue is skipped.
-	                this.queuedRoots = new WeakSet();
-	                return;
-	            }
-
+        runScan(deadline) {
+            if (!this.isEnabled()) return;
             const start = performance.now();
-            const TIME_BUDGET_MS = 8;
-            const NODE_LIMIT = 220;
-
-            while (this.scanQueue.length > 0) {
+            let processed = 0;
+            while (this.scanQueue.length && processed < 220 && performance.now() - start < 8) {
                 const task = this.scanQueue[0];
-                const root = task.root;
-
-                if (!task.walker) {
-                    task.walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-                        acceptNode: (node) => {
-                            if (!node.textContent?.trim()) return NodeFilter.FILTER_REJECT;
-                            const p = node.parentElement;
-                            if (!p || ['SCRIPT', 'STYLE', 'NOSCRIPT', 'IFRAME', 'INPUT', 'TEXTAREA'].includes(p.tagName)) {
-                                return NodeFilter.FILTER_REJECT;
-                            }
-                            return NodeFilter.FILTER_ACCEPT;
-                        }
-                    });
-                }
-
-                let processed = 0;
-                let done = false;
-                while (processed < NODE_LIMIT) {
-                    const node = task.walker.nextNode();
-                    if (!node) { done = true; break; }
-                    this.maskTextNode(node);
-                    processed++;
-
-                    if (deadline && typeof deadline.timeRemaining === 'function' && deadline.timeRemaining() < 3) break;
-                    if (performance.now() - start > TIME_BUDGET_MS) break;
-                }
-
-                if (done) {
+                if (!task.root.isConnected) {
+                    this.queuedRoots.delete(task.root);
                     this.scanQueue.shift();
-                    try { this.queuedRoots.delete(root); } catch (e) { /* ignore */ }
                     continue;
                 }
-
-                // Not done yet; continue later.
-                break;
+                task.walker ||= document.createTreeWalker(task.root, NodeFilter.SHOW_TEXT);
+                const node = task.walker.nextNode();
+                if (!node) {
+                    this.queuedRoots.delete(task.root);
+                    this.scanQueue.shift();
+                } else {
+                    this.maskTextNode(node);
+                    processed++;
+                }
+                if (deadline && deadline.timeRemaining() < 2) break;
             }
-
-            if (this.scanQueue.length > 0) {
-                this.scheduleScan();
-            }
+            if (this.scanQueue.length) this.scheduleScan();
         }
 
         restore() {
@@ -327,31 +245,5 @@
         }
     }
 
-    const engine = new DataMaskingEngine();
-    window.DataMaskingEngine = engine;
-
-    // Single initialization point with flag to prevent duplicates
-    let initCalled = false;
-    const initOnce = () => {
-        if (initCalled) return;
-        initCalled = true;
-        engine.init();
-    };
-
-    // Use a single pattern for initialization
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initOnce, { once: true });
-    } else if (document.body) {
-        // Document already loaded with body
-        initOnce();
-    } else {
-        // Rare edge case: document loaded but no body yet
-        const earlyObserver = new MutationObserver(() => {
-            if (document.body) {
-                earlyObserver.disconnect();
-                initOnce();
-            }
-        });
-        earlyObserver.observe(document.documentElement, { childList: true });
-    }
+    window.DataMaskingEngine = new DataMaskingEngine();
 })();

@@ -12,7 +12,7 @@
     A.state.settings = A.state.settings || {};
 
     A.getSettings = A.getSettings || (() => A.state.settings);
-    A.isEnabled = A.isEnabled || (() => A.getSettings().extensionEnabled !== false);
+    A.isEnabled = A.isEnabled || (() => A.getSettings().extensionEnabled !== false && !(Array.isArray(A.getSettings().disabledSites) && A.getSettings().disabledSites.includes(A.site?.id)));
   } catch (e) {
     // ignore
   }

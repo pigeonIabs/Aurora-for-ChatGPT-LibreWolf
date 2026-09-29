@@ -3,7 +3,7 @@
     "message": "Aurora Universal"
   },
   "extensionDescription": {
-    "message": "为 ChatGPT、Claude 和 Gemini 提供玻璃主题和自定义背景。"
+    "message": "为 ChatGPT、Claude、Gemini 和 Grok 提供玻璃主题和自定义背景。"
   },
   "actionTitle": {
     "message": "Aurora Universal 设置"
@@ -571,5 +571,32 @@
   },
   "sectionStreamerMode": {
     "message": "主播模式"
+  },
+  "labelWebsite": {
+    "message": "网站"
+  },
+  "labelSiteEnabled": {
+    "message": "已启用"
+  },
+  "useCurrentModel": {
+    "message": "使用当前模型"
+  },
+  "openSiteForModel": {
+    "message": "打开此网站以读取当前模型"
+  },
+  "queueRetry": {
+    "message": "重试"
+  },
+  "queueNeedsRetry": {
+    "message": "重试前请先检查聊天"
+  },
+  "queueSending": {
+    "message": "正在发送"
+  },
+  "queueWaitingForDraft": {
+    "message": "等待当前草稿"
+  },
+  "queueFull": {
+    "message": "队列已满"
   }
 }

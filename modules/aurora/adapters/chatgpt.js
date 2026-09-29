@@ -32,6 +32,7 @@
         'gpt-5.6-sol-high': ['gpt-5.6 sol high', 'high'],
       },
     },
+    isNewConversation: path => path === '/' || path === '/codex/cloud' || /^\/g\/[^/]+\/?$/.test(path),
     isSupportedRoute: path => path.replace(/\/+$/, '') !== '/codex',
   });
 })();

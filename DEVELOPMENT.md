@@ -4,28 +4,32 @@
 
 Keep incremental Universal work on `main`. The next release should collect the larger overhaul. Publishing a tag or release and changing the manifest version require a release request.
 
-The Gecko ID `aurora-for-chatgpt-librewolf@local` is the existing installation identity. Preserve it so users retain preferences and uploaded backgrounds.
+Preserve the Gecko ID `aurora-for-chatgpt-librewolf@local` so users retain preferences and uploaded backgrounds.
 
-## Layout
+## Integration
 
-- `modules/aurora/sites.js` holds the host registry, feature availability, and native theme detection. The popup also reads this registry.
-- `modules/aurora/adapters/` holds site routes, app roots, and selectors. The ChatGPT adapter owns its existing selector configuration.
-- `modules/aurora/surfaces.js` tags supported surfaces and their background layers for Claude and Gemini.
-- `shared.css` holds shared theme variables, background media styles, and quick settings.
-- `universal.css` styles adapter surfaces and supplies the small host-specific overrides.
-- ChatGPT retains `styles.css`, `new-features.css`, and `app-skin.css` plus its workflow modules.
-- `manifest.json` specifies the scripts and styles for each host. Only the matching host entry runs.
+- `modules/aurora/sites.js` holds the four-host registry, capability rules, and native theme detection. The popup uses the same registry.
+- `modules/aurora/adapters/` holds site routes, app roots, surface selectors, and workflow selectors. Authentication and billing routes on the additional sites retain their native UI.
+- `modules/aurora/dom.js` locates visible composers and native send controls. Textareas use their native value setter. Rich editors use browser editing commands and input events.
+- `modules/aurora/surfaces.js` tags surfaces on Claude, Gemini, and Grok. `universal.css` supplies their glass treatment and native palette overrides.
+- `shared.css` supplies common tokens, backgrounds, quick settings, queue controls, and sensitive draft blur. ChatGPT also uses `styles.css`, `new-features.css`, and `app-skin.css`.
+- `modules/message-queue.js` owns queued text in page memory. Prepared sends, acknowledgments, active drafts, and uncertain submissions have distinct states. A new chat's canonical URL can be adopted only while generating and while its first message node remains the same.
+- `data-masking.js` owns reversible visual masking. Its scheduled scans use cancellation revisions and the orchestrator's current settings and route. Editable values stay native.
+- `modules/aurora/model-preferences.js` reads the additional sites' native model menus and applies exact label preferences to new chats. Catalogs are bounded to 32 labels per site. User interaction cancels an automatic picker operation.
+- `modules/aurora/default-model.js` retains ChatGPT's model and reasoning integration with route, visibility, preference, and interaction guards.
+- `modules/aurora/orchestrator.js` owns settings, navigation, visibility, and module cleanup. The central observer filters Aurora's own UI updates and follows body replacement.
+- `manifest.json` declares matching scripts and styles for all four hosts. Each website loads only its own adapter.
 
-## Add a site
+## Settings
 
-Register its exact hostname and feature availability in `sites.js`. Add an adapter with an app root, supported chat routes, and semantic selectors for the composer, editor, sidebar, menus, user messages, history items, avatars, and page planes. Add a matching manifest entry using the shared module sequence and the adapter.
+Appearance and privacy controls remain shared. `disabledSites` records per-site enable preferences. `siteDefaultModels` holds model labels for Claude, Gemini, and Grok. ChatGPT retains `defaultModel`. Local `modelCatalog:<site>` entries hold native picker labels.
 
-Favor stable custom elements, roles, and data attributes observed on the site. Keep uncertain selectors conservative. Authentication, account, and billing routes should retain their native UI. Use the existing observer's added subtrees for dynamic content and preserve native message submission behavior.
+The master switch changes only the enable preference. Existing backups from the previous toggle implementation are recovered once. The popup supports active-site detection, explicit site selection, settings search, keyboard-accessible choices, and import/export.
 
-Surface styles apply only while Aurora is enabled. Cleanup removes Aurora tags and restores app stacking properties. Custom font rules preserve the site's icon fonts and code formatting.
+## Verification scope
 
-New adapters initially share visual settings. Enable workflow features only when their integration is implemented for that site. Update both the capability registry and the manifest when adding a feature.
+The workflow changes receive focused critical checks for draft preservation, chat changes, duplicate-send prevention, failed editor writes, disabling, URL canonicalization, and masking restoration. Syntax checks and manifest-resource validation cover the packaged scripts.
 
-## Current verification scope
+Live DOM inspection informed Gemini's desktop and mobile composer selectors and Grok's composer, picker, and palette. Claude uses semantic chat selectors. The Claude page available in the development browser redirected to its login view, so its chat selectors still require live user verification. Functional and visual use across account-specific layouts belongs to the user's testing pass.
 
-The development package is assembled from the manifest's declared resources. Live Gemini DOM inspection informed its adapter. Claude chat support awaits signed-in manual use. Functional and visual testing belongs to the user's next development pass.
+Keep selectors scoped to known composers. Preserve native handlers and account restrictions. Avoid document-wide send fallbacks or continuous full-page scans. Cleanup removes owned tags, cancels pending workflow operations, and restores app stacking properties.

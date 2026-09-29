@@ -19,7 +19,7 @@ const DEFAULTS = {
   soundEnabled: false, soundVolume: 'low', autoContrast: false,
   smartSelectors: true, dataMaskingEnabled: false, maskingRandomMode: false,
   cinemaMode: false,
-  extensionEnabled: true
+  extensionEnabled: true, disabledSites: [], siteDefaultModels: {}
 };
 
 const TOGGLE_KEYS = [
@@ -32,6 +32,11 @@ const TOGGLE_KEYS = [
 // --- Element Cache (populated once on DOMContentLoaded) ---
 const $ = {};
 let listenersAttached = false;
+let selectedSite = AuroraExt.sites.all[0];
+let activeSiteTab = null;
+let currentSettings = DEFAULTS;
+let siteState = { models: [], currentModel: '' };
+let siteRequestRevision = 0;
 
 // --- Helpers ---
 const getMessage = (key, substitutions) => chrome?.i18n?.getMessage(key, substitutions) || key;
@@ -79,30 +84,90 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function applySiteScope() {
+  const select = document.getElementById('websiteSelect');
+  for (const site of AuroraExt.sites.all) select.add(new Option(site.name, site.id));
+  select.addEventListener('change', () => {
+    selectedSite = AuroraExt.sites.all.find(site => site.id === select.value);
+    refreshSiteControls();
+  });
+  document.getElementById('siteEnabled').addEventListener('change', async event => {
+    const id = selectedSite.id;
+    const checked = event.target.checked;
+    const stored = await chrome.storage.sync.get({ disabledSites: [] });
+    const disabled = new Set(Array.isArray(stored.disabledSites) ? stored.disabledSites : []);
+    if (checked) disabled.delete(id); else disabled.add(id);
+    chrome.storage.sync.set({ disabledSites: [...disabled] });
+  });
+  const saveModel = async value => {
+    const id = selectedSite.id;
+    const stored = await chrome.storage.sync.get({ siteDefaultModels: {} });
+    chrome.storage.sync.set({ siteDefaultModels: { ...stored.siteDefaultModels, [id]: value } });
+  };
+  document.getElementById('siteDefaultModel').addEventListener('change', event => saveModel(event.target.value));
+  document.getElementById('useCurrentModel').addEventListener('click', () => {
+    if (siteState.currentModel) saveModel(siteState.currentModel);
+  });
   try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    const site = AuroraExt.sites.fromUrl(tab?.url);
-    if (!site) return;
-    const title = document.querySelector('.popup-header h1');
-    if (title) title.textContent = `Aurora / ${site.name}`;
-    [...TOGGLE_KEYS, 'defaultModel', 'voiceColor'].forEach(key => {
-      const el = document.getElementById(key) || document.getElementById(`${key}Selector`);
-      const row = el?.closest('.row');
-      if (row && !AuroraExt.sites.supports(site, key)) row.dataset.siteUnsupported = 'true';
-    });
-    document.querySelectorAll('.section-header').forEach(header => {
-      let sibling = header.nextElementSibling;
-      let available = false;
-      while (sibling && !sibling.classList.contains('section-header')) {
-        if (sibling.classList.contains('row') && sibling.dataset.siteUnsupported !== 'true') available = true;
-        sibling = sibling.nextElementSibling;
-      }
-      if (!available) header.dataset.siteUnsupported = 'true';
-    });
-    buildSearchableData();
-  } catch {
-    // The full settings library remains available from browser extension pages.
-  }
+    [activeSiteTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    selectedSite = AuroraExt.sites.fromUrl(activeSiteTab?.url) || selectedSite;
+  } catch { /* The site selector remains available on extension pages. */ }
+  select.value = selectedSite.id;
+  await refreshSiteControls();
+}
+
+async function refreshSiteControls() {
+  const revision = ++siteRequestRevision;
+  const site = selectedSite;
+  closeAllSelects();
+  [...TOGGLE_KEYS, 'defaultModel', 'voiceColor'].forEach(key => {
+    const el = document.getElementById(key) || document.getElementById(`${key}Selector`);
+    const row = el?.closest('.row');
+    if (row) row.dataset.siteUnsupported = String(!AuroraExt.sites.supports(site, key) || (key === 'defaultModel' && site.id !== 'chatgpt'));
+  });
+  document.getElementById('siteDefaultModelRow').dataset.siteUnsupported = String(site.id === 'chatgpt');
+  document.querySelectorAll('.section-header').forEach(header => {
+    let sibling = header.nextElementSibling;
+    let available = false;
+    while (sibling && !sibling.classList.contains('section-header')) {
+      if (sibling.classList.contains('row') && sibling.dataset.siteUnsupported !== 'true') available = true;
+      sibling = sibling.nextElementSibling;
+    }
+    header.dataset.siteUnsupported = String(!available);
+  });
+  siteState = { models: [], currentModel: '' };
+  renderSiteSettings();
+  buildSearchableData();
+  if ($.settingsSearch?.value) handleSearch();
+  if (site.id === 'chatgpt') return;
+  try {
+    const key = `modelCatalog:${site.id}`;
+    const stored = await chrome.storage.local.get(key);
+    if (revision !== siteRequestRevision) return;
+    siteState.models = Array.isArray(stored[key]) ? stored[key] : [];
+    renderSiteSettings();
+    const tabs = await chrome.tabs.query({ url: `https://${site.host}/*` });
+    const tab = tabs.find(item => item.id === activeSiteTab?.id) || tabs.find(item => item.active) || tabs[0];
+    if (!tab) return;
+    const snapshot = await chrome.tabs.sendMessage(tab.id, { type: 'GET_SITE_STATE' });
+    if (revision !== siteRequestRevision || snapshot?.site !== site.id) return;
+    siteState = snapshot;
+    renderSiteSettings();
+  } catch { /* Saved model choices also work while a site is closed. */ }
+}
+
+function renderSiteSettings() {
+  const enabled = document.getElementById('siteEnabled');
+  if (enabled) enabled.checked = !(Array.isArray(currentSettings.disabledSites) && currentSettings.disabledSites.includes(selectedSite.id));
+  const select = document.getElementById('siteDefaultModel');
+  if (!select) return;
+  const chosen = currentSettings.siteDefaultModels?.[selectedSite.id] || '';
+  const names = [...new Set([...(siteState.models || []), siteState.currentModel, chosen])]
+    .filter(name => typeof name === 'string' && name && name.length <= 120).slice(0, 34);
+  select.replaceChildren(new Option(getMessage('defaultModelOptionNone'), ''), ...names.map(name => new Option(name, name)));
+  select.value = chosen;
+  const current = document.getElementById('useCurrentModel');
+  current.disabled = !siteState.currentModel || siteState.currentModel === chosen;
+  current.title = siteState.currentModel || getMessage('openSiteForModel');
 }
 
 function hydrateWithRealData(settings, localData) {
@@ -182,6 +247,8 @@ function cacheElements() {
 
 // --- Core Rendering Logic (Optimized) ---
 function renderUi(settings, localData = {}) {
+  currentSettings = settings;
+  renderSiteSettings();
   // Theme Toggle
   let isLightTheme = settings.theme === 'light';
   if (settings.theme === 'auto' && localData.detectedTheme === 'light') {
@@ -362,6 +429,8 @@ function initOrUpdateSelects(settings) {
         const txt = opt.labelKey ? getMessage(opt.labelKey) : (opt.label || opt.value);
         const optionEl = document.createElement('div');
         optionEl.className = 'select-option';
+        optionEl.setAttribute('role', 'option');
+        optionEl.tabIndex = -1;
         optionEl.dataset.value = opt.value;
 
         if (opt.color) {
@@ -378,6 +447,29 @@ function initOrUpdateSelects(settings) {
         return optionEl;
       });
       optsContainer.replaceChildren(...optionNodes);
+      optsContainer.id ||= `${cfg.id}-options`;
+      trigger.setAttribute('aria-controls', optsContainer.id);
+      const focusOption = () => (optsContainer.querySelector('[aria-selected="true"]') || optionNodes[0])?.focus();
+      trigger.addEventListener('keydown', event => {
+        if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+        event.preventDefault();
+        trigger.click();
+        focusOption();
+      });
+      optsContainer.addEventListener('keydown', event => {
+        const index = optionNodes.indexOf(document.activeElement);
+        let next = index;
+        if (event.key === 'ArrowDown') next = (index + 1) % optionNodes.length;
+        else if (event.key === 'ArrowUp') next = (index - 1 + optionNodes.length) % optionNodes.length;
+        else if (event.key === 'Home') next = 0;
+        else if (event.key === 'End') next = optionNodes.length - 1;
+        else if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); document.activeElement.click(); trigger.focus(); return; }
+        else if (event.key === 'Escape') { event.preventDefault(); closeAllSelects(); trigger.focus(); return; }
+        else if (event.key === 'Tab') { closeAllSelects(); return; }
+        else return;
+        event.preventDefault();
+        optionNodes[next]?.focus();
+      });
       
       // Attach trigger click listener ONCE
       trigger.addEventListener('click', (e) => {
@@ -387,6 +479,7 @@ function initOrUpdateSelects(settings) {
         optsContainer.style.display = 'block';
         trigger.setAttribute('aria-expanded', 'true');
         positionSelectOptions(trigger, optsContainer);
+        focusOption();
       });
       
       // Attach option click listeners ONCE using event delegation
@@ -461,35 +554,7 @@ function setupChangeListeners() {
 
   if ($.masterToggleBtn) {
     $.masterToggleBtn.addEventListener('click', () => {
-      const isEnabled = $.masterToggleBtn.dataset.state !== 'disabled';
-      if (isEnabled) {
-        chrome.storage.sync.get(null, (items) => {
-          const backup = { ...items };
-          delete backup.extensionEnabled;
-          delete backup.extensionSettingsBackup;
-
-          const disabledSettings = {
-            ...DEFAULTS,
-            hasSeenWelcomeScreen: items.hasSeenWelcomeScreen ?? DEFAULTS.hasSeenWelcomeScreen,
-            extensionEnabled: false
-          };
-
-          chrome.storage.sync.set({ extensionSettingsBackup: backup }, () => {
-            chrome.storage.sync.set(disabledSettings);
-          });
-        });
-      } else {
-        chrome.storage.sync.get('extensionSettingsBackup', (data) => {
-          const backup = data?.extensionSettingsBackup;
-          if (backup && typeof backup === 'object') {
-            chrome.storage.sync.set({ ...backup, extensionEnabled: true }, () => {
-              chrome.storage.sync.remove('extensionSettingsBackup');
-            });
-          } else {
-            chrome.storage.sync.set({ extensionEnabled: true });
-          }
-        });
-      }
+      chrome.storage.sync.set({ extensionEnabled: $.masterToggleBtn.dataset.state === 'disabled' });
     });
   }
 
@@ -677,7 +742,15 @@ function setupImportExport() {
         return;
       }
       try {
-        const data = JSON.parse($.settingsJson.value);
+        const parsed = JSON.parse($.settingsJson.value);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('settings');
+        const data = {};
+        for (const [key, initial] of Object.entries(DEFAULTS)) {
+          const value = parsed[key];
+          if (value !== undefined && typeof value === typeof initial && value !== null) data[key] = value;
+        }
+        if (data.disabledSites) data.disabledSites = AuroraExt.sites.all.filter(site => Array.isArray(data.disabledSites) && data.disabledSites.includes(site.id)).map(site => site.id);
+        if (data.siteDefaultModels) data.siteDefaultModels = Object.fromEntries(AuroraExt.sites.all.filter(site => typeof data.siteDefaultModels[site.id] === 'string').map(site => [site.id, data.siteDefaultModels[site.id].slice(0, 120)]));
         chrome.storage.sync.set(data, () => {
           $.importSettings.textContent = 'Imported!';
           setTimeout(() => {

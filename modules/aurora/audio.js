@@ -6,7 +6,7 @@
   const A = (window.AuroraExt = window.AuroraExt || {});
   A.audio = A.audio || {};
 
-  const isEnabled = () => (A.isEnabled ? A.isEnabled() : true);
+  const isEnabled = () => !!A.isActive?.();
   const getSettings = () => (A.getSettings ? A.getSettings() : {});
 
   const AudioEngine = {
@@ -94,18 +94,18 @@
       };
 
       // Capture phase to catch all.
-      document.body.addEventListener('mouseenter', this.onMouseEnter, true);
-      document.body.addEventListener('click', this.onClick, true);
+      document.addEventListener('mouseenter', this.onMouseEnter, true);
+      document.addEventListener('click', this.onClick, true);
     },
 
     detachListeners() {
       if (!this.isListening) return;
       this.isListening = false;
-      if (document.body && this.onMouseEnter) {
-        document.body.removeEventListener('mouseenter', this.onMouseEnter, true);
+      if (this.onMouseEnter) {
+        document.removeEventListener('mouseenter', this.onMouseEnter, true);
       }
-      if (document.body && this.onClick) {
-        document.body.removeEventListener('click', this.onClick, true);
+      if (this.onClick) {
+        document.removeEventListener('click', this.onClick, true);
       }
       this.onMouseEnter = null;
       this.onClick = null;

@@ -23,10 +23,10 @@
 
     start() {
       if (!this.running) {
-        let target = document.body || document.documentElement;
+        const target = document.documentElement;
         if (target) {
             this.running = true;
-            this.observer.observe(target, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['data-state', 'contenteditable', 'hidden', 'aria-hidden'] });
+            this.observer.observe(target, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['data-state', 'contenteditable', 'hidden', 'aria-hidden', 'disabled', 'aria-disabled', 'aria-busy', 'aria-expanded'] });
         }
       }
     }
@@ -41,12 +41,14 @@
     handleMutations(mutations) {
       if (this.callbacks.size === 0) return;
 
+      const relevant = [];
       const addedElements = [];
       const addedTexts = [];
 
       for (const m of mutations) {
         const target = m.target.nodeType === 1 ? m.target : m.target.parentElement;
         if (target?.closest?.('#cgpt-ambient-bg,#cgpt-qs-panel,#aurora-queue-panel,#aurora-queue-btn,#aurora-queue-toast')) continue;
+        relevant.push(m);
         if (m.type === 'characterData' && m.target.nodeValue.trim()) addedTexts.push(m.target);
         if (m.type === 'attributes') addedElements.push(m.target);
         for (const n of m.addedNodes) {
@@ -55,11 +57,11 @@
         }
       }
 
-      // Important: even if arrays are empty, some modules might just want to know a mutation happened
-      // Subscribers also receive mutations without added content.
+      // Real removals still matter, but extension UI updates must never pulse themselves.
+      if (!relevant.length) return;
       this.callbacks.forEach(cb => {
         try {
-          cb({ mutations, addedElements, addedTexts });
+          cb({ mutations: relevant, addedElements, addedTexts });
         } catch (e) {
           // ignore
         }
@@ -67,7 +69,7 @@
     }
   }
 
-  A.centralObserver = new AuroraCentralObserver();
+  A.centralObserver ||= new AuroraCentralObserver();
 
   // Auto-start on load
   const startObserver = () => A.centralObserver.start();

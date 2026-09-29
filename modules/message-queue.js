@@ -3,98 +3,12 @@
 (() => {
   'use strict';
 
-  const COMPOSER_SELECTORS = [
-    '#prompt-textarea',
-    'textarea[id*="prompt"]',
-    'textarea[placeholder*="Message"]',
-    'textarea[placeholder*="Send"]',
-    'textarea[data-id]',
-    '[contenteditable="true"][role="textbox"]',
-    'form textarea',
-    'textarea',
-  ];
-
-  function isLikelyVisible(el) {
-    if (!el || !el.isConnected) return false;
-    if ('disabled' in el && el.disabled) return false;
-    const rect = el.getBoundingClientRect?.();
-    if (!rect) return false;
-    return rect.width >= 20 && rect.height >= 16;
-  }
-
+  const dom = () => window.AuroraExt.dom;
   class AuroraComposerLocator {
-    static findActive() {
-      if (window.AuroraExt?.dom) return window.AuroraExt.dom.findActiveComposer();
-      for (const selector of COMPOSER_SELECTORS) {
-        const candidates = document.querySelectorAll(selector);
-        for (const el of candidates) {
-          if (isLikelyVisible(el)) return el;
-        }
-      }
-      return null;
-    }
-
-    static getForm(composer) {
-      return composer?.closest?.('form') || null;
-    }
-
-    static getText(composer) {
-      if (!composer) return '';
-      if (composer.tagName === 'TEXTAREA' || composer.tagName === 'INPUT') return composer.value || '';
-      return composer.innerText || composer.textContent || '';
-    }
-
-    static setText(composer, value) {
-      if (!composer) return;
-      const v = value == null ? '' : String(value);
-
-      if (composer.tagName === 'TEXTAREA') {
-        const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
-        if (setter) setter.call(composer, v);
-        else composer.value = v;
-        composer.dispatchEvent(new Event('input', { bubbles: true }));
-        return;
-      }
-
-      if (composer.tagName === 'INPUT') {
-        const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
-        if (setter) setter.call(composer, v);
-        else composer.value = v;
-        composer.dispatchEvent(new Event('input', { bubbles: true }));
-        return;
-      }
-
-      // contenteditable textbox (ProseMirror-like)
-      try {
-        composer.focus();
-      } catch (e) {
-        // ignore
-      }
-
-      try {
-        const selection = window.getSelection?.();
-        if (selection) {
-          const range = document.createRange();
-          range.selectNodeContents(composer);
-          selection.removeAllRanges();
-          selection.addRange(range);
-        }
-
-        if (v === '') {
-          const ok = !!(document.execCommand && document.execCommand('delete', false, null));
-          if (!ok) composer.textContent = '';
-          composer.dispatchEvent(new Event('input', { bubbles: true }));
-          return;
-        }
-
-        const ok = !!(document.execCommand && document.execCommand('insertText', false, v));
-        if (!ok) composer.textContent = v;
-        composer.dispatchEvent(new Event('input', { bubbles: true }));
-      } catch (e) {
-        composer.textContent = v;
-        composer.dispatchEvent(new Event('input', { bubbles: true }));
-      }
-    }
+    static findActive() { return dom().findActiveComposer(); }
+    static getForm(composer) { return dom().getComposerForm(composer); }
+    static getText(composer) { return dom().getComposerText(composer); }
+    static setText(composer, value) { return dom().setComposerText(composer, value); }
   }
 
   class AuroraMessageQueueUI {
@@ -104,6 +18,7 @@
     }
 
     removeAll() {
+      clearTimeout(this.toastTimer);
       document.getElementById('aurora-queue-btn')?.remove();
       document.getElementById('aurora-queue-panel')?.remove();
       document.getElementById('aurora-queue-toast')?.remove();
@@ -150,11 +65,12 @@
       }
 
       // Keep it next to the current anchor (ChatGPT re-renders composer often).
-      anchor.parentElement.insertBefore(btn, anchor.nextSibling);
+      const mount = anchor.closest('gem-icon-button, gem-button') || anchor;
+      if (btn.previousElementSibling !== mount) mount.parentElement.insertBefore(btn, mount.nextSibling);
       this.updateBadge(count);
     }
 
-    ensurePanel({ composer, queue, pending, generating, onRemove }) {
+    ensurePanel({ composer, queue, pending, status, onRemove, onRetry }) {
       const PANEL_ID = 'aurora-queue-panel';
       const shouldShow = (queue.length > 0) || !!pending;
       if (!shouldShow || !document.body) {
@@ -183,14 +99,17 @@
       // Position the panel just above the composer.
       try {
         const rect = composer.getBoundingClientRect();
-        const maxW = Math.max(240, Math.round(window.innerWidth - 16));
+        const maxW = Math.max(0, Math.round(window.innerWidth - 16));
         const width = Math.min(maxW, Math.max(240, Math.round(rect.width)));
         const rawLeft = Math.round(rect.left);
         const left = Math.max(8, Math.min(rawLeft, window.innerWidth - width - 8));
         const bottom = Math.max(8, Math.round(window.innerHeight - rect.top + 10));
         panel.style.left = `${left}px`;
         panel.style.width = `${width}px`;
-        panel.style.bottom = `${bottom}px`;
+        const above = rect.top >= 150;
+        panel.style.bottom = above ? `${bottom}px` : 'auto';
+        panel.style.top = above ? 'auto' : `${Math.max(8, Math.min(rect.bottom + 10, window.innerHeight - 150))}px`;
+        panel.style.maxHeight = `${Math.max(100, Math.min(220, above ? rect.top - 20 : window.innerHeight - rect.bottom - 20))}px`;
       } catch (e) {
         // ignore
       }
@@ -201,10 +120,15 @@
       if (!title || !subtitle || !list) return;
 
       title.textContent = `${this.getMessage('queuedPanelTitle')} (${queue.length})`;
-      subtitle.textContent = generating ? this.getMessage('queuedPanelSubtitleGenerating') : this.getMessage('queuedPanelSubtitleIdle');
+      subtitle.textContent = status || '';
+      subtitle.hidden = !status;
       list.setAttribute('aria-label', this.getMessage('queuedPanelTitle'));
 
-      list.innerHTML = '';
+      const settings = window.AuroraExt.getSettings();
+      const signature = JSON.stringify([queue.map(item => [item.id, item.blocked]), pending?.phase, settings.dataMaskingEnabled, settings.maskingRandomMode]);
+      if (list.dataset.signature === signature) return;
+      list.dataset.signature = signature;
+      list.replaceChildren();
       for (let i = 0; i < queue.length; i++) {
         const item = queue[i];
 
@@ -218,24 +142,22 @@
         const main = document.createElement('div');
         main.className = 'aurora-queue-item-main';
 
-        const meta = document.createElement('div');
-        meta.className = 'aurora-queue-item-meta';
-
-        const time = document.createElement('div');
-        time.className = 'aurora-queue-item-time';
-        time.textContent = item.timeLabel || String(item.at || '');
-        time.title = time.textContent;
-
-        meta.appendChild(time);
-
         const text = document.createElement('div');
         text.className = 'aurora-queue-item-text';
-        const compact = (item.text || '').replace(/\s+/g, ' ').trim();
+        const preview = window.DataMaskingEngine?.preview(item.text) ?? item.text;
+        const compact = (preview || '').replace(/\s+/g, ' ').trim();
         text.textContent = compact;
-        text.title = item.text || '';
+        text.title = preview || '';
 
-        main.appendChild(meta);
         main.appendChild(text);
+        if (item.blocked) {
+          const retry = document.createElement('button');
+          retry.type = 'button';
+          retry.className = 'aurora-queue-retry';
+          retry.textContent = this.getMessage('queueRetry');
+          retry.addEventListener('click', () => onRetry(item));
+          main.appendChild(retry);
+        }
 
         const remove = document.createElement('button');
         remove.type = 'button';
@@ -243,10 +165,11 @@
         remove.title = this.getMessage('queuedPanelRemove');
         remove.setAttribute('aria-label', this.getMessage('queuedPanelRemove'));
         remove.textContent = '×';
+        remove.disabled = pending?.queuedItem === item && pending.phase === 'submitted';
         remove.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
-          onRemove(i);
+          onRemove(item);
         });
 
         li.appendChild(num);
@@ -265,6 +188,7 @@
         toast = document.createElement('div');
         toast.id = TOAST_ID;
         toast.className = 'aurora-queue-toast';
+        toast.setAttribute('role', 'status');
         document.body.appendChild(toast);
       }
       toast.textContent = text;
@@ -279,364 +203,211 @@
 
   class AuroraMessageQueueEngine {
     constructor({ getSettings, isExtensionEnabled, getMessage }) {
-      this.getSettings = getSettings;
-      this.isExtensionEnabled = isExtensionEnabled;
-      this.getMessage = getMessage;
-
-      this.queue = []; // [{ text, href, at, timeLabel }]
-      this.pending = null; // { attemptedAt, text, draft, href, queuedItem }
-      this.lastHref = location.href;
-
-      this.ui = new AuroraMessageQueueUI({ getMessage });
-
-      this.pulseTimeout = null;
-      this.pulseDue = 0;
-      this.lastPulseAt = 0;
-
-      this.onKeydown = (e) => this.handleKeydown(e);
-      document.addEventListener('keydown', this.onKeydown, true);
-    }
-
-    isEnabled() {
-      const s = this.getSettings?.() || {};
-      return this.isExtensionEnabled?.() && !!s.queueWhileGenerating;
-    }
-
-    hasWork() {
-      return !!this.pending || (this.queue && this.queue.length > 0);
-    }
-
-    shutdown() {
-      // Keep the keydown listener (cheap) so re-enable works without re-instantiation.
-      if (this.pending) {
-        const composer = AuroraComposerLocator.findActive();
-        if (composer) this.restoreDraftIfSafe(composer, this.pending.draft, this.pending.text);
-      }
+      Object.assign(this, { getSettings, isExtensionEnabled, getMessage });
       this.queue = [];
       this.pending = null;
+      this.awaitingGeneration = null;
+      this.nextId = 1;
+      this.lastHref = dom().conversationKey();
+      this.pulseTimeout = null;
+      this.lastPulseAt = 0;
+      this.ui = new AuroraMessageQueueUI({ getMessage });
+      document.addEventListener('keydown', event => this.handleKeydown(event), true);
+      document.addEventListener('input', event => {
+        const composer = AuroraComposerLocator.findActive();
+        if (!composer || !composer.contains(event.target)) return;
+        if (event.isTrusted && !this.editing && this.pending?.phase === 'prepared') {
+          this.pending.queuedItem.blocked = true;
+          this.pending = null;
+        }
+        if (this.hasWork()) this.schedulePulse();
+      }, true);
+      document.addEventListener('click', event => {
+        if (!event.isTrusted || !this.hasWork()) return;
+        const link = event.target.closest?.('a[href]');
+        if (!link || event.ctrlKey || event.metaKey || event.shiftKey || link.target === '_blank') return;
+        try {
+          const next = new URL(link.href, location.href);
+          if (next.origin === location.origin && next.pathname !== location.pathname) this.shutdown();
+        } catch { /* A non-navigation link leaves the queue in place. */ }
+      }, true);
+      window.addEventListener('popstate', () => this.shutdown());
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) this.schedulePulse(); });
+    }
+
+    isEnabled() { return this.isExtensionEnabled() && !!this.getSettings().queueWhileGenerating; }
+    hasWork() { return !!this.pending || this.queue.length > 0; }
+
+    shutdown() {
+      this.restorePreparedDraft();
+      this.pending = null;
+      this.queue = [];
+      this.awaitingGeneration = null;
+      clearTimeout(this.pulseTimeout);
+      this.pulseTimeout = null;
       this.ui.removeAll();
-      if (this.pulseTimeout) {
-        clearTimeout(this.pulseTimeout);
-        this.pulseTimeout = null;
+    }
+
+    restorePreparedDraft() {
+      const pending = this.pending;
+      if (!pending || pending.phase !== 'prepared' || pending.href !== dom().conversationKey()) return;
+      const composer = AuroraComposerLocator.findActive();
+      if (composer === pending.composer && AuroraComposerLocator.getText(composer).trim() === pending.text.trim()) {
+        this.editing = true;
+        AuroraComposerLocator.setText(composer, pending.draft);
+        this.editing = false;
       }
-      this.pulseDue = 0;
     }
 
     schedulePulse(delay = 0) {
-      if (!this.isExtensionEnabled?.()) return;
-
-      const MIN_GAP_MS = 220; // throttle: ChatGPT mutates DOM constantly during generation
-      const now = Date.now();
-      const earliest = now + Math.max(0, delay);
-      const due = Math.max(earliest, (this.lastPulseAt || 0) + MIN_GAP_MS);
-
-      if (this.pulseTimeout && this.pulseDue <= due) return;
-      if (this.pulseTimeout) clearTimeout(this.pulseTimeout);
-
-      this.pulseDue = due;
+      if (this.pulseTimeout) return;
+      const wait = Math.max(delay, 160 - (Date.now() - this.lastPulseAt));
       this.pulseTimeout = setTimeout(() => {
         this.pulseTimeout = null;
-        this.pulseDue = 0;
         this.pulse();
-      }, Math.max(0, due - now));
+      }, Math.max(0, wait));
+    }
+
+    syncConversation() {
+      const key = dom().conversationKey();
+      if (this.lastHref === key) {
+        const identity = dom().conversationIdentity();
+        if (identity && this.queue.some(item => item.identity && item.identity !== identity)) this.shutdown();
+        return;
+      }
+      const identity = dom().conversationIdentity();
+      const previousPath = new URL(this.lastHref).pathname;
+      const A = window.AuroraExt;
+      const wasNew = A.site?.isNewConversation?.(previousPath) || previousPath.startsWith('/c/local-chatgpt');
+      const canAdopt = wasNew && dom().isGenerating() && identity && this.queue.length > 0 && this.queue.every(item => item.identity === identity);
+      this.lastHref = key;
+      if (canAdopt) {
+        this.queue.forEach(item => { item.href = key; });
+        if (this.pending) this.pending.href = key;
+      } else {
+        // Restore only within the original conversation, never into a new chat.
+        this.shutdown();
+      }
     }
 
     pulse() {
       this.lastPulseAt = Date.now();
-
-      // Safety: never auto-send a queued message into a different chat.
-      if (this.lastHref !== location.href) {
-        const identity = document.querySelector('[data-user-message-bubble]');
-        const canonicalized = new URL(this.lastHref).pathname.startsWith('/c/local-chatgpt') &&
-          /^\/c\/(?!local-chatgpt)/.test(location.pathname) && identity &&
-          this.queue.length > 0 && this.queue.every(item => item.identity === identity);
-        this.lastHref = location.href;
-        if (canonicalized) {
-          this.queue.forEach(item => { item.href = location.href; });
-          if (this.pending) this.pending.href = location.href;
-        } else {
-          this.queue = [];
-          this.pending = null;
-          this.ui.removeAll();
-        }
-      }
-
-      if (!this.isExtensionEnabled?.()) {
-        this.shutdown();
-        return;
-      }
-
-      // If the feature is turned off, treat it as "cancel queued follow-ups":
-      // flush any queued/pending work and remove the UI so nothing can be auto-sent later.
-      if (!this.isEnabled()) {
-        if (this.pending) {
-          const composer = AuroraComposerLocator.findActive();
-          if (composer) this.restoreDraftIfSafe(composer, this.pending.draft, this.pending.text);
-        }
-        this.queue = [];
-        this.pending = null;
-        this.ui.removeAll();
-        return;
-      }
-
-      // Cheap idle fast-path: no queue, no pending, no Stop button => nothing to update.
-      if (!this.hasWork()) {
-        const stopBtn = this.findStopButton(null);
-        if (!stopBtn) {
-          this.ui.removeAll();
-          return;
-        }
-      }
-
+      this.syncConversation();
+      if (!this.isEnabled()) { this.shutdown(); return; }
+      if (document.hidden) return;
       const composer = AuroraComposerLocator.findActive();
-      if (!composer) return;
-
-      const form = AuroraComposerLocator.getForm(composer);
-      const stopBtn = this.findStopButton(form);
-      const generating = !!stopBtn;
-      const sendBtn = generating ? null : this.findSendButton(form);
-
-      this.ui.ensureButton({
-        anchor: stopBtn || sendBtn,
-        count: this.queue.length,
-        visible: generating || this.queue.length > 0 || !!this.pending,
-        onClick: () => {
-          if (!this.isEnabled()) return;
-          const c = AuroraComposerLocator.findActive();
-          if (!c) return;
-          const ok = this.enqueueFromComposer(c);
-          if (ok) this.ui.showToast(this.getMessage('toastMessageQueued', String(this.queue.length)));
-        }
-      });
-
-      this.ui.ensurePanel({
-        composer,
-        queue: this.queue,
-        pending: this.pending,
-        generating,
-        onRemove: (idx) => {
-          this.queue.splice(idx, 1);
-          this.ui.updateBadge(this.queue.length);
-          this.schedulePulse(0);
-        }
-      });
-
-      // Pending send confirmation.
-      if (this.pending) {
-        if (this.pending.href !== location.href) {
-          this.restoreDraftIfSafe(composer, this.pending.draft, this.pending.text);
-          this.pending = null;
-        } else if (generating) {
-          // Confirmed: generation started => drop only the queued item that matches this.pending.
-          const queuedItem = this.pending.queuedItem;
-          let idx = -1;
-          if (queuedItem) idx = this.queue.indexOf(queuedItem);
-          if (idx === -1) {
-            idx = this.queue.findIndex((q) => q && q.href === this.pending.href && q.text === this.pending.text);
+      if (!composer) { this.ui.removeAll(); return; }
+      const generating = dom().isGenerating();
+      const text = AuroraComposerLocator.getText(composer).trim();
+      const pending = this.pending;
+      if (pending) {
+        if (pending.phase === 'prepared') {
+          if (text !== pending.text.trim()) {
+            pending.queuedItem.blocked = true;
+            this.pending = null;
+          } else if (generating) {
+            this.restorePreparedDraft();
+            pending.queuedItem.blocked = true;
+            this.pending = null;
+          } else {
+            const send = dom().findComposerButton(composer, 'send');
+            if (send && !send.disabled && send.getAttribute('aria-disabled') !== 'true') {
+              // Mark submitted before click because the host may update synchronously.
+              pending.phase = 'submitted';
+              pending.attemptedAt = Date.now();
+              pending.messageCount = dom().userMessageCount();
+              try { send.click(); }
+              catch {
+                pending.queuedItem.blocked = true;
+                this.pending = null;
+              }
+            } else if (Date.now() - pending.attemptedAt > 1800) {
+              this.restorePreparedDraft();
+              pending.queuedItem.blocked = true;
+              this.pending = null;
+            }
           }
-          if (idx !== -1) this.queue.splice(idx, 1);
-          this.ui.updateBadge(this.queue.length);
-          this.restoreDraftIfSafe(composer, this.pending.draft, this.pending.text);
+        } else if (generating || dom().userMessageCount() > pending.messageCount) {
+          this.queue = this.queue.filter(item => item !== pending.queuedItem);
           this.pending = null;
-        } else if (Date.now() - this.pending.attemptedAt > 2600) {
-          // Failed to start; restore draft and try later.
-          this.restoreDraftIfSafe(composer, this.pending.draft, this.pending.text);
+          // A visible user message can appear before the host enters generating state.
+          if (!generating && this.queue.length) this.awaitingGeneration = Date.now();
+        } else if (Date.now() - pending.attemptedAt > 5000) {
+          // Ambiguous submission requires an explicit retry to prevent duplicate messages.
+          this.restorePreparedDraft();
+          pending.queuedItem.blocked = true;
           this.pending = null;
-          this.ui.updateBadge(this.queue.length);
         }
       }
-
-      // Idle and queue has work: attempt to send next.
-      if (!generating && !this.pending && this.queue.length) {
-        this.maybeStartAutoSend(composer, sendBtn);
+      const next = this.queue[0];
+      if (this.awaitingGeneration !== null) {
+        if (generating || !next) this.awaitingGeneration = null;
+        else if (Date.now() - this.awaitingGeneration > 5000) {
+          next.blocked = true;
+          this.awaitingGeneration = null;
+        }
       }
+      const sameConversation = !next?.identity || next.identity === dom().conversationIdentity();
+      if (sameConversation && this.awaitingGeneration === null && !generating && !this.pending && next && !next.blocked && !AuroraComposerLocator.getText(composer).trim()) {
+        this.pending = { phase: 'prepared', composer, text: next.text, draft: '', href: this.lastHref, queuedItem: next, attemptedAt: Date.now() };
+        this.editing = true;
+        const inserted = AuroraComposerLocator.setText(composer, next.text);
+        this.editing = false;
+        if (!inserted) { next.blocked = true; this.pending = null; }
+      }
+      const status = next?.blocked ? this.getMessage('queueNeedsRetry')
+        : this.pending?.phase === 'submitted' || this.awaitingGeneration !== null ? this.getMessage('queueSending')
+        : generating ? this.getMessage('queuedPanelSubtitleGenerating')
+        : next && text && !this.pending ? this.getMessage('queueWaitingForDraft') : '';
+      const anchor = dom().findComposerButton(composer, generating ? 'stop' : 'send');
+      this.ui.ensureButton({ anchor, count: this.queue.length, visible: generating || this.hasWork(), onClick: () => this.enqueueFromComposer(AuroraComposerLocator.findActive()) });
+      this.ui.ensurePanel({ composer, queue: this.queue, pending: this.pending, status,
+        onRemove: item => {
+          if (this.pending?.queuedItem === item) {
+            if (this.pending.phase === 'submitted') return;
+            this.restorePreparedDraft();
+            this.pending = null;
+          }
+          this.queue = this.queue.filter(queued => queued !== item);
+          this.schedulePulse();
+        },
+        onRetry: item => {
+          item.blocked = false;
+          const editor = AuroraComposerLocator.findActive();
+          if (editor && AuroraComposerLocator.getText(editor).trim() === item.text.trim()) {
+            this.pending = { phase: 'prepared', composer: editor, text: item.text, draft: item.text,
+              href: this.lastHref, queuedItem: item, attemptedAt: Date.now() };
+          }
+          this.schedulePulse();
+        },
+      });
+      // Work owns its timer. Idle tabs use the shared DOM observer only.
+      if (this.pending || this.awaitingGeneration !== null || (this.hasWork() && generating)) this.schedulePulse(220);
     }
 
-    handleKeydown(e) {
-      if (!this.isEnabled()) return;
-      if (e.isComposing) return;
-      if (e.key !== 'Enter') return;
-      if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return;
-
-      const t = e.target;
+    handleKeydown(event) {
+      if (!this.isEnabled() || event.isComposing || event.key !== 'Enter' || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
       const composer = AuroraComposerLocator.findActive();
-      if (!composer) return;
-      if (t !== composer && !(composer.contains && composer.contains(t))) return;
-
-      const form = AuroraComposerLocator.getForm(composer);
-      const generating = !!this.findStopButton(form);
-      if (!generating) return;
-
-      // While generating, Enter becomes "Queue" (Shift+Enter still inserts newline).
-      e.preventDefault();
-      e.stopPropagation();
-
-      const ok = this.enqueueFromComposer(composer);
-      if (ok) this.ui.showToast(this.getMessage('toastMessageQueued', String(this.queue.length)));
+      if (!composer || (event.target !== composer && !composer.contains(event.target)) || !dom().isGenerating()) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      this.enqueueFromComposer(composer);
     }
 
     enqueueFromComposer(composer) {
-      const raw = AuroraComposerLocator.getText(composer);
-      const text = (raw || '').trim();
+      if (!this.isEnabled() || !composer || this.pending) return false;
+      this.syncConversation();
+      const text = AuroraComposerLocator.getText(composer).trim();
       if (!text) return false;
-
-      const at = Date.now();
-      let timeLabel = '';
-      try {
-        timeLabel = new Date(at).toLocaleString();
-      } catch (e) {
-        timeLabel = String(at);
-      }
-
-      const identity = document.querySelector('[data-user-message-bubble]');
-      this.queue.push({ text, href: location.href, at, timeLabel, identity });
-      AuroraComposerLocator.setText(composer, '');
-      this.ui.updateBadge(this.queue.length);
-      this.schedulePulse(0);
+      if (this.queue.length >= 25) { this.ui.showToast(this.getMessage('queueFull')); return false; }
+      this.editing = true;
+      const cleared = AuroraComposerLocator.setText(composer, '');
+      this.editing = false;
+      if (!cleared) return false;
+      this.queue.push({ id: this.nextId++, text, href: dom().conversationKey(), identity: dom().conversationIdentity(), blocked: false });
+      this.ui.showToast(this.getMessage('toastMessageQueued', String(this.queue.length)));
+      this.schedulePulse();
       return true;
-    }
-
-    maybeStartAutoSend(composer, sendBtnHint) {
-      const next = this.queue[0];
-      if (!next) return;
-
-      if (next.href !== location.href) {
-        this.queue = [];
-        this.pending = null;
-        this.ui.updateBadge(this.queue.length);
-        this.ui.removeAll();
-        return;
-      }
-
-      // Safety: do not inject queued text into the composer when the feature is disabled.
-      // (Users can toggle the feature off to cancel queued follow-ups.)
-      if (!this.isEnabled()) return;
-
-      const draft = AuroraComposerLocator.getText(composer);
-      AuroraComposerLocator.setText(composer, next.text);
-
-      const attemptSend = () => {
-        const cNow = AuroraComposerLocator.findActive() || composer;
-        if (!cNow || !cNow.isConnected) return;
-
-        if (!this.isEnabled()) {
-          // Feature disabled after we injected the queued text: restore user's draft if safe.
-          this.restoreDraftIfSafe(cNow, draft, next.text);
-          return;
-        }
-
-        const formNow = AuroraComposerLocator.getForm(cNow);
-        const hintedBtn = (sendBtnHint && sendBtnHint.isConnected) ? sendBtnHint : null;
-        const btnNow = (!hintedBtn || hintedBtn.disabled) ? this.findSendButton(formNow) : hintedBtn;
-        if (btnNow && !btnNow.disabled) {
-          btnNow.click();
-          this.pending = { attemptedAt: Date.now(), text: next.text, draft, href: next.href, queuedItem: next };
-          this.schedulePulse(120);
-          return;
-        }
-
-        // Fallback: some ChatGPT UIs don't mount the Send button until after input.
-        // Try submitting the form if available.
-        if (formNow && typeof formNow.requestSubmit === 'function') {
-          try {
-            formNow.requestSubmit();
-            this.pending = { attemptedAt: Date.now(), text: next.text, draft, href: next.href, queuedItem: next };
-            this.schedulePulse(120);
-            return;
-          } catch (e) {
-            // ignore
-          }
-        }
-
-        // Last resort: restore draft and retry later (keeps user's typing safe).
-        this.restoreDraftIfSafe(cNow, draft, next.text);
-        this.schedulePulse(300);
-      };
-
-      // Try twice: React can mount/enable Send slightly after the input event.
-      requestAnimationFrame(() => {
-        attemptSend();
-        if (this.isEnabled() && !this.pending) setTimeout(attemptSend, 140);
-      });
-    }
-
-    restoreDraftIfSafe(composer, draft, sentText) {
-      const cur = (AuroraComposerLocator.getText(composer) || '').trim();
-      if (!cur || cur === (sentText || '').trim()) {
-        AuroraComposerLocator.setText(composer, draft == null ? '' : String(draft));
-      }
-    }
-
-    findStopButton(form) {
-      if (window.AuroraExt?.dom) return window.AuroraExt.dom.findComposerButton(AuroraComposerLocator.findActive(), 'stop');
-      const roots = form ? [form, form.parentElement].filter(Boolean) : [];
-      const selectors = [
-        'button[data-testid="stop-button"]',
-        'button[data-testid="stop"]',
-        'button[data-testid*="stop-button"]',
-        'button[data-testid*="stop-generating"]',
-        'button[data-testid*="stop"]',
-      ];
-
-      for (const root of roots) {
-        for (const sel of selectors) {
-          const hit = root.querySelector(sel);
-          if (hit) return hit;
-        }
-        // aria-label fallback (local scope only)
-        const ariaBtns = root.querySelectorAll('button[aria-label],button[title]');
-        for (const btn of ariaBtns) {
-          const label = ((btn.getAttribute('aria-label') || btn.getAttribute('title') || '') + '').toLowerCase();
-          if (label.includes('stop') || label.includes('останов')) return btn;
-        }
-      }
-
-      for (const sel of selectors) {
-        const hit = document.querySelector(sel);
-        if (hit) return hit;
-      }
-      return null;
-    }
-
-    findSendButton(form) {
-      if (window.AuroraExt?.dom) return window.AuroraExt.dom.findComposerButton(AuroraComposerLocator.findActive(), 'send');
-      const roots = form ? [form, form.parentElement].filter(Boolean) : [];
-      const localSelectors = [
-        'button[data-testid="send-button"]',
-        'button[data-testid*="send-button"]',
-        'button[type="submit"]',
-        'button[data-testid*="send"]',
-      ];
-
-      for (const root of roots) {
-        for (const sel of localSelectors) {
-          const hit = root.querySelector(sel);
-          if (hit) return hit;
-        }
-        const ariaBtns = root.querySelectorAll('button[aria-label],button[title]');
-        for (const btn of ariaBtns) {
-          const label = ((btn.getAttribute('aria-label') || btn.getAttribute('title') || '') + '').toLowerCase();
-          if (label.includes('send') || label.includes('отправ')) return btn;
-        }
-      }
-
-      const globalSelectors = [
-        'button[data-testid="send-button"]',
-        'button[data-testid*="send-button"]',
-        'button[data-testid*="send"]',
-      ];
-      for (const sel of globalSelectors) {
-        const hit = document.querySelector(sel);
-        if (hit) return hit;
-      }
-
-      // Global aria-label fallback (localized UIs may not use testids consistently).
-      const ariaBtns = document.querySelectorAll('button[aria-label],button[title]');
-      for (const btn of ariaBtns) {
-        const label = ((btn.getAttribute('aria-label') || btn.getAttribute('title') || '') + '').toLowerCase();
-        if (label.includes('send') || label.includes('отправ')) return btn;
-      }
-      return null;
     }
   }
 

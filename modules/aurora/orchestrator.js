@@ -131,6 +131,7 @@
   class AuroraOrchestrator {
     constructor() {
       this.observersStarted = false;
+      this.settingsLoaded = false;
       this.welcomeScreenChecked = false;
       this.settingsRequestRevision = 0;
 
@@ -201,6 +202,7 @@
         A.state = A.state || {};
         A.state.settings = A.state.settings || {};
         Object.assign(A.state.settings, freshSettings);
+        this.settingsLoaded = true;
 
         this.applyAllSettings();
       };
@@ -238,6 +240,7 @@
     }
 
     applyAllSettings() {
+      if (!this.settingsLoaded) return;
       if (!this.isSupportedRoute()) {
         this.queue.shutdown();
         A.disable?.all?.();
@@ -297,6 +300,7 @@
 
           const bgNode = document.getElementById(ID);
           document.documentElement.classList.toggle('cgpt-tab-hidden', document.hidden);
+          if (!document.hidden) this.applyAllSettings();
           if (!bgNode) return;
 
           const videos = bgNode.querySelectorAll('video');
@@ -317,11 +321,20 @@
       const checkUrl = debounce(() => {
         if (location.href === lastUrl) return;
         lastUrl = location.href;
+        A.defaultModel?.cancel?.();
+        this.queue.pulse();
         if (this.isSupportedRoute()) this.refreshSettingsAndApply();
         else this.applyAllSettings();
       }, 50);
 
       window.addEventListener('popstate', checkUrl, { passive: true });
+      window.navigation?.addEventListener('currententrychange', checkUrl);
+      window.addEventListener('pageshow', () => this.applyAllSettings(), { passive: true });
+      window.addEventListener('pagehide', () => {
+        this.queue.shutdown();
+        A.defaultModel?.cancel?.();
+        A.masking?.stop?.();
+      }, { passive: true });
 
       const originalPushState = history.pushState;
       history.pushState = function (...args) {
@@ -346,7 +359,7 @@
       const pendingNodes = new Set();
       this.domObserverCallback = ({ addedElements }) => {
         checkUrl();
-        if (document.hidden || !isEnabled() || !this.isSupportedRoute()) return;
+        if (!this.settingsLoaded || document.hidden || !isEnabled() || !this.isSupportedRoute()) return;
         for (const node of addedElements || []) {
           if (node.isConnected) pendingNodes.add(node);
         }
@@ -357,7 +370,8 @@
           pendingNodes.clear();
           if (!isEnabled() || !this.isSupportedRoute()) return;
           // The app hydrates after DOMContentLoaded and can replace body nodes.
-          if (!document.getElementById(ID)) this.background.ensure();
+          if (!document.getElementById(ID)) { this.background.ensure(); this.background.update(); }
+          if (!getSettings().hideQuickSettings && !document.getElementById(cfg.QS_BUTTON_ID || 'cgpt-qs-btn')) this.quickSettings.ensure();
           if (!document.documentElement.classList.contains(cfg.HTML_CLASS || 'cgpt-ambient-on') ||
               !document.documentElement.style.getPropertyValue('--aurora-glass-fill-opacity')) {
             this.rootFlags.apply();
@@ -379,7 +393,7 @@
       const hostTheme = () => A.sites.readTheme() === 'light';
       let lastHostLight = hostTheme();
       const themeObserver = new MutationObserver(() => {
-        if (!isEnabled() || !this.isSupportedRoute()) return;
+        if (!this.settingsLoaded || !isEnabled() || !this.isSupportedRoute()) return;
         const s = getSettings();
         const root = document.documentElement;
         const hostLight = hostTheme();
@@ -390,7 +404,16 @@
             (s.theme === 'auto' && changed)) this.rootFlags.apply();
       });
       themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'style', 'data-mode', 'data-theme', 'data-appearance-theme'] });
-      if (document.body) themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+      let observedBody = null;
+      const observeBody = () => {
+        if (document.body === observedBody) return;
+        observedBody = document.body;
+        themeObserver.disconnect();
+        themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'style', 'data-mode', 'data-theme', 'data-appearance-theme'] });
+        if (observedBody) themeObserver.observe(observedBody, { attributes: true, attributeFilter: ['class'] });
+      };
+      observeBody();
+      A.centralObserver?.subscribe(observeBody);
       matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
         if (isEnabled() && this.isSupportedRoute()) this.rootFlags.apply();
       });
@@ -405,7 +428,7 @@
           if (changes[key]) settings[key] = changes[key].newValue;
         });
 
-        if (changedKeys.includes('extensionEnabled')) {
+        if (changedKeys.includes('extensionEnabled') || changedKeys.includes('disabledSites')) {
           this.settingsRequestRevision += 1;
           this.queue.shutdown();
           if (!isEnabled()) {
@@ -454,7 +477,14 @@
           else this.quickSettings.remove();
         }
 
-        if (changes.defaultModel) this.defaultModel.maybeApply();
+        if (changes.defaultModel || changes.siteDefaultModels) {
+          A.defaultModel?.cancel?.();
+          this.defaultModel.maybeApply(true);
+        }
+        if (changes.dataMaskingEnabled || changes.maskingRandomMode) {
+          this.dataMasking.applyInitial();
+          this.queue.schedulePulse();
+        }
         if (changes.autoContrast) this.contrast.apply();
         if (!settings.hideQuickSettings && changedKeys.some(key => ['focusMode', 'blurChatHistory', 'hideUpgradeButtons', 'queueWhileGenerating', 'appearance'].includes(key))) this.quickSettings.ensure();
 

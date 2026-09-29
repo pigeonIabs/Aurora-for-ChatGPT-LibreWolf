@@ -28,6 +28,7 @@
 
   function ensureAppOnTop() {
     if (!document.body) return;
+    for (const [node] of positionedApps) if (!node.isConnected) positionedApps.delete(node);
     // Skip extension-inserted elements to avoid targeting the background container or quick settings as the app container
     let firstChild = document.body.firstElementChild;
     while (firstChild && (
@@ -240,7 +241,7 @@
           video.addEventListener('error', onError, { once: true });
           video.src = url;
           video.load();
-          video.play().catch(() => {}); // Ignore autoplay errors
+          if (!document.hidden) video.play().catch(() => {}); // Ignore autoplay errors
 
           img.src = '';
           img.srcset = '';

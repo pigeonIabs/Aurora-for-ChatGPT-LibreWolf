@@ -52,6 +52,11 @@
 
     let btn = document.getElementById(QS_BUTTON_ID);
     let panel = document.getElementById(QS_PANEL_ID);
+    if (!btn || !panel) {
+      remove();
+      btn = null;
+      panel = null;
+    }
 
     if (!btn) {
       btn = document.createElement('button');

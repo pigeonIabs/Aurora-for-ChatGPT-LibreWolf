@@ -2,7 +2,6 @@
  * Stable data attributes and component roles take precedence over utility names.
  * Only the outer surface owns a glass filter. Nested content stays transparent.
  */
-[data-aurora-sensitive-editor] { filter: blur(5px) !important; }
 html:root.cgpt-ambient-on {
   --glass-radius: 14px;
   --switch-radius: 6px;

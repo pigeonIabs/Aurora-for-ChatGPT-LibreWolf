@@ -10,13 +10,18 @@
   const MODEL_LABEL_HINTS = cfg.MODEL_LABEL_HINTS || {};
 
   const normalizeToken = A.utils?.normalizeToken || ((v) => (v || '').toLowerCase().replace(/\s+/g, ' ').trim());
-  const isEnabled = () => (A.isEnabled ? A.isEnabled() : true);
+  const isEnabled = () => !!A.isActive?.();
   const getSettings = () => (A.getSettings ? A.getSettings() : {});
 
   let lastDefaultModelApplied = null;
   let modelApplyCooldownUntil = 0;
   let defaultModelApplyPromise = null;
   let applyingDefaultModel = false;
+  let revision = 0;
+  let activeGuard = () => false;
+  const cancel = (manual = false) => { revision++; if (manual) lastDefaultModelApplied = `${location.pathname}|${getSettings().defaultModel || ''}`; };
+  document.addEventListener('pointerdown', event => { if (event.isTrusted) cancel(true); }, true);
+  document.addEventListener('keydown', event => { if (event.isTrusted) cancel(true); }, true);
 
   function modelTextMatches(text, slug) {
     const normalizedText = normalizeToken(text);
@@ -78,10 +83,11 @@
     return new Promise((resolve) => {
       const start = performance.now();
       const tick = () => {
+        if (!activeGuard()) return resolve(null);
         const value = typeof getter === 'function' ? getter() : document.querySelector(getter);
         if (value) return resolve(value);
         if (performance.now() - start >= timeout) return resolve(null);
-        requestAnimationFrame(tick);
+        setTimeout(tick, 50);
       };
       tick();
     });
@@ -89,7 +95,7 @@
 
   async function applyDefaultModelOnce(slug) {
     const button = A.dom?.findModelSwitcher() || document.querySelector('[data-testid="model-switcher-dropdown-button"]');
-    if (!button) return false;
+    if (!button || !activeGuard()) return false;
     if (button.hasAttribute('data-codex-intelligence-trigger')) return applyCurrentModel(button, slug);
 
     const currentLabel = button.getAttribute('aria-label') || button.textContent || '';
@@ -103,10 +109,10 @@
       if (button.getAttribute('aria-expanded') !== 'true') button.click();
 
       let menu = await waitFor(() => findModelMenu(button), 1200);
-      if (!menu) return false;
+      if (!menu || !activeGuard()) return false;
 
       const option = findMenuOption(menu, slug);
-      if (!option) return false;
+      if (!option || !activeGuard() || option.getAttribute('aria-disabled') === 'true') return false;
 
       option.click();
       lastDefaultModelApplied = slug;
@@ -114,7 +120,7 @@
     } finally {
       applyingDefaultModel = false;
       requestAnimationFrame(() => {
-        if (button.getAttribute('aria-expanded') === 'true') button.click();
+        if (activeGuard() && button.getAttribute('aria-expanded') === 'true') button.click();
       });
     }
   }
@@ -126,7 +132,7 @@
   }
 
   async function applyCurrentModel(button, slug) {
-    const isCurrent = () => isEnabled() && !document.hidden && getSettings().defaultModel === slug;
+    const isCurrent = () => activeGuard() && getSettings().defaultModel === slug;
     if (!isCurrent() || !button.closest('form[data-chatgpt-composer]')) return false;
     const choice = {
       'gpt-5.5-instant': { model: 'gpt-5.5', effort: null },
@@ -148,6 +154,7 @@
       // Selecting the current model also returns the picker to its power view.
       option.click();
       await new Promise(resolve => setTimeout(resolve, 160));
+      if (!isCurrent()) return false;
       if (choice.effort && button.getAttribute('data-selected-reasoning-effort') !== choice.effort) {
         openPicker(button);
         menu = await waitFor(() => findModelMenu(button));
@@ -168,13 +175,13 @@
       lastDefaultModelApplied = slug;
       return true;
     } finally {
-      if (button.getAttribute('aria-expanded') === 'true') menu?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      if (isCurrent() && button.getAttribute('aria-expanded') === 'true') menu?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
       applyingDefaultModel = false;
     }
   }
 
   function maybeApply(force = false) {
-    if (!isEnabled() || document.hidden) return;
+    if (!isEnabled() || document.hidden || !A.site.isNewConversation(location.pathname) || A.dom.getComposerText(A.dom.findActiveComposer()).trim()) return;
 
     const s = getSettings();
     const slug = String(s.defaultModel || '').trim();
@@ -188,8 +195,12 @@
     if (!force && lastDefaultModelApplied === `${location.pathname}|${slug}`) return;
     if (applyingDefaultModel || defaultModelApplyPromise) return;
 
+    const ownRevision = revision;
+    const ownPath = location.pathname;
+    activeGuard = () => ownRevision === revision && ownPath === location.pathname && isEnabled() && !document.hidden &&
+      getSettings().defaultModel === slug && !A.dom.getComposerText(A.dom.findActiveComposer()).trim();
     const attempt = async (remaining) => {
-      if (getSettings().defaultModel !== slug || !isEnabled() || document.hidden) return false;
+      if (!activeGuard()) return false;
       const success = await applyDefaultModelOnce(slug);
       if (success) {
         lastDefaultModelApplied = `${location.pathname}|${slug}`;
@@ -209,5 +220,6 @@
     });
   }
 
+  A.defaultModel.cancel = cancel;
   A.defaultModel.maybeApply = A.defaultModel.maybeApply || maybeApply;
 })();

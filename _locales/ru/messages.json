@@ -3,7 +3,7 @@
     "message": "Aurora Universal"
   },
   "extensionDescription": {
-    "message": "Стеклянные темы и собственные фоны для ChatGPT, Claude и Gemini."
+    "message": "Стеклянные темы и собственные фоны для ChatGPT, Claude, Gemini и Grok."
   },
   "actionTitle": {
     "message": "Настройки Aurora Universal"
@@ -613,5 +613,32 @@
   },
   "sectionStreamerMode": {
     "message": "Режим стримера"
+  },
+  "labelWebsite": {
+    "message": "Сайт"
+  },
+  "labelSiteEnabled": {
+    "message": "Включено"
+  },
+  "useCurrentModel": {
+    "message": "Использовать текущую модель"
+  },
+  "openSiteForModel": {
+    "message": "Откройте сайт, чтобы узнать текущую модель"
+  },
+  "queueRetry": {
+    "message": "Повторить"
+  },
+  "queueNeedsRetry": {
+    "message": "Проверьте чат перед повтором"
+  },
+  "queueSending": {
+    "message": "Отправка"
+  },
+  "queueWaitingForDraft": {
+    "message": "Ожидание текущего черновика"
+  },
+  "queueFull": {
+    "message": "Очередь заполнена"
   }
 }

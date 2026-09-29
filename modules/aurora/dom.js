@@ -41,6 +41,13 @@
   }
 
   function findActiveComposer() {
+    if (A.site?.workflow) {
+      for (const editor of document.querySelectorAll(A.site.workflow.editor)) {
+        if (editor.closest('#cgpt-qs-panel, #aurora-queue-panel, [role="dialog"]')) continue;
+        if (isVisible(editor) && editor.closest(A.site.workflow.composer)) return editor;
+      }
+      return null;
+    }
     const candidates = [
       selectors.composerEditor,
       selectors.codexComposerEditor,
@@ -61,10 +68,12 @@
   }
 
   function findModelSwitcher() {
+    if (A.site?.workflow?.modelTrigger) return firstVisible(A.site.workflow.modelTrigger);
     return firstVisible(selectors.modelSwitcher) || firstVisible(selectors.legacyModelSwitcher);
   }
 
   function getComposerForm(composer) {
+    if (A.site?.workflow) return composer?.closest?.(A.site.workflow.composer) || null;
     return composer?.closest?.(selectors.composerForm) || composer?.closest?.('form') || null;
   }
 
@@ -77,6 +86,7 @@
   function findComposerButton(composer, kind) {
     const form = getComposerForm(composer);
     if (!form) return null;
+    if (A.site?.workflow) return firstVisible(A.site.workflow[kind], form);
     const selector = kind === 'stop'
       ? 'button[data-testid="stop-button"],button[data-testid*="stop-generating"],button[aria-label="Stop generating"],button[aria-label="Stop streaming"],button[aria-label="Stop response"],button[aria-label="Stop"]'
       : 'button[data-testid="send-button"],button[type="submit"],button[aria-label="Send message"],button[aria-label="Send prompt"],button[aria-label="Send"]';
@@ -94,7 +104,7 @@
   }
 
   function setComposerText(composer, value) {
-    if (!composer) return;
+    if (!composer) return false;
     const text = value == null ? '' : String(value);
 
     if (composer.tagName === 'TEXTAREA' || composer.tagName === 'INPUT') {
@@ -102,8 +112,8 @@
       const setter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set;
       if (setter) setter.call(composer, text);
       else composer.value = text;
-      dispatchInput(composer, 'insertText', text);
-      return;
+      dispatchInput(composer, text ? 'insertText' : 'deleteContentBackward', text || null);
+      return composer.value === text;
     }
 
     try {
@@ -118,11 +128,11 @@
 
       const command = text ? 'insertText' : 'delete';
       const inserted = document.execCommand?.(command, false, text || null);
-      if (!inserted || getComposerText(composer) !== text) composer.textContent = text;
+      if (!inserted) return false;
     } catch (e) {
-      composer.textContent = text;
+      return false;
     }
-    dispatchInput(composer, text ? 'insertText' : 'deleteContentBackward', text || null);
+    return getComposerText(composer).trim() === text.trim();
   }
 
   A.dom = Object.freeze({
@@ -135,5 +145,9 @@
     getComposerText,
     findComposerButton,
     setComposerText,
+    isGenerating: () => !!findComposerButton(findActiveComposer(), 'stop'),
+    conversationKey: () => `${location.origin}${location.pathname.replace(/\/+$/, '') || '/'}`,
+    conversationIdentity: () => document.querySelector(A.site?.workflow?.userMessage || '[data-user-message-bubble], [data-message-author-role="user"]'),
+    userMessageCount: () => document.querySelectorAll(A.site?.workflow?.userMessage || '[data-user-message-bubble], [data-message-author-role="user"]').length,
   });
 })();

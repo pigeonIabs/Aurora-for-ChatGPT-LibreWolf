@@ -27,7 +27,9 @@ const DEFAULTS = {
   dataMaskingEnabled: false,
   maskingRandomMode: false,
   cinemaMode: false,
-  extensionEnabled: true
+  extensionEnabled: true,
+  disabledSites: [],
+  siteDefaultModels: {}
 };
 
 const DEFAULT_MODEL_VALUES = new Set([
@@ -41,6 +43,19 @@ function normalizeDefaultModel(value) {
   return DEFAULT_MODEL_VALUES.has(value) ? value : '';
 }
 
+const SITE_IDS = ['chatgpt', 'claude', 'gemini', 'grok'];
+function normalizeSitePreference(key, value) {
+  if (key === 'disabledSites') return SITE_IDS.filter(id => Array.isArray(value) && value.includes(id));
+  if (key === 'siteDefaultModels') return Object.fromEntries(SITE_IDS
+    .filter(id => typeof value?.[id] === 'string')
+    .map(id => [id, value[id].replace(/\s+/g, ' ').trim().slice(0, 120)]));
+  return value;
+}
+function normalizeSiteSettings(settings) {
+  return { ...settings, disabledSites: normalizeSitePreference('disabledSites', settings.disabledSites),
+    siteDefaultModels: normalizeSitePreference('siteDefaultModels', settings.siteDefaultModels) };
+}
+
 // --- Settings Cache for Instant Popup Response ---
 let settingsCache = null;
 let localCache = {};
@@ -48,7 +63,7 @@ let localCache = {};
 // Pre-cache settings on service worker startup
 chrome.storage.sync.get(DEFAULTS, (settings) => {
   const defaultModel = normalizeDefaultModel(settings.defaultModel);
-  settingsCache = { ...DEFAULTS, ...settings, defaultModel };
+  settingsCache = normalizeSiteSettings({ ...DEFAULTS, ...settings, defaultModel });
   if (defaultModel !== settings.defaultModel) {
     chrome.storage.sync.set({ defaultModel });
   }
@@ -57,12 +72,24 @@ chrome.storage.local.get(['customBgData', 'detectedTheme'], (local) => {
   localCache = local || {};
 });
 
+// Restore the user's saved preferences once when upgrading the old toggle behavior.
+chrome.storage.sync.get(['extensionSettingsBackup', 'extensionEnabled'], data => {
+  if (data.extensionSettingsBackup && typeof data.extensionSettingsBackup === 'object') {
+    const restored = Object.fromEntries(Object.keys(DEFAULTS)
+      .filter(key => key !== 'extensionEnabled' && data.extensionSettingsBackup[key] !== undefined)
+      .map(key => [key, data.extensionSettingsBackup[key]]));
+    chrome.storage.sync.set({ ...restored, extensionEnabled: data.extensionEnabled !== false }, () => {
+      if (!chrome.runtime.lastError) chrome.storage.sync.remove('extensionSettingsBackup');
+    });
+  }
+});
+
 // Keep cache in sync with any storage changes
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'sync' && settingsCache) {
     for (const [key, { newValue }] of Object.entries(changes)) {
       if (newValue !== undefined) {
-        settingsCache[key] = key === 'defaultModel' ? normalizeDefaultModel(newValue) : newValue;
+        settingsCache[key] = key === 'defaultModel' ? normalizeDefaultModel(newValue) : normalizeSitePreference(key, newValue);
       } else {
         settingsCache[key] = DEFAULTS[key];
       }
@@ -111,11 +138,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else {
       // Fallback: cache not ready yet (rare edge case)
       chrome.storage.sync.get(DEFAULTS, (settings) => {
-        settingsCache = {
+        settingsCache = normalizeSiteSettings({
           ...DEFAULTS,
           ...settings,
           defaultModel: normalizeDefaultModel(settings.defaultModel),
-        };
+        });
         sendResponse(settingsCache);
       });
       return true; // Async response
@@ -133,11 +160,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         chrome.storage.sync.get(DEFAULTS),
         chrome.storage.local.get(['customBgData', 'detectedTheme'])
       ]).then(([sync, local]) => {
-        settingsCache = {
+        settingsCache = normalizeSiteSettings({
           ...DEFAULTS,
           ...sync,
           defaultModel: normalizeDefaultModel(sync.defaultModel),
-        };
+        });
         localCache = local || {};
         sendResponse({ settings: settingsCache, local: localCache });
       });

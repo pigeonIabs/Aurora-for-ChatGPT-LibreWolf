@@ -7,7 +7,7 @@
   A.queue = A.queue || {};
 
   const getSettings = () => (A.getSettings ? A.getSettings() : {});
-  const isExtensionEnabled = () => (A.isEnabled ? A.isEnabled() : true);
+  const isExtensionEnabled = () => !!A.isActive?.();
   const getMessage = A.i18n?.getMessage || ((k) => k);
 
   let engine = null;
