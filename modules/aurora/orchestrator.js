@@ -428,7 +428,10 @@
           if (changes[key]) settings[key] = changes[key].newValue;
         });
 
-        if (changedKeys.includes('extensionEnabled') || changedKeys.includes('disabledSites')) {
+        const disabledHere = value => Array.isArray(value) && value.includes(A.site.id);
+        const siteEnableChanged = changes.disabledSites &&
+          disabledHere(changes.disabledSites.oldValue) !== disabledHere(changes.disabledSites.newValue);
+        if (changes.extensionEnabled || siteEnableChanged) {
           this.settingsRequestRevision += 1;
           this.queue.shutdown();
           if (!isEnabled()) {
@@ -477,7 +480,9 @@
           else this.quickSettings.remove();
         }
 
-        if (changes.defaultModel || changes.siteDefaultModels) {
+        const siteModelChanged = changes.siteDefaultModels &&
+          changes.siteDefaultModels.oldValue?.[A.site.id] !== changes.siteDefaultModels.newValue?.[A.site.id];
+        if ((A.site.id === 'chatgpt' && changes.defaultModel) || siteModelChanged) {
           A.defaultModel?.cancel?.();
           this.defaultModel.maybeApply(true);
         }
