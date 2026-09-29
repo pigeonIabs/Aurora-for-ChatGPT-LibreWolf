@@ -8,6 +8,18 @@ Seasonal Christmas and New Year theme code has been removed.
 
 This project is independently maintained and is not affiliated with OpenAI, LibreWolf, or the upstream Aurora maintainers.
 
+## Version 1.8
+
+[Aurora 1.8](https://github.com/pigeonIabs/Aurora-for-ChatGPT-LibreWolf/releases/tag/v1.8) is the complete overhaul for the redesigned ChatGPT interface and Codex Cloud.
+
+- Restores glass across the prompt bar, navigation, menus, settings, writing blocks, and code blocks.
+- Separates glass transparency from blur and improves the light theme alongside Dark Reader.
+- Updates model selection, token counting, queued replies, quick settings, and privacy masking for the new editor.
+- Preserves the dotted message border in temporary chats and keeps the top bar seamless.
+- Gives the prompt bar's voice button matching glass styling and theme colors.
+
+The release includes the complete source and a LibreWolf XPI. The GitHub package uses this fork's local extension ID and is intended for LibreWolf profiles configured to load unsigned extensions.
+
 ## Install
 
 Install the signed release from Firefox Add-ons, then open `https://chatgpt.com`.

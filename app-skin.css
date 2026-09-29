@@ -162,6 +162,19 @@ html:root.cgpt-ambient-on :is(button, [role="button"], [role="tab"]):focus-visib
   outline: 2px solid currentColor;
   outline-offset: 2px;
 }
+/* The current voice action uses composer tokens instead of the legacy bg-black classes. */
+html:root.cgpt-ambient-on form[data-chatgpt-composer] button[aria-label="Start Voice" i] {
+  background: var(--aurora-glass-fill) !important;
+  color: var(--theme-text-primary) !important;
+  border: 1px solid var(--aurora-glass-border) !important;
+  border-radius: var(--aurora-control-radius) !important;
+  box-shadow: inset 0 0 2px 0 var(--aurora-glass-glow) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+}
+html:root.cgpt-ambient-on form[data-chatgpt-composer] button[aria-label="Start Voice" i]:hover {
+  box-shadow: inset 0 0 0 1px var(--theme-text-secondary), inset 0 0 2px 0 var(--aurora-glass-glow) !important;
+}
 html:root.cgpt-ambient-on :is([class~="group/settings"], [data-app-shell-main-surface]) :is(input:not([type="checkbox"]):not([type="range"]), select, textarea:not(#prompt-textarea)) {
   background-color: var(--aurora-glass-fill) !important;
   border-color: var(--aurora-glass-border) !important;
