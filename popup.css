@@ -719,3 +719,5 @@ html.theme-light .feedback-send-btn {
 .master-toggle-btn[data-state="disabled"]:hover {
   background: rgba(239, 68, 68, 0.22);
 }
+
+[data-site-unsupported="true"] { display: none !important; }

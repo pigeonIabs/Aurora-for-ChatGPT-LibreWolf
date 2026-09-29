@@ -1,19 +1,19 @@
 {
   "name": {
-    "en-US": "Aurora for ChatGPT LibreWolf"
+    "en-US": "Aurora Universal"
   },
   "summary": {
-    "en-US": "Personalize ChatGPT with glass themes, privacy controls, custom backgrounds, and workflow tools."
+    "en-US": "Glass themes and custom backgrounds for ChatGPT, Claude, and Gemini."
   },
   "description": {
-    "en-US": "An unofficial LibreWolf-focused port of Aurora for ChatGPT. It adds glass themes, custom image and video backgrounds, privacy masking, streamer mode, focus controls, queued messages, custom fonts, voice styling, and settings import and export.\n\nThe extension stores preferences locally. Chat content used for styling, queueing, and masking stays inside the browser. Its optional feedback form sends only the text a user chooses to submit, a generated ticket ID, the extension version, and browser user agent after Firefox grants the optional data permission.\n\nThis project is independently maintained and is not affiliated with OpenAI, LibreWolf, or the upstream Aurora maintainers."
+    "en-US": "A lightweight LibreWolf-focused extension with shared glass themes, custom image and video backgrounds, fonts, sidebar privacy styling, and quick settings. ChatGPT also includes data masking, queued messages, model selection, and voice styling. Claude and Gemini adapters are in initial development.\n\nPreferences and custom background files stay in browser storage. Optional feedback is sent only when the user submits the form and grants Firefox data permission.\n\nIndependently maintained and based on Aurora for ChatGPT."
   },
   "categories": [
     "appearance",
     "privacy-security"
   ],
   "homepage": {
-    "en-US": "https://github.com/pigeonIabs/Aurora-for-ChatGPT-LibreWolf"
+    "en-US": "https://github.com/pigeonIabs/aurora-universal"
   },
   "requires_payment": false,
   "version": {

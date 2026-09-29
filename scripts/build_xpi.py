@@ -231,7 +231,7 @@ def main() -> int:
     parser.add_argument(
         "--output",
         type=Path,
-        help="Output XPI path. Defaults to build/aurora-for-chatgpt-librewolf-<version>.xpi",
+        help="Output XPI path. Defaults to build/aurora-universal-<version>.xpi",
     )
     args = parser.parse_args()
 
@@ -240,7 +240,7 @@ def main() -> int:
         version = manifest.get("version")
         if not isinstance(version, str) or not version:
             raise ValueError("manifest.json must define a version string")
-        output = args.output or Path("build") / f"aurora-for-chatgpt-librewolf-{version}.xpi"
+        output = args.output or Path("build") / f"aurora-universal-{version}.xpi"
         if not output.is_absolute():
             output = ROOT / output
         count, digest = build(output)

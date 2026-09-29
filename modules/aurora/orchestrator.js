@@ -187,7 +187,7 @@
 
         // Welcome screen once per session.
         if (!this.welcomeScreenChecked) {
-          if (freshSettings.extensionEnabled !== false && !freshSettings.hasSeenWelcomeScreen) {
+          if (this.isSupportedRoute() && freshSettings.extensionEnabled !== false && !freshSettings.hasSeenWelcomeScreen) {
             try {
               A.welcome?.show?.(() => this.applyAllSettings());
             } catch (e) {
@@ -279,7 +279,7 @@
 
     isSupportedRoute() {
       const path = window.location.pathname.replace(/\/+$/, '') || '/';
-      return path !== '/codex';
+      return !!A.site?.isSupportedRoute(path);
     }
 
     startObservers() {
@@ -355,7 +355,7 @@
           renderFrameId = null;
           const nodes = [...pendingNodes];
           pendingNodes.clear();
-          if (!isEnabled()) return;
+          if (!isEnabled() || !this.isSupportedRoute()) return;
           // The app hydrates after DOMContentLoaded and can replace body nodes.
           if (!document.getElementById(ID)) this.background.ensure();
           if (!document.documentElement.classList.contains(cfg.HTML_CLASS || 'cgpt-ambient-on') ||
@@ -376,7 +376,7 @@
           window.AuroraExt.centralObserver.subscribe(this.domObserverCallback);
       }
 
-      const hostTheme = () => document.documentElement.classList.contains('light') || document.documentElement.classList.contains('light-mode');
+      const hostTheme = () => A.sites.readTheme() === 'light';
       let lastHostLight = hostTheme();
       const themeObserver = new MutationObserver(() => {
         if (!isEnabled() || !this.isSupportedRoute()) return;
@@ -389,7 +389,11 @@
             !root.style.getPropertyValue('--aurora-glass-fill-opacity') ||
             (s.theme === 'auto' && changed)) this.rootFlags.apply();
       });
-      themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'style'] });
+      themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'style', 'data-mode', 'data-theme', 'data-appearance-theme'] });
+      if (document.body) themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+      matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (isEnabled() && this.isSupportedRoute()) this.rootFlags.apply();
+      });
     }
 
     onStorageChanged(changes, area) {
@@ -413,7 +417,7 @@
           return;
         }
 
-        if (!isEnabled()) return;
+        if (!isEnabled() || !this.isSupportedRoute()) return;
 
         if (changes.queueWhileGenerating) this.queue.schedulePulse(0);
 
@@ -451,13 +455,15 @@
         }
 
         if (changes.defaultModel) this.defaultModel.maybeApply();
+        if (changes.autoContrast) this.contrast.apply();
+        if (!settings.hideQuickSettings && changedKeys.some(key => ['focusMode', 'blurChatHistory', 'hideUpgradeButtons', 'queueWhileGenerating', 'appearance'].includes(key))) this.quickSettings.ensure();
 
         if (changes.soundEnabled || changes.soundVolume) {
           this.audio.ensureContext();
           this.audio.attachOrDetach();
         }
       } else if (area === 'local' && changes[LOCAL_BG_KEY]) {
-        if (isEnabled()) this.background.update();
+        if (isEnabled() && this.isSupportedRoute()) this.background.update();
       }
     }
   }

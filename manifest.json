@@ -21,6 +21,8 @@
   ],
   "host_permissions": [
     "https://chatgpt.com/*",
+    "https://claude.ai/*",
+    "https://gemini.google.com/*",
     "https://auroraforchatgpt.tnemoroccan.workers.dev/*"
   ],
   "content_security_policy": {
@@ -76,6 +78,8 @@
         "https://chatgpt.com/*"
       ],
       "js": [
+        "modules/aurora/sites.js",
+        "modules/aurora/adapters/chatgpt.js",
         "modules/aurora/dom.js",
         "data-masking.js",
         "modules/message-queue.js",
@@ -102,9 +106,68 @@
         "content.js"
       ],
       "css": [
+        "shared.css",
         "styles.css",
         "new-features.css",
         "app-skin.css"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://claude.ai/*"
+      ],
+      "js": [
+        "modules/aurora/sites.js",
+        "modules/aurora/adapters/claude.js",
+        "modules/aurora/namespace.js",
+        "modules/aurora/central-observer.js",
+        "modules/aurora/config.js",
+        "modules/aurora/utils.js",
+        "modules/aurora/i18n.js",
+        "modules/aurora/fonts.js",
+        "modules/aurora/contrast.js",
+        "modules/aurora/background.js",
+        "modules/aurora/surfaces.js",
+        "modules/aurora/quick-settings.js",
+        "modules/aurora/root-flags.js",
+        "modules/aurora/disable.js",
+        "modules/aurora/orchestrator.js",
+        "modules/aurora/init.js",
+        "content.js"
+      ],
+      "css": [
+        "shared.css",
+        "universal.css"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://gemini.google.com/*"
+      ],
+      "js": [
+        "modules/aurora/sites.js",
+        "modules/aurora/adapters/gemini.js",
+        "modules/aurora/namespace.js",
+        "modules/aurora/central-observer.js",
+        "modules/aurora/config.js",
+        "modules/aurora/utils.js",
+        "modules/aurora/i18n.js",
+        "modules/aurora/fonts.js",
+        "modules/aurora/contrast.js",
+        "modules/aurora/background.js",
+        "modules/aurora/surfaces.js",
+        "modules/aurora/quick-settings.js",
+        "modules/aurora/root-flags.js",
+        "modules/aurora/disable.js",
+        "modules/aurora/orchestrator.js",
+        "modules/aurora/init.js",
+        "content.js"
+      ],
+      "css": [
+        "shared.css",
+        "universal.css"
       ],
       "run_at": "document_start"
     }
@@ -117,8 +180,11 @@
         "_locales/*/messages.json"
       ],
       "matches": [
-        "https://chatgpt.com/*"
+        "https://chatgpt.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*"
       ]
     }
-  ]
+  ],
+  "homepage_url": "https://github.com/pigeonIabs/aurora-universal"
 }

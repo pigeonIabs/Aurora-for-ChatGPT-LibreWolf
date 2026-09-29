@@ -12,6 +12,20 @@
     return A.isEnabled ? A.isEnabled() : true;
   }
 
+  const positionedApps = new Map();
+
+  function restoreApp() {
+    for (const [node, original] of positionedApps) {
+      for (const [property, value] of Object.entries(original)) {
+        if (node.style.getPropertyValue(property) === value.applied) {
+          if (value.value) node.style.setProperty(property, value.value, value.priority);
+          else node.style.removeProperty(property);
+        }
+      }
+    }
+    positionedApps.clear();
+  }
+
   function ensureAppOnTop() {
     if (!document.body) return;
     // Skip extension-inserted elements to avoid targeting the background container or quick settings as the app container
@@ -26,14 +40,21 @@
       firstChild = firstChild.nextElementSibling;
     }
     const app =
+      (A.site?.appRoot && document.querySelector(A.site.appRoot)) ||
       document.getElementById('__next') ||
       document.querySelector('#root') ||
       document.querySelector('main') ||
       firstChild;
     if (!app) return;
     const cs = getComputedStyle(app);
-    if (cs.position === 'static') app.style.position = 'relative';
-    if (!app.style.zIndex || parseInt(app.style.zIndex || '0', 10) < 0) app.style.zIndex = '0';
+    const set = (property, applied) => {
+      if (!positionedApps.has(app)) positionedApps.set(app, {});
+      const saved = positionedApps.get(app);
+      if (!saved[property]) saved[property] = { value: app.style.getPropertyValue(property), priority: app.style.getPropertyPriority(property), applied };
+      app.style.setProperty(property, applied);
+    };
+    if (cs.position === 'static') set('position', 'relative');
+    if (!app.style.zIndex || parseInt(app.style.zIndex || '0', 10) < 0) set('z-index', '0');
   }
 
   function makeBgNode() {
@@ -102,9 +123,9 @@
     LOAD_TIMEOUT_MS: 5000,
 
     // Default background URLs
-    DEFAULT_SRCSET:
-      'https://persistent.oaistatic.com/burrito-nux/640.webp 640w, https://persistent.oaistatic.com/burrito-nux/1280.webp 1280w, https://persistent.oaistatic.com/burrito-nux/1920.webp 1920w',
-    DEFAULT_SRC: 'https://persistent.oaistatic.com/burrito-nux/640.webp',
+    DEFAULT_SRCSET: A.site?.id === 'chatgpt' ?
+      'https://persistent.oaistatic.com/burrito-nux/640.webp 640w, https://persistent.oaistatic.com/burrito-nux/1280.webp 1280w, https://persistent.oaistatic.com/burrito-nux/1920.webp 1920w' : '',
+    DEFAULT_SRC: A.site?.id === 'chatgpt' ? 'https://persistent.oaistatic.com/burrito-nux/640.webp' : cfg.GROK_HORIZON_URL,
     VIDEO_EXTENSIONS: ['.mp4', '.webm', '.ogv'],
 
     getContainer() {
@@ -438,6 +459,7 @@
   }
 
   A.background = A.background || {};
+  A.background.restoreApp = restoreApp;
   A.background.manager = BackgroundManager;
   A.background.show = A.background.show || showBg;
   A.background.applyStyles = A.background.applyStyles || applyCustomStyles;

@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // 2. Apply localization immediately (uses cached elements)
   applyLocalization();
+  applySiteScope();
   
   // 3. Setup static UI (tabs, feedback) - no data needed
   setupTabs();
@@ -76,6 +77,33 @@ document.addEventListener('DOMContentLoaded', () => {
     hydrateWithRealData(settings || DEFAULTS, local || {});
   });
 });
+
+async function applySiteScope() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const site = AuroraExt.sites.fromUrl(tab?.url);
+    if (!site) return;
+    const title = document.querySelector('.popup-header h1');
+    if (title) title.textContent = `Aurora / ${site.name}`;
+    [...TOGGLE_KEYS, 'defaultModel', 'voiceColor'].forEach(key => {
+      const el = document.getElementById(key) || document.getElementById(`${key}Selector`);
+      const row = el?.closest('.row');
+      if (row && !AuroraExt.sites.supports(site, key)) row.dataset.siteUnsupported = 'true';
+    });
+    document.querySelectorAll('.section-header').forEach(header => {
+      let sibling = header.nextElementSibling;
+      let available = false;
+      while (sibling && !sibling.classList.contains('section-header')) {
+        if (sibling.classList.contains('row') && sibling.dataset.siteUnsupported !== 'true') available = true;
+        sibling = sibling.nextElementSibling;
+      }
+      if (!available) header.dataset.siteUnsupported = 'true';
+    });
+    buildSearchableData();
+  } catch {
+    // The full settings library remains available from browser extension pages.
+  }
+}
 
 function hydrateWithRealData(settings, localData) {
   // Re-render with actual user data
@@ -589,6 +617,7 @@ function buildSearchableData() {
   $.panes?.forEach(pane => {
     const tabName = document.querySelector(`.tab-link[data-tab="${pane.id}"]`)?.textContent || '';
     pane.querySelectorAll('.row').forEach(row => {
+      if (row.dataset.siteUnsupported === 'true') return;
       const label = row.querySelector('.label')?.textContent || '';
       const keywords = (tabName + ' ' + label + ' ' + (row.querySelector('[title]')?.title || '')).toLowerCase();
       searchableData.push({ element: row, tabId: pane.id, keywords });

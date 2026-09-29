@@ -39,6 +39,7 @@
       'cgpt-glass-user-messages'
     );
 
+    root.removeAttribute('data-aurora-site');
     root.removeAttribute('data-custom-font');
     root.removeAttribute('data-voice-color');
     root.style.removeProperty('--cgpt-bg-blur-radius');
@@ -53,6 +54,7 @@
     root.removeAttribute('data-aurora-temporary-chat');
     ['--aurora-glass-saturate', '--sidebar-glass-blur', '--clear-blur', '--composer-blur', '--glass-blur'].forEach(name => root.style.removeProperty(name));
     A.glass?.untag?.();
+    A.background?.restoreApp?.();
 
     // Optional engines / UI.
     A.fonts?.cleanup?.();

@@ -1,12 +1,12 @@
 {
   "extensionName": {
-    "message": "Aurora for ChatGPT LibreWolf"
+    "message": "Aurora Universal"
   },
   "extensionDescription": {
-    "message": "Upgrade ChatGPT with a Glassmorphism theme, privacy suite, custom backgrounds, and workflow controls."
+    "message": "Стеклянные темы и собственные фоны для ChatGPT, Claude и Gemini."
   },
   "actionTitle": {
-    "message": "Aurora for ChatGPT LibreWolf Settings"
+    "message": "Настройки Aurora Universal"
   },
   "buttonChooseFile": {
     "message": "Использовать локальный файл"
@@ -18,7 +18,7 @@
     "message": "Aurora выключена"
   },
   "popupTitle": {
-    "message": "настройки aurora для chatgpt"
+    "message": "Настройки Aurora Universal"
   },
   "tabStyle": {
     "message": "Стиль"

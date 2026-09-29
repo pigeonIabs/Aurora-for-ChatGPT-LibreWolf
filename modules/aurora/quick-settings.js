@@ -19,86 +19,15 @@
   let outsideClick = null;
   let escapeKey = null;
 
-  function setupQuickSettingsVoiceSelector(settings) {
-    const voiceColorOptions = [
-      { value: 'default', labelKey: 'voiceColorOptionDefault', color: '#8EBBFF' },
-      { value: 'orange', labelKey: 'voiceColorOptionOrange', color: '#FF9900' },
-      { value: 'yellow', labelKey: 'voiceColorOptionYellow', color: '#FFD700' },
-      { value: 'pink', labelKey: 'voiceColorOptionPink', color: '#FF69B4' },
-      { value: 'green', labelKey: 'voiceColorOptionGreen', color: '#32CD32' },
-      { value: 'dark', labelKey: 'voiceColorOptionDark', color: '#555555' },
-    ];
-
-    const selectContainer = document.getElementById('qs-voice-color-select');
-    if (!selectContainer) return;
-
-    const trigger = selectContainer.querySelector('.qs-select-trigger');
-    const optionsContainer = selectContainer.querySelector('.qs-select-options');
-    if (!trigger || !optionsContainer) return;
-
-    const triggerDot = trigger.querySelector('.qs-color-dot');
-    const triggerLabel = trigger.querySelector('.qs-select-label');
-    const resolveVoiceLabel = (option) => getMessage(option.labelKey);
-
-    const renderVoiceOptions = (selectedValue) => {
-      const optionNodes = voiceColorOptions.map((option) => {
-        const optionEl = document.createElement('div');
-        optionEl.className = 'qs-select-option';
-        optionEl.setAttribute('role', 'option');
-        optionEl.dataset.value = option.value;
-        optionEl.setAttribute('aria-selected', String(option.value === selectedValue));
-
-        const colorDot = document.createElement('span');
-        colorDot.className = 'qs-color-dot';
-        colorDot.style.backgroundColor = option.color;
-
-        const label = document.createElement('span');
-        label.className = 'qs-select-label';
-        label.textContent = resolveVoiceLabel(option);
-
-        const checkmark = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        checkmark.setAttribute('class', 'qs-checkmark');
-        checkmark.setAttribute('width', '16');
-        checkmark.setAttribute('height', '16');
-        checkmark.setAttribute('viewBox', '0 0 24 24');
-        checkmark.setAttribute('fill', 'none');
-        checkmark.setAttribute('stroke', 'currentColor');
-        checkmark.setAttribute('stroke-width', '3');
-        checkmark.setAttribute('stroke-linecap', 'round');
-        checkmark.setAttribute('stroke-linejoin', 'round');
-        const checkPath = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-        checkPath.setAttribute('points', '20 6 9 17 4 12');
-        checkmark.appendChild(checkPath);
-
-        optionEl.append(colorDot, label, checkmark);
-        return optionEl;
-      });
-      optionsContainer.replaceChildren(...optionNodes);
-
-      optionsContainer.querySelectorAll('.qs-select-option').forEach((optionEl) => {
-        optionEl.addEventListener('click', () => {
-          const newValue = optionEl.dataset.value;
-          chrome.storage.sync.set({ voiceColor: newValue });
-          trigger.setAttribute('aria-expanded', 'false');
-          optionsContainer.style.display = 'none';
-        });
-      });
-    };
-
-    const updateSelectorState = (value) => {
-      const selectedOption = voiceColorOptions.find((opt) => opt.value === value) || voiceColorOptions[0];
-      if (triggerDot) triggerDot.style.backgroundColor = selectedOption.color;
-      if (triggerLabel) triggerLabel.textContent = resolveVoiceLabel(selectedOption);
-      renderVoiceOptions(value);
-    };
-
-    updateSelectorState(settings.voiceColor);
-
-    trigger.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const expanded = trigger.getAttribute('aria-expanded') === 'true';
-      trigger.setAttribute('aria-expanded', String(!expanded));
-      optionsContainer.style.display = expanded ? 'none' : 'block';
+  function syncPanel(panel, settings) {
+    panel.querySelectorAll('.qs-row[data-setting] input').forEach(input => {
+      input.checked = !!settings[input.closest('.qs-row').dataset.setting];
+    });
+    const appearance = settings.appearance || 'clear';
+    const toggle = panel.querySelector('#qs-appearance-toggle');
+    if (toggle) toggle.dataset.switchState = appearance === 'dimmed' ? '1' : '0';
+    toggle?.querySelectorAll('button').forEach(button => {
+      button.setAttribute('aria-pressed', String(button.dataset.settingValue === appearance));
     });
   }
 
@@ -143,7 +72,7 @@
       panel.setAttribute('data-state', 'closed');
       const openPanel = () => { panel.setAttribute('data-state', 'open'); btn.setAttribute('aria-expanded', 'true'); };
       const closePanel = () => {
-        panel.setAttribute('data-state', getSettings().disableAnimations ? 'closed' : 'closing');
+        panel.setAttribute('data-state', (getSettings().disableAnimations || matchMedia('(prefers-reduced-motion: reduce)').matches) ? 'closed' : 'closing');
         btn.setAttribute('aria-expanded', 'false');
       };
 
@@ -156,23 +85,15 @@
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const state = panel.getAttribute('data-state');
-        if (state === 'closed') openPanel();
-        else if (state === 'open') closePanel();
+        if (state === 'open') closePanel();
+        else openPanel();
       });
 
       outsideClick = (e) => {
         if (panel && !panel.contains(e.target) && panel.getAttribute('data-state') === 'open') {
           closePanel();
         }
-        const selectContainer = document.getElementById('qs-voice-color-select');
-        if (selectContainer && !selectContainer.contains(e.target)) {
-          const selectTrigger = selectContainer.querySelector('.qs-select-trigger');
-          if (selectTrigger && selectTrigger.getAttribute('aria-expanded') === 'true') {
-            const selectOptions = selectContainer.querySelector('.qs-select-options');
-            selectTrigger.setAttribute('aria-expanded', 'false');
-            if (selectOptions) selectOptions.style.display = 'none';
-          }
-        }
+
       };
       document.addEventListener('click', outsideClick);
       escapeKey = (event) => {
@@ -182,6 +103,12 @@
         }
       };
       document.addEventListener('keydown', escapeKey);
+    }
+
+    // Update settings in place so keyboard focus survives storage events.
+    if (panel.childElementCount) {
+      syncPanel(panel, settings);
+      return;
     }
 
     const createSectionTitle = (messageKey) => {
@@ -245,10 +172,9 @@
     panel.replaceChildren(
       createSectionTitle('quickSettingsSectionVisibility'),
       createToggleRow('focusMode', 'labelFocusMode'),
-      createToggleRow('hideUpgradeButtons', 'quickSettingsLabelHideUpgradeButtons'),
+      ...(A.sites.supports(A.site, 'hideUpgradeButtons') ? [createToggleRow('hideUpgradeButtons', 'quickSettingsLabelHideUpgradeButtons')] : []),
       createToggleRow('blurChatHistory', 'quickSettingsLabelStreamerMode'),
-      createSectionTitle('tabBehavior'),
-      createToggleRow('queueWhileGenerating', 'labelQueueWhileGenerating'),
+      ...(A.sites.supports(A.site, 'queueWhileGenerating') ? [createSectionTitle('tabBehavior'), createToggleRow('queueWhileGenerating', 'labelQueueWhileGenerating')] : []),
       createSectionTitle('sectionAppearance'),
       appearanceRow
     );
@@ -262,8 +188,6 @@
         chrome.storage.sync.set({ [key]: checkbox.checked });
       });
     });
-
-    setupQuickSettingsVoiceSelector(settings);
 
     const appearanceToggle = document.getElementById('qs-appearance-toggle');
     if (appearanceToggle) {
@@ -288,6 +212,7 @@
         });
       });
     }
+    syncPanel(panel, settings);
   }
 
   function remove() {

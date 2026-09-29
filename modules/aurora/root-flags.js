@@ -19,24 +19,14 @@
   // Perf: avoid spamming storage.local with repeated detectedTheme writes.
   let lastDetectedTheme = null;
   let lastDetectedThemeWriteAt = 0;
-  let themeObserverInstalled = false;
-
-  function observeTheme(root) {
-    if (themeObserverInstalled || typeof MutationObserver !== 'function') return;
-    themeObserverInstalled = true;
-    new MutationObserver(() => {
-      if (getSettings().theme === 'auto') apply();
-    }).observe(root, { attributes: true, attributeFilter: ['data-theme', 'data-appearance-theme'] });
-  }
-
   function apply() {
     if (!isEnabled()) return;
 
     const s = getSettings();
     const root = document.documentElement;
-    observeTheme(root);
 
     root.classList.toggle(HTML_CLASS, true);
+    root.setAttribute('data-aurora-site', A.site.id);
     root.classList.toggle(LEGACY_CLASS, !!s.legacyComposer);
     root.classList.toggle(ANIMATIONS_DISABLED_CLASS, !!s.disableAnimations);
     root.classList.toggle(CLEAR_APPEARANCE_CLASS, s.appearance === 'clear');
@@ -80,12 +70,7 @@
     root.setAttribute('data-custom-font', customFont);
     A.fonts?.ensure?.(customFont);
 
-    const pageTheme = root.getAttribute('data-theme') || root.getAttribute('data-appearance-theme');
-    const applyLightMode = s.theme === 'light' || (s.theme === 'auto' && (
-      pageTheme === 'light' ||
-      root.classList.contains('light') ||
-      root.classList.contains('light-mode')
-    ));
+    const applyLightMode = s.theme === 'light' || (s.theme === 'auto' && A.sites.readTheme() === 'light');
     root.classList.toggle(LIGHT_CLASS, applyLightMode);
 
     // Store detected theme (used by popup for correct default), throttled.

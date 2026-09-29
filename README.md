@@ -1,67 +1,48 @@
-# Aurora for ChatGPT LibreWolf
+# Aurora Universal
 
-Unofficial LibreWolf focused fork of Aurora for ChatGPT.
+A lightweight glass theme extension for ChatGPT, Claude, and Gemini, built from the LibreWolf fork of Aurora for ChatGPT.
 
-This build keeps the glass theme engine, custom backgrounds, privacy controls, streamer mode, default model picker, queue while generating, audio haptics, custom fonts, and quick settings.
+Universal development lives on `main`. The published [Aurora 1.8 release](https://github.com/pigeonIabs/aurora-universal/releases/tag/v1.8) contains the ChatGPT overhaul. Development builds retain manifest version 1.8 while the larger Universal update takes shape.
 
-Seasonal Christmas and New Year theme code has been removed.
+## Current development
 
-This project is independently maintained and is not affiliated with OpenAI, LibreWolf, or the upstream Aurora maintainers.
+One shared engine provides appearance settings, custom backgrounds, glass transparency and blur, automatic light and dark detection, fonts, quick settings, and sidebar privacy styling. Each website loads its own small adapter. ChatGPT keeps its existing workflow modules and current app shell styling.
 
-## Version 1.8
+| Feature | ChatGPT | Claude | Gemini |
+| --- | --- | --- | --- |
+| Backgrounds and glass surfaces | Supported | Initial adapter | Initial adapter |
+| Fonts and appearance settings | Supported | Initial adapter | Initial adapter |
+| Sidebar history and avatar blur | Supported | Initial adapter | Initial adapter |
+| Focus mode and quick settings | Supported | Initial adapter | Initial adapter |
+| Message queue and default model | Supported | Planned | Planned |
+| Pattern masking and voice styling | Supported | Planned | Planned |
 
-[Aurora 1.8](https://github.com/pigeonIabs/Aurora-for-ChatGPT-LibreWolf/releases/tag/v1.8) is the complete overhaul for the redesigned ChatGPT interface and Codex Cloud.
+The popup follows the active supported website and shows its available controls. Appearance preferences are shared between sites. The master toggle restores the site's native appearance. Existing users keep their settings through the original extension ID.
 
-- Restores glass across the prompt bar, navigation, menus, settings, writing blocks, and code blocks.
-- Separates glass transparency from blur and improves the light theme alongside Dark Reader.
-- Updates model selection, queued replies, quick settings, and privacy masking for the new editor.
-- Preserves the dotted message border in temporary chats and keeps the top bar seamless.
-- Gives the prompt bar's voice button matching glass styling and theme colors.
+Gemini selectors were mapped against its live composer and navigation in September 2026. Claude uses semantic chat selectors and awaits signed-in validation. Manual use across conversation, project, and mobile layouts remains the next development step.
 
-The release includes the complete source and a LibreWolf XPI. The GitHub package uses this fork's local extension ID and is intended for LibreWolf profiles configured to load unsigned extensions.
+Runtime code uses plain JavaScript and CSS, with one DOM observer for content changes and separate lightweight theme observation. Streaming updates process added subtrees. Background media pauses in hidden tabs.
 
-## Install
+## Use a development build
 
-Install the signed release from Firefox Add-ons, then open `https://chatgpt.com`.
+In Firefox or LibreWolf, open `about:debugging#/runtime/this-firefox`, choose `Load Temporary Add-on`, and select `manifest.json` from this checkout. Open ChatGPT, Claude, or Gemini and use the Aurora toolbar button to change settings.
 
-For local development, open `about:debugging#/runtime/this-firefox`, choose `Load Temporary Add-on`, and select `manifest.json`.
+The GitHub XPI uses this fork's local extension ID and targets LibreWolf profiles configured to load unsigned extensions. The published 1.8 XPI is available on the release page.
 
-## Build XPI
+## Build
 
-Requires Python 3.8 and Git. From the repository root, run `python scripts/build_xpi.py`. It packages tracked files and manifest resources with stable ordering, normalized text line endings, and fixed ZIP timestamps. The XPI is written under `build/` using the version in `manifest.json`.
+Run `python scripts/build_xpi.py --output build/aurora-universal-development.xpi` from the repository root. Python 3.8 and Git are required. The builder packages tracked files and manifest resources with stable ordering, normalized line endings, and fixed ZIP timestamps.
 
-## LibreWolf Changes
+See [DEVELOPMENT.md](DEVELOPMENT.md) for adapter structure and release policy.
 
-- Manifest V3 background registration now includes Firefox event page scripts.
-- A Gecko extension id is included for Firefox and LibreWolf builds.
-- ChatGPT and feedback host permissions are declared explicitly.
-- Holiday UI, content module, styles, strings, and media assets were removed.
-- The Grok Horizon preset path now points at the packaged `assets/grok-4.webp`.
+## Privacy and permissions
 
-## Main Features
+Preferences use browser storage. Uploaded backgrounds stay in local storage, with a 15 MB file limit. `unlimitedStorage` supports these media files. Host access covers `chatgpt.com`, `claude.ai`, `gemini.google.com`, and the optional upstream feedback endpoint.
 
-- Glassmorphism theme with clear and dimmed styles.
-- Custom image and video backgrounds with a dedicated Firefox-safe upload page and local file storage.
-- Pure Black OLED background preset.
-- Glass styling for fenced code and copyable writing blocks.
-- Privacy suite with data masking, streamer mode, and avatar blur.
-- Focus mode, upgrade element hiding, and GPT limit message handling.
-- Queue while generating for composing the next message.
-- Custom fonts and voice color styling.
-- Import and export for settings.
+Feedback is sent only after the user submits it and grants Firefox's optional data permission. See [PRIVACY.md](PRIVACY.md).
 
-## Permissions
+## Upstream and license
 
-The extension stores preferences and custom background files locally through browser storage. The `unlimitedStorage` permission lets image and video backgrounds up to the extension's 15 MB limit fit without browser-storage quota failures.
-
-Host access is scoped to `chatgpt.com` and the optional feedback endpoint. Feedback text, a generated ticket ID, the extension version, and browser user agent are transmitted only after the user chooses to send feedback and grants Firefox's optional data permission.
-
-See [PRIVACY.md](PRIVACY.md) for the complete privacy policy.
-
-## Upstream
-
-Based on [TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT](https://github.com/TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT).
-
-## License
+Based on [TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT](https://github.com/TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT). Independently maintained. OpenAI, Anthropic, Google, LibreWolf, and the upstream maintainers retain their own products and trademarks.
 
 MIT. The upstream copyright and permission notice are preserved in [LICENSE](LICENSE).
