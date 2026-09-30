@@ -28,6 +28,8 @@ The master switch changes only the enable preference. Existing backups from the 
 
 ## Verification scope
 
+Run `node tests/startup-scope.cjs` for the critical startup regression. It checks all four adapters with both shared and Firefox-style separate window/global scopes, including activation flags and enable preferences.
+
 The workflow changes receive focused critical checks for draft preservation, chat changes, duplicate-send prevention, failed editor writes, disabling, URL canonicalization, and masking restoration. Syntax checks and manifest-resource validation cover the packaged scripts.
 
 Live DOM inspection informed Gemini's desktop and mobile composer selectors and Grok's composer, picker, and palette. Claude's `/new` page supplied its current CDS editor, composer boundary, send button, model trigger and label, sidebar, avatar, and nested theme roots. Its native model menu remained collapsed in this browser, so menu choices retain semantic fallbacks. Functional and visual use across account-specific layouts belongs to the user's testing pass.

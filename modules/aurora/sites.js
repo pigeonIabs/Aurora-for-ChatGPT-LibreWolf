@@ -1,7 +1,9 @@
 // Small shared registry used by content scripts and the settings popup.
 (() => {
   'use strict';
-  const A = (globalThis.AuroraExt = globalThis.AuroraExt || {});
+  // Firefox gives content scripts a globalThis distinct from their window.
+  // Share the same window namespace used by every feature module.
+  const A = (window.AuroraExt = window.AuroraExt || {});
   const chatgptOnly = new Set([
     'legacyComposer', 'voiceColor', 'cuteVoiceUI', 'hideGpt5Limit',
   ]);
