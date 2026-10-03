@@ -9,6 +9,8 @@
   let session = null;
   let attemptKey = '';
   let timer = null;
+  let openTimer = null;
+  let inspectionQueued = false;
   let route = location.pathname;
 
   function label(node) {
@@ -26,9 +28,12 @@
 
   function cancel(close = true) {
     clearTimeout(timer);
+    clearTimeout(openTimer);
     timer = null;
+    openTimer = null;
     const previous = session;
     session = null;
+    A.centralObserver.setAttributeScope('model-picker', null);
     // Close only the picker this module opened, provided focus stayed within it.
     if (close && previous?.owned && previous.trigger.isConnected && previous.menu?.isConnected) {
       const focused = document.activeElement;
@@ -44,6 +49,25 @@
     catalog = next;
     chrome.storage.local.set({ [catalogKey]: catalog }).catch(() => {});
   }
+
+  function scheduleInspection() {
+    if (!session || inspectionQueued) return;
+    inspectionQueued = true;
+    queueMicrotask(() => {
+      inspectionQueued = false;
+      inspectMenu();
+    });
+  }
+
+  function startSession(value) {
+    session = value;
+    A.centralObserver.setAttributeScope('model-picker', document.body, ['class', 'style'], node =>
+      !!node.closest(`[role="menu"], [role="listbox"], [role="dialog"], ${workflow.modelTrigger}`));
+    timer = setTimeout(() => cancel(), 2500);
+    scheduleInspection();
+  }
+
+  A.centralObserver.subscribe(scheduleInspection);
 
   function inspectMenu() {
     if (!session || !A.isActive() || document.hidden || route !== location.pathname) { cancel(); return; }
@@ -63,16 +87,16 @@
         if (match && !A.dom.getComposerText(A.dom.findActiveComposer()).trim()) {
           // A preference changes the native picker only. The host owns model access.
           session = null;
+          A.centralObserver.setAttributeScope('model-picker', null);
           clearTimeout(timer);
+          clearTimeout(openTimer);
           timer = null;
+          openTimer = null;
           match.node.click();
           return;
         }
       }
     }
-    if (Date.now() - session.started > 2500) { cancel(); return; }
-    clearTimeout(timer);
-    timer = setTimeout(inspectMenu, 120);
   }
 
   function maybeApply(force = false) {
@@ -89,10 +113,12 @@
     if (trigger.getAttribute('aria-expanded') === 'true' || visibleMenus().length) return;
     attemptKey = key;
     if (currentModel().toLocaleLowerCase() === preferred.toLocaleLowerCase()) return;
-    session = { trigger, preferred, before: new Set(visibleMenus()), started: Date.now(), owned: true };
+    startSession({ trigger, preferred, before: new Set(visibleMenus()), owned: true });
+    const openedSession = session;
     trigger.click();
-    timer = setTimeout(() => {
-      if (!session) return;
+    openTimer = setTimeout(() => {
+      if (session !== openedSession) return;
+      openTimer = null;
       if (!visibleMenus().some(node => !session.before.has(node))) {
         trigger.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerType: 'mouse', isPrimary: true }));
         trigger.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, button: 0, pointerType: 'mouse', isPrimary: true }));
@@ -109,8 +135,7 @@
     route = location.pathname;
     attemptKey = `${route}|${normalize(A.getSettings().siteDefaultModels?.[A.site.id])}`;
     cancel(false);
-    session = { trigger, before: new Set(visibleMenus()), started: Date.now(), owned: false };
-    timer = setTimeout(inspectMenu, 0);
+    startSession({ trigger, before: new Set(visibleMenus()), owned: false });
   }, true);
   document.addEventListener('keydown', event => {
     if (event.isTrusted && session?.owned) cancel(false);
@@ -122,16 +147,11 @@
     route = location.pathname;
     attemptKey = `${route}|${normalize(A.getSettings().siteDefaultModels?.[A.site.id])}`;
     cancel(false);
-    session = { trigger, before: new Set(visibleMenus()), started: Date.now(), owned: false };
-    timer = setTimeout(inspectMenu, 0);
+    startSession({ trigger, before: new Set(visibleMenus()), owned: false });
   }, true);
   document.addEventListener('visibilitychange', () => { if (document.hidden) cancel(); });
   chrome.storage.local.get(catalogKey).then(data => {
     if (!catalog.length && Array.isArray(data[catalogKey])) catalog = data[catalogKey].filter(item => typeof item === 'string').map(normalize).slice(0, 32);
   }).catch(() => {});
-  chrome.runtime.onMessage.addListener((request, _sender, respond) => {
-    if (request.type !== 'GET_SITE_STATE') return;
-    respond({ site: A.site.id, currentModel: currentModel(), models: catalog });
-  });
-  A.defaultModel = { maybeApply, cancel };
+  A.defaultModel = { maybeApply, cancel, snapshot: () => ({ currentModel: currentModel(), models: catalog }) };
 })();

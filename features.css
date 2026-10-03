@@ -1,0 +1,51 @@
+/* Functional features share selectors on every host and keep native paint. */
+#cgpt-qs-panel [hidden] { display: none !important; }
+html.cgpt-ambient-on[data-custom-font="inter"] { --aurora-reading-font: 'Inter', system-ui, sans-serif; }
+html.cgpt-ambient-on[data-custom-font="roboto"] { --aurora-reading-font: 'Roboto', system-ui, sans-serif; }
+html.cgpt-ambient-on[data-custom-font="montserrat"] { --aurora-reading-font: 'Montserrat', system-ui, sans-serif; }
+html.cgpt-ambient-on[data-custom-font="opensans"] { --aurora-reading-font: 'Open Sans', system-ui, sans-serif; }
+html.cgpt-ambient-on[data-custom-font="poppins"] { --aurora-reading-font: 'Poppins', system-ui, sans-serif; }
+html.cgpt-ambient-on[data-custom-font="firacode"] { --aurora-reading-font: 'Fira Code', monospace; }
+html.cgpt-ambient-on:not([data-custom-font="system"]) :is(body, p, li, h1, h2, h3, h4, input, textarea, button, a, label, [contenteditable="true"]) {
+  font-family: var(--aurora-reading-font, inherit) !important;
+}
+html.cgpt-ambient-on.cgpt-hide-upgrade [data-aurora-upgrade],
+html.cgpt-ambient-on.cgpt-hide-rate-limits [data-aurora-rate-limit] { display: none !important; }
+html.cgpt-ambient-on.cgpt-blur-chat-history [data-aurora-history],
+html.cgpt-ambient-on.cgpt-blur-avatar [data-aurora-avatar] { filter: blur(8px) !important; }
+html.cgpt-ambient-on.cgpt-blur-chat-history [data-aurora-history]:is(:hover, :focus-within),
+html.cgpt-ambient-on.cgpt-blur-avatar [data-aurora-avatar]:is(:hover, :focus-within),
+html.cgpt-ambient-on.cgpt-blur-avatar :is(button, a):is(:hover, :focus-within) [data-aurora-avatar] { filter: none !important; }
+html.cgpt-ambient-on.cgpt-focus-mode-on :is([data-aurora-sidebar], [data-aurora-toolbar]) {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+html.cgpt-ambient-on.cgpt-cinema-mode :is([data-aurora-content], [data-aurora-composer], [data-aurora-width]) {
+  max-width: none !important;
+}
+/* Expand layout columns while preserving native composer height calculations.
+ * Qwen measures its inner content and assigns that height to a content-box shell. */
+html.cgpt-ambient-on.cgpt-cinema-mode :is([data-aurora-content], [data-aurora-width]):not([data-aurora-composer]) {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+/* Current ChatGPT transcript and footer columns use native semantic markers.
+ * Expand them on insertion, before the functional observer tags their owners. */
+html.cgpt-ambient-on.cgpt-cinema-mode[data-aurora-site="chatgpt"] :is(
+  [data-thread-user-message-navigation-content],
+  [data-pip-obstacle="thread-footer"]
+) {
+  max-width: none !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+html.cgpt-ambient-on.cgpt-animations-disabled *,
+html.cgpt-ambient-on.cgpt-animations-disabled *::before,
+html.cgpt-ambient-on.cgpt-animations-disabled *::after {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}

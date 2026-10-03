@@ -7,7 +7,7 @@
   A.queue = A.queue || {};
 
   const getSettings = () => (A.getSettings ? A.getSettings() : {});
-  const isExtensionEnabled = () => !!A.isActive?.();
+  const isExtensionEnabled = () => !!A.isActive?.() && A.sites.supports(A.site, 'queueWhileGenerating');
   const getMessage = A.i18n?.getMessage || ((k) => k);
 
   let engine = null;
@@ -16,14 +16,14 @@
     if (engine) return engine;
     if (!window.AuroraMessageQueueEngine) return null;
     const s = getSettings();
-    if (!isExtensionEnabled() || !s.queueWhileGenerating) return null;
+    if (!isExtensionEnabled() || !s.queueWhileGenerating || !A.sites.supports(A.site, 'queueWhileGenerating')) return null;
     engine = new window.AuroraMessageQueueEngine({ getSettings, isExtensionEnabled, getMessage });
     return engine;
   }
 
   function isEnabled() {
     const s = getSettings();
-    return isExtensionEnabled() && !!s.queueWhileGenerating;
+    return isExtensionEnabled() && !!s.queueWhileGenerating && A.sites.supports(A.site, 'queueWhileGenerating');
   }
 
   function hasWork() {

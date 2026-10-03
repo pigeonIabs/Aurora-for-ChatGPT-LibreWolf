@@ -3,7 +3,7 @@
     "message": "Aurora Universal"
   },
   "extensionDescription": {
-    "message": "Стеклянные темы и собственные фоны для ChatGPT, Claude, Gemini и Grok."
+    "message": "Стеклянные темы и фоны для ChatGPT, Claude, Gemini, Grok, Qwen, Google AI Studio, DeepSeek и Hugging Face."
   },
   "actionTitle": {
     "message": "Настройки Aurora Universal"
@@ -161,17 +161,11 @@
   "sectionHideElements": {
     "message": "Скрыть элементы"
   },
-  "labelHideGpt5Limit": {
-    "message": "Сообщение о лимите GPT-5"
-  },
-  "tooltipHideGpt5Limit": {
-    "message": "Скрывает всплывающее окно о лимите GPT-5 через 5 минут после появления"
-  },
   "labelHideUpgradeButtons": {
-    "message": "Элементы \"Улучшить план\""
+    "message": "Скрыть рекламу подписки"
   },
   "tooltipHideUpgradeButtons": {
-    "message": "Скрыть все кнопки и разделы \"Улучшить ваш план\""
+    "message": "Скрыть кнопки, баннеры и рекламу платных тарифов"
   },
   "labelHideGptsButton": {
     "message": "Кнопка \"Обзор GPTs\""
@@ -205,6 +199,9 @@
   },
   "bgPresetOptionDefault": {
     "message": "Обои по умолчанию"
+  },
+  "bgPresetOptionSpace": {
+    "message": "Космос"
   },
   "bgPresetOptionGpt5Animated": {
     "message": "Анимированный градиент"
@@ -248,12 +245,6 @@
   "statusAnimatedBackground": {
     "message": "Анимированный фон активен"
   },
-  "creditPrefix": {
-    "message": "Создано"
-  },
-  "creditSuffix": {
-    "message": "в X"
-  },
   "placeholderSearch": {
     "message": "Поиск настроек..."
   },
@@ -273,7 +264,7 @@
     "message": "Голосовой интерфейс"
   },
   "quickSettingsLabelHideUpgradeButtons": {
-    "message": "Скрыть элементы улучшения"
+    "message": "Скрыть рекламу подписки"
   },
   "quickSettingsLabelHideGptsButton": {
     "message": "Скрыть \"Обзор GPTs\""
@@ -338,24 +329,6 @@
   "welcomeBtnFinish": {
     "message": "Завершить настройку"
   },
-  "welcomeBtnNext": {
-    "message": "Далее"
-  },
-  "welcomeBtnSkip": {
-    "message": "Пропустить"
-  },
-  "welcomeSupportTitle": {
-    "message": "Поддержите Aurora"
-  },
-  "welcomeSupportDescription": {
-    "message": "Aurora бесплатна и имеет открытый исходный код. Если вам нравится, рассмотрите возможность поддержки разработки небольшим пожертвованием или поставьте звезду на GitHub!"
-  },
-  "welcomeSupportDonate": {
-    "message": "Купите мне кофе"
-  },
-  "welcomeSupportStar": {
-    "message": "Звезда на GitHub"
-  },
   "welcomeLabelVoice": {
     "message": "Настройка голоса"
   },
@@ -417,7 +390,7 @@
     "message": "Автопрокрутка отключена"
   },
   "labelBlurChatHistory": {
-    "message": "Размыть историю чатов (Режим стримера)"
+    "message": "Размыть историю чатов"
   },
   "tooltipBlurChatHistory": {
     "message": "Размыть боковую панель с историей чатов для приватности при стриминге или записи"
@@ -551,60 +524,6 @@
   "labelMaskPassport": {
     "message": "Паспорт"
   },
-  "feedbackLink": {
-    "message": "Есть отзыв или нашли ошибку?"
-  },
-  "feedbackPlaceholder": {
-    "message": "Расскажите, что вы думаете..."
-  },
-  "feedbackSend": {
-    "message": "Отправить Отзыв"
-  },
-  "feedbackSuccess": {
-    "message": "Отзыв отправлен! Спасибо."
-  },
-  "feedbackError": {
-    "message": "Не удалось отправить. Попробуйте снова."
-  },
-  "feedbackSending": {
-    "message": "Отправка..."
-  },
-  "feedbackReportSent": {
-    "message": "Отчет отправлен!"
-  },
-  "feedbackQueuedMessage": {
-    "message": "Ваш отзыв добавлен в очередь."
-  },
-  "feedbackYourTicketId": {
-    "message": "Ваш ID тикета"
-  },
-  "feedbackCopyIdTooltip": {
-    "message": "Скопировать ID"
-  },
-  "feedbackCopied": {
-    "message": "Скопировано!"
-  },
-  "feedbackPrioritizeTitle": {
-    "message": "Хотите ускорить это?"
-  },
-  "feedbackDonatePre": {
-    "message": "Пожертвуйте на развитие и укажите ваш "
-  },
-  "feedbackDonatePost": {
-    "message": ", чтобы ускорить этот запрос."
-  },
-  "feedbackSupportKofi": {
-    "message": "☕ Поддержать на Ko-fi"
-  },
-  "feedbackClose": {
-    "message": "Нет, просто закрыть"
-  },
-  "ticketIdLabel": {
-    "message": "ID тикета"
-  },
-  "feedbackServerError": {
-    "message": "Ошибка сервера"
-  },
   "buttonCopied": {
     "message": "✓ Скопировано!"
   },
@@ -640,5 +559,23 @@
   },
   "queueFull": {
     "message": "Очередь заполнена"
+  },
+  "labelHideRateLimitMessages": {
+    "message": "Скрыть уведомления о лимитах"
+  },
+  "tooltipHideRateLimitMessages": {
+    "message": "Скрыть уведомления о квотах и ограничениях запросов"
+  },
+  "labelSoundVolume": {
+    "message": "Громкость"
+  },
+  "soundVolumeLow": {
+    "message": "Низкая"
+  },
+  "soundVolumeMedium": {
+    "message": "Средняя"
+  },
+  "soundVolumeHigh": {
+    "message": "Высокая"
   }
 }

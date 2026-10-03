@@ -4,3 +4,7 @@
 build/
 work/
 
+
+# Local working instructions and project notes
+AGENTS.md
+PROJECT_CONTEXT.md

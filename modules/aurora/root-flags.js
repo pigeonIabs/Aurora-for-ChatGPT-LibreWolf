@@ -16,6 +16,12 @@
   const isEnabled = () => (A.isEnabled ? A.isEnabled() : true);
   const getSettings = () => (A.getSettings ? A.getSettings() : {});
 
+  const setAttribute = A.utils?.setAttribute || ((node, name, value) => node.setAttribute(name, value));
+  const setStyle = A.utils?.setStyle || ((node, name, value) => node.style.setProperty(name, value));
+
+  const toggleClass = A.utils?.toggleClass || ((node, name, enabled) => node.classList.toggle(name, enabled));
+  const toggleAttribute = A.utils?.toggleAttribute || ((node, name, enabled) => node.toggleAttribute(name, enabled));
+
   // Perf: avoid spamming storage.local with repeated detectedTheme writes.
   let lastDetectedTheme = null;
   let lastDetectedThemeWriteAt = 0;
@@ -24,20 +30,24 @@
 
     const s = getSettings();
     const root = document.documentElement;
+    const enabled = key => !!s[key] && A.sites.supports(A.site, key);
 
-    root.classList.toggle(HTML_CLASS, true);
-    root.setAttribute('data-aurora-site', A.site.id);
-    root.classList.toggle(LEGACY_CLASS, !!s.legacyComposer);
-    root.classList.toggle(ANIMATIONS_DISABLED_CLASS, !!s.disableAnimations);
-    root.classList.toggle(CLEAR_APPEARANCE_CLASS, s.appearance === 'clear');
-    root.classList.toggle('cgpt-glass-user-messages', s.glassUserMessages !== false);
-    root.classList.toggle('cgpt-cute-voice-on', !!s.cuteVoiceUI);
-    root.classList.toggle('cgpt-focus-mode-on', !!s.focusMode);
-    root.classList.toggle('cgpt-cinema-mode', !!s.cinemaMode);
+    toggleClass(root, HTML_CLASS, true);
+    setAttribute(root, 'data-aurora-site', A.site.id);
+    toggleAttribute(root, 'data-aurora-hub-settings', A.site.id === 'huggingface' && /^\/settings(?:\/|$)/.test(location.pathname));
+    toggleClass(root, LEGACY_CLASS, enabled('legacyComposer'));
+    toggleClass(root, ANIMATIONS_DISABLED_CLASS, !!s.disableAnimations);
+    toggleClass(root, CLEAR_APPEARANCE_CLASS, s.appearance === 'clear');
+    toggleClass(root, 'cgpt-glass-user-messages', s.glassUserMessages !== false);
+    toggleClass(root, 'cgpt-cute-voice-on', enabled('cuteVoiceUI'));
+    toggleClass(root, 'cgpt-focus-mode-on', enabled('focusMode'));
+    toggleClass(root, 'cgpt-cinema-mode', enabled('cinemaMode'));
 
     // Streamer mode (blur).
-    root.classList.toggle('cgpt-blur-chat-history', !!s.blurChatHistory);
-    root.classList.toggle('cgpt-blur-avatar', !!s.blurAvatar);
+    toggleClass(root, 'cgpt-blur-chat-history', enabled('blurChatHistory'));
+    toggleClass(root, 'cgpt-blur-avatar', enabled('blurAvatar'));
+    toggleClass(root, 'cgpt-hide-upgrade', enabled('hideUpgradeButtons'));
+    toggleClass(root, 'cgpt-hide-rate-limits', enabled('hideRateLimitMessages'));
 
     const storedGlassIntensity = Number(s.glassIntensity);
     const fallbackGlassIntensity = s.appearance === 'clear' ? 100 : 0;
@@ -46,32 +56,32 @@
       : fallbackGlassIntensity;
     // This control changes only the opacity of the glass fill. Appearance
     // presets continue to provide the border, saturation, and shadow.
-    root.style.setProperty('--aurora-glass-fill-opacity', `${100 - glassIntensity}%`);
+    setStyle(root, '--aurora-glass-fill-opacity', `${100 - glassIntensity}%`);
     const storedBackgroundBlur = Number(s.backgroundBlur);
     const backgroundBlur = Number.isFinite(storedBackgroundBlur)
       ? Math.max(0, Math.min(150, storedBackgroundBlur))
       : 60;
     const maxGlassBlur = s.appearance === 'clear' ? 24 : 14;
     const glassBlur = Math.round(maxGlassBlur * Math.min(1, backgroundBlur / 60));
-    root.style.setProperty('--aurora-glass-blur', `${glassBlur}px`);
-    root.style.setProperty('--aurora-glass-backdrop', backgroundBlur === 0 ? 'none' : `blur(${glassBlur}px)`);
-    root.style.setProperty('--aurora-glass-saturate', '100%');
-    root.style.setProperty('--sidebar-glass-blur', `${glassBlur}px`);
-    root.style.setProperty('--clear-blur', `${glassBlur}px`);
-    root.style.setProperty('--composer-blur', `${glassBlur}px`);
-    root.style.setProperty('--glass-blur', `${glassBlur}px`);
-    root.toggleAttribute('data-aurora-zero-blur', backgroundBlur === 0);
-    root.toggleAttribute('data-aurora-codex', location.pathname.startsWith('/codex/cloud'));
-    root.toggleAttribute('data-aurora-temporary-chat', new URLSearchParams(location.search).get('temporary-chat') === 'true');
-    root.setAttribute('data-glass-intensity', String(glassIntensity));
+    setStyle(root, '--aurora-glass-blur', `${glassBlur}px`);
+    setStyle(root, '--aurora-glass-backdrop', backgroundBlur === 0 ? 'none' : `blur(${glassBlur}px)`);
+    setStyle(root, '--aurora-glass-saturate', '100%');
+    setStyle(root, '--sidebar-glass-blur', `${glassBlur}px`);
+    setStyle(root, '--clear-blur', `${glassBlur}px`);
+    setStyle(root, '--composer-blur', `${glassBlur}px`);
+    setStyle(root, '--glass-blur', `${glassBlur}px`);
+    toggleAttribute(root, 'data-aurora-zero-blur', backgroundBlur === 0);
+    toggleAttribute(root, 'data-aurora-codex', location.pathname.startsWith('/codex/cloud'));
+    toggleAttribute(root, 'data-aurora-temporary-chat', new URLSearchParams(location.search).get('temporary-chat') === 'true');
+    setAttribute(root, 'data-glass-intensity', String(glassIntensity));
 
     // Custom font support.
     const customFont = s.customFont || 'system';
-    root.setAttribute('data-custom-font', customFont);
+    setAttribute(root, 'data-custom-font', customFont);
     A.fonts?.ensure?.(customFont);
 
     const applyLightMode = s.theme === 'light' || (s.theme === 'auto' && A.sites.readTheme() === 'light');
-    root.classList.toggle(LIGHT_CLASS, applyLightMode);
+    toggleClass(root, LIGHT_CLASS, applyLightMode);
 
     // Store detected theme (used by popup for correct default), throttled.
     try {
@@ -90,7 +100,8 @@
       // ignore
     }
 
-    root.setAttribute('data-voice-color', s.voiceColor || 'default');
+    setAttribute(root, 'data-voice-color', s.voiceColor || 'default');
+    A.embeddedGems?.sync?.();
   }
 
   A.rootFlags.apply = A.rootFlags.apply || apply;

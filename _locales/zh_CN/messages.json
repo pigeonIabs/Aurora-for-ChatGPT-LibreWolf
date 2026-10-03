@@ -3,7 +3,7 @@
     "message": "Aurora Universal"
   },
   "extensionDescription": {
-    "message": "为 ChatGPT、Claude、Gemini 和 Grok 提供玻璃主题和自定义背景。"
+    "message": "为 ChatGPT、Claude、Gemini、Grok、Qwen、Google AI Studio、DeepSeek 和 HuggingChat 提供玻璃主题和自定义背景。"
   },
   "actionTitle": {
     "message": "Aurora Universal 设置"
@@ -161,17 +161,11 @@
   "sectionHideElements": {
     "message": "隐藏元素"
   },
-  "labelHideGpt5Limit": {
-    "message": "GPT-5限制消息"
-  },
-  "tooltipHideGpt5Limit": {
-    "message": "在GPT-5限制弹出窗口出现5分钟后隐藏它"
-  },
   "labelHideUpgradeButtons": {
-    "message": "\"升级计划\"元素"
+    "message": "隐藏升级推广"
   },
   "tooltipHideUpgradeButtons": {
-    "message": "隐藏所有\"升级您的计划\"按钮和部分"
+    "message": "隐藏升级按钮、横幅和推广提示"
   },
   "labelHideGptsButton": {
     "message": "\"探索GPTs\"按钮"
@@ -205,6 +199,9 @@
   },
   "bgPresetOptionDefault": {
     "message": "默认壁纸"
+  },
+  "bgPresetOptionSpace": {
+    "message": "太空"
   },
   "bgPresetOptionGpt5Animated": {
     "message": "动画渐变"
@@ -248,12 +245,6 @@
   "statusAnimatedBackground": {
     "message": "动画背景已激活"
   },
-  "creditPrefix": {
-    "message": "制作者"
-  },
-  "creditSuffix": {
-    "message": "在X上"
-  },
   "placeholderSearch": {
     "message": "搜索设置..."
   },
@@ -273,7 +264,7 @@
     "message": "语音界面"
   },
   "quickSettingsLabelHideUpgradeButtons": {
-    "message": "隐藏升级元素"
+    "message": "隐藏升级推广"
   },
   "quickSettingsLabelHideGptsButton": {
     "message": "隐藏\"探索GPTs\""
@@ -338,24 +329,6 @@
   "welcomeBtnFinish": {
     "message": "完成设置"
   },
-  "welcomeBtnNext": {
-    "message": "下一步"
-  },
-  "welcomeBtnSkip": {
-    "message": "暂时跳过"
-  },
-  "welcomeSupportTitle": {
-    "message": "支持 Aurora"
-  },
-  "welcomeSupportDescription": {
-    "message": "Aurora 是免费且开源的。如果您喜欢它，请考虑通过小额捐赠或在 GitHub 上给我们加星来支持开发！"
-  },
-  "welcomeSupportDonate": {
-    "message": "请我喝咖啡"
-  },
-  "welcomeSupportStar": {
-    "message": "在 GitHub 上加星"
-  },
   "welcomeLabelVoice": {
     "message": "语音自定义"
   },
@@ -417,7 +390,7 @@
     "message": "自动滚动已禁用"
   },
   "labelBlurChatHistory": {
-    "message": "模糊聊天历史（主播模式）"
+    "message": "模糊聊天记录"
   },
   "tooltipBlurChatHistory": {
     "message": "在流式传输或录制时模糊聊天历史侧边栏以保护隐私"
@@ -509,60 +482,6 @@
   "tooltipSmartSelectors": {
     "message": "如果ChatGPT更新，自动查找元素"
   },
-  "feedbackLink": {
-    "message": "有反馈或发现了bug？"
-  },
-  "feedbackPlaceholder": {
-    "message": "告诉我们您的想法..."
-  },
-  "feedbackSend": {
-    "message": "发送反馈"
-  },
-  "feedbackSuccess": {
-    "message": "反馈已发送！谢谢。"
-  },
-  "feedbackError": {
-    "message": "发送失败。请重试。"
-  },
-  "feedbackSending": {
-    "message": "发送中..."
-  },
-  "feedbackReportSent": {
-    "message": "报告已发送！"
-  },
-  "feedbackQueuedMessage": {
-    "message": "您的反馈已排队。"
-  },
-  "feedbackYourTicketId": {
-    "message": "您的工单 ID"
-  },
-  "feedbackCopyIdTooltip": {
-    "message": "复制 ID"
-  },
-  "feedbackCopied": {
-    "message": "已复制！"
-  },
-  "feedbackPrioritizeTitle": {
-    "message": "想要优先处理？"
-  },
-  "feedbackDonatePre": {
-    "message": "捐赠以支持开发并附上您的 "
-  },
-  "feedbackDonatePost": {
-    "message": " 以加速此请求。"
-  },
-  "feedbackSupportKofi": {
-    "message": "☕ 在 Ko-fi 上支持"
-  },
-  "feedbackClose": {
-    "message": "不用了，关闭"
-  },
-  "ticketIdLabel": {
-    "message": "工单 ID"
-  },
-  "feedbackServerError": {
-    "message": "服务器错误"
-  },
   "buttonCopied": {
     "message": "✓ 已复制！"
   },
@@ -598,5 +517,23 @@
   },
   "queueFull": {
     "message": "队列已满"
+  },
+  "labelHideRateLimitMessages": {
+    "message": "隐藏限额提示"
+  },
+  "tooltipHideRateLimitMessages": {
+    "message": "隐藏用量和请求频率限制提示"
+  },
+  "labelSoundVolume": {
+    "message": "音量"
+  },
+  "soundVolumeLow": {
+    "message": "低"
+  },
+  "soundVolumeMedium": {
+    "message": "中"
+  },
+  "soundVolumeHigh": {
+    "message": "高"
   }
 }

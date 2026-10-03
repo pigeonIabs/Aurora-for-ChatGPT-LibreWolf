@@ -1,4 +1,6 @@
-/* Aurora for ChatGPT - Main Stylesheet */
+/* Aurora for ChatGPT - Main Stylesheet.
+ * Native components own their corners, sizing, spacing, and border widths.
+ * Glass changes paint and uses inset shadows for edges. */
 
 /* Perf: Google Fonts are lazy-loaded by content.js only when the user selects a custom font. */
 
@@ -6,7 +8,6 @@
 html.cgpt-ambient-on,
 html.cgpt-ambient-on body {
   background: transparent !important;
-  overflow: hidden !important;
 }
 
 /* --- General Overrides --- */
@@ -15,66 +16,30 @@ html.cgpt-ambient-on :is(header#page-header, .sticky.top-0.bg-token-main-surface
 html.cgpt-ambient-on #thread-bottom-container, html.cgpt-ambient-on #thread-bottom-container .text-token-text-secondary { background: transparent !important; box-shadow: none !important; }
 html.cgpt-ambient-on #thread-bottom-container.content-fade, html.cgpt-ambient-on #thread-bottom-container .content-fade { -webkit-mask-image: none !important; mask-image: none !important; }
 html.cgpt-ambient-on #thread-bottom-container::before, html.cgpt-ambient-on #thread-bottom-container::after, html.cgpt-ambient-on #thread-bottom-container .content-fade::before, html.cgpt-ambient-on #thread-bottom-container .content-fade::after { content: none !important; }
-.content-fade-top, .content-fade-top::before, .content-fade-top::after { -webkit-mask-image: none !important; mask-image: none !important; background: transparent !important; }
+html.cgpt-ambient-on .content-fade-top, html.cgpt-ambient-on .content-fade-top::before, html.cgpt-ambient-on .content-fade-top::after { -webkit-mask-image: none !important; mask-image: none !important; background: transparent !important; }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) form[data-type="unified-composer"] :is(.ProseMirror, textarea) { background: transparent !important; }
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) form[data-type="unified-composer"] > div > div > div { background: transparent !important; }
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) form[data-type="unified-composer"]:not(:has([data-composer-surface-variant])) > div > div > div { background: transparent !important; }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) .popover[role="dialog"] .md\:flex-row.flex-col, html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[role="dialog"][class*="shadow-long"] .bg-token-bg-elevated-secondary { background-color: transparent !important; }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(.popover[data-radix-menu-content], .popover[role="dialog"]) [role="group"]::before { background: color-mix(in oklab, currentColor 24%, transparent) !important; }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(.popover[data-radix-menu-content], .popover[role="dialog"]) .__menu-item:hover { background: var(--menu-item-hover) !important; }
 
 /* --- UNIFIED GLASS ENGINE --- */
-/* This is the master selector for ALL elements that receive a glass effect. */
+/* Native surfaces pass the shared paint-ownership gate in glass.js first.
+ * CSS must never infer a visible surface from an ARIA role or layout wrapper. */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(
-  [data-aurora-glass="true"],
-  .popover.bg-token-main-surface-primary[data-radix-menu-content],
-  .popover.bg-token-main-surface-primary[role="dialog"],
-  div[role="dialog"][class*="shadow-long"],
-  .popover.bg-token-main-surface-primary.max-w-xs,
-  div.sticky.top-14.bg-token-main-surface-primary,
-  textarea.bg-token-main-surface-primary.border-token-border-default,
-  .bg-token-main-surface-primary.sticky.top-\[-1px\],
-  form[data-type="unified-composer"] > div > div,
+  [data-aurora-glass="true"]:not([data-composer-surface-variant]),
   [data-aurora-code-block="true"],
-  #cgpt-qs-panel,
-  .py-3.px-3.rounded-3xl.bg-token-main-surface-tertiary,
-  .divide-token-border-default.bg-token-main-surface-primary.mx-1.mt-1,
-  button[aria-label="Scroll down"],
-  .active\:opacity-1.border-none.rounded-xl.flex.shadow-long.btn-secondary.relative.btn,
-  .shrink-0.btn-secondary.relative.btn,
-  .shrink-0.btn-danger-outline.relative.btn,
-  .justify-between.items-center.flex > .btn-small.btn-secondary.relative.btn,
-  .hover\:cursor-pointer.cursor-default.me-0.my-0.btn-small.btn.btn-secondary,
-  .p-4.rounded-lg.justify-stretch.items-center.flex-col.w-full.flex.relative.bg-token-main-surface-primary,
-  .p-4.rounded-xl.my-4.bg-token-bg-tertiary.text-token-text-secondary,
-  .p-3.border.rounded-\[10px\].w-full.btn-secondary,
-  [role="tooltip"],
-  .bg-token-bg-tooltip,
-  [class*="bg-token-bg-tooltip"],
-  [role="alert"],
-  [role="status"],
-  .absolute.z-30.h-8.w-8.rounded-full.bg-token-main-surface-primary,
-  button.h-9.w-9.rounded-full.bg-black,
-  .h-9.rounded-full.bg-token-bg-accent-static,
-  div[role="dialog"]:has(input#search[placeholder="Search GPTs"]),
-  div.bg-token-bg-primary.w-full.block:has(ul[class*="divide-y"]),
-  div.absolute.top-full > div.bg-surface-primary,
-  div.absolute.top-full > div[class*="bg-surface"]
+  #cgpt-qs-panel
 ) {
   /* Default: "Dimmed" Glass Style */
   background: var(--aurora-glass-fill) !important;
-  border: 1px solid var(--aurora-glass-border) !important;
-  box-shadow: inset 0 0 2px 0 var(--aurora-glass-glow), var(--aurora-glass-shadow) !important;
+  border-color: var(--aurora-surface-edge, var(--aurora-glass-border)) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-surface-edge, var(--aurora-glass-border)), inset 0 0 2px 0 var(--aurora-glass-glow), var(--aurora-glass-shadow) !important;
   -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
   backdrop-filter: var(--aurora-glass-backdrop, none) !important;
   /* Removed background transition to prevent open glitches */
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   will-change: filter, backdrop-filter;
-}
-
-/* Fenced code, writing, and copyable paste blocks */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aurora-code-block="true"] {
-  overflow: clip;
-  border-radius: 16px !important;
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aurora-code-block="true"] :is(
@@ -120,41 +85,19 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) [role="dialog"] button[title*="n
   border-color: color-mix(in oklab, currentColor 14%, transparent) !important;
 }
 
-/* Menu/Popover Opening Animation (smooth, natural feel) */
-html.cgpt-ambient-on:not(.cgpt-animations-disabled):not(.cgpt-legacy-composer) :is(
-  .popover[data-aurora-glass="true"],
-  [role="menu"][data-aurora-glass="true"],
-  [data-radix-menu-content][data-aurora-glass="true"],
-  .popover.bg-token-main-surface-primary[data-radix-menu-content],
-  .popover.bg-token-main-surface-primary[role="dialog"]
-) {
-  animation: menu-pop-open 280ms cubic-bezier(0.32, 0.72, 0, 1);
-  transform-origin: var(--radix-popper-transform-origin, top center);
-  will-change: transform, opacity;
-}
-@keyframes menu-pop-open {
-  0% { 
-    opacity: 0; 
-    transform: scale(0.92) translateY(-4px);
-  }
-  100% { 
-    opacity: 1; 
-    transform: scale(1) translateY(0);
-  }
-}
 /* --- Element-Specific Overrides & Hover Effects --- */
 
 /* User Message Bubble */
 html.cgpt-ambient-on.cgpt-glass-user-messages:not(.cgpt-legacy-composer) div[data-message-author-role="user"] .user-message-bubble-color {
   background: var(--aurora-glass-fill) !important;
-  border: 1px solid var(--aurora-glass-border) !important;
-  box-shadow: inset 0 0 2px 0 var(--aurora-glass-glow), var(--aurora-glass-shadow) !important;
+  border-color: var(--aurora-glass-border) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-glass-border), inset 0 0 2px 0 var(--aurora-glass-glow), var(--aurora-glass-shadow) !important;
   -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
   backdrop-filter: var(--aurora-glass-backdrop, none) !important;
 }
 
 /* Danger Button (Special Case) */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) .btn-danger.relative.btn { background: rgba(239, 68, 68, 0.45) !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; color: #fff !important; }
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) .btn-danger.relative.btn { background: rgba(239, 68, 68, 0.45) !important; border-color: rgba(255, 255, 255, 0.2) !important; color: #fff !important; }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) .btn-danger.relative.btn:hover { background: rgba(239, 68, 68, 0.65) !important; }
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) .btn-danger.relative.btn { border-color: rgba(239, 68, 68, 0.3) !important; }
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) .btn-danger.relative.btn:hover { background: rgba(239, 68, 68, 0.7) !important; }
@@ -169,12 +112,6 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) .shrink-0.btn-danger-outline.rel
  * @description Makes search suggestion list containers transparent/glassmorphic,
  *              clears button backgrounds, and polishes hover effects.
  */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(div.absolute.top-full > div, div[data-aurora-glass="true"], div.bg-token-bg-primary.w-full.block):has(> ul) {
-  border-radius: var(--glass-radius) !important;
-  margin-top: 6px !important;
-  overflow: hidden !important;
-}
-
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(ul[class*="divide-y"], ul.divide-token-border-light) button {
   background-color: transparent !important;
 }
@@ -187,22 +124,19 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(ul[class*="divide-y"], ul.di
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[data-message-author-role="assistant"] pre .bg-token-sidebar-surface-primary,
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[data-message-author-role="assistant"] pre > div[class*="bg-"] > div[class*="bg-"] { background-color: transparent !important; }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[data-message-author-role="assistant"] pre code { background: transparent !important; }
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[data-message-author-role="assistant"] pre .bg-token-bg-elevated-secondary button { background: rgba(255, 255, 255, 0.08) !important; border: 1px solid rgba(255, 255, 255, 0.12) !important; -webkit-backdrop-filter: blur(8px) saturate(120%) !important; backdrop-filter: blur(8px) saturate(120%) !important; padding: 4px 10px !important; border-radius: 8px !important; transition: background 0.2s ease, transform 250ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 250ms cubic-bezier(0.16, 1, 0.3, 1) !important; box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important; will-change: transform, box-shadow; }
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[data-message-author-role="assistant"] pre .bg-token-bg-elevated-secondary button:hover { background: rgba(255, 255, 255, 0.15) !important; }
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[data-message-author-role="assistant"] pre { border-radius: var(--glass-radius) !important; overflow: hidden !important; }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[data-message-author-role="assistant"] pre > div[class*="bg-"] > div[class*="bg-"] { background-color: transparent !important; }
 
 /* Inline Code Styling (No blur to prevent text distortion) */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) .markdown code:not(pre code) {
   background: rgba(255, 255, 255, 0.18) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
   box-shadow: 0 1px 3px rgba(0,0,0,0.15) !important;
   /* No backdrop-filter - prevents blur bleeding into surrounding text */
 }
 
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) .markdown code:not(pre code) {
   background: rgba(0, 0, 0, 0.08) !important;
-  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
 }
 
@@ -214,7 +148,7 @@ html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) .markdown code:n
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[data-message-author-role="assistant"] pre .bg-token-bg-elevated-secondary,
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[data-message-author-role="assistant"] pre .bg-token-bg-elevated-secondary button {
     background: transparent !important;
-    border: none !important;
+    border-color: transparent !important;
     box-shadow: none !important;
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
@@ -224,29 +158,28 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[data-message-author-role="as
 }
 
 /* --- Tooltip Polishing --- */
-/* Hide the solid arrow to create a floating glass effect */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([role="tooltip"], .bg-token-bg-tooltip, [class*="bg-token-bg-tooltip"], .bg-black[data-state*="open"]) [data-radix-popper-arrow] {
-  display: none !important;
+/* Preserve the native tooltip pointer and tint its paint with the glass fill. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([role="tooltip"], .bg-token-bg-tooltip, [class*="bg-token-bg-tooltip"], .bg-black[data-state*="open"])[data-aurora-glass="true"] [data-radix-popper-arrow] {
+  fill: var(--aurora-glass-fill) !important;
 }
 
 /* 1. Apply Glass to the Tooltip Container (Base & Root .bg-black override) */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([role="tooltip"], .bg-token-bg-tooltip, [class*="bg-token-bg-tooltip"], .bg-black[data-state*="open"]) {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([role="tooltip"], .bg-token-bg-tooltip, [class*="bg-token-bg-tooltip"], .bg-black[data-state*="open"])[data-aurora-glass="true"] {
   background: var(--aurora-glass-fill) !important;
   background-color: var(--aurora-glass-fill) !important; /* Explicitly override color */
-  border: 1px solid var(--aurora-glass-border) !important;
+  border-color: var(--aurora-glass-border) !important;
   box-shadow: inset 0 0 2px 0 var(--aurora-glass-glow), var(--aurora-glass-shadow) !important;
   -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
   backdrop-filter: var(--aurora-glass-backdrop, none) !important;
   color: var(--theme-text-primary) !important;
 }
 
-/* 2. AGGRESSIVE Child Cleanup (The "Nuclear" Fix) */
-/* Forces ANY child element (div, span, etc.) inside the tooltip to be transparent. */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([role="tooltip"], .bg-token-bg-tooltip, [class*="bg-token-bg-tooltip"], .bg-black[data-state*="open"]) * {
+/* The confirmed tooltip surface owns the material around its contents. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([role="tooltip"], .bg-token-bg-tooltip, [class*="bg-token-bg-tooltip"], .bg-black[data-state*="open"])[data-aurora-glass="true"] * {
   background-color: transparent !important;
   background-image: none !important;
   box-shadow: none !important;
-  border: none !important;
+  border-color: transparent !important;
 }
 
 /* 3. Text Visibility Fixes for Tooltips */
@@ -262,9 +195,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([role="tooltip"], .bg-token-
 html.cgpt-ambient-on.cgpt-light-mode body, html.cgpt-ambient-on.cgpt-light-mode [class*="text-token-text-"], html.cgpt-ambient-on.cgpt-light-mode [class*="text-gray-"] { color: var(--theme-text-primary) !important; }
 html.cgpt-ambient-on.cgpt-light-mode svg { color: var(--theme-text-primary) !important; }
 html.cgpt-ambient-on.cgpt-light-mode ::placeholder { color: var(--theme-text-primary) !important; opacity: 0.7; }
-html.cgpt-ambient-on.cgpt-light-mode button:not(#aurora-welcome-overlay *) { background: transparent !important; border-color: rgba(0, 0, 0, 0.1) !important; color: var(--theme-text-primary) !important; }
-html.cgpt-ambient-on.cgpt-light-mode button[role="switch"][data-state="unchecked"] { background-color: rgba(0, 0, 0, 0.15) !important; }
-html.cgpt-ambient-on.cgpt-light-mode button[role="switch"][data-state="checked"] { background-color: #4f8cff !important; }
+html.cgpt-ambient-on.cgpt-light-mode button:not(#aurora-welcome-overlay *):not([role="switch"]) { background: transparent !important; border-color: rgba(0, 0, 0, 0.1) !important; color: var(--theme-text-primary) !important; }
 html.cgpt-ambient-on.cgpt-light-mode .bg-token-main-surface-primary { background: rgba(255, 255, 255, 0.3) !important; border-color: rgba(0, 0, 0, 0.1) !important; }
 html.cgpt-ambient-on.cgpt-light-mode .bg-black { background-color: rgba(255, 255, 255, 0.3) !important; }
 html.cgpt-ambient-on.cgpt-light-mode .composer-submit-btn { background: rgba(255, 255, 255, 0.3) !important; }
@@ -283,9 +214,7 @@ html.cgpt-cute-voice-on .min-h-bloop::after { right: 45px; transform: rotate(35d
 html.cgpt-cute-voice-on .min-h-bloop > canvas { position: relative; z-index: 1; }
 
 /* --- Focus Mode Rules --- */
-html.cgpt-focus-mode-on :is(.stage-sidebar-pure-surface, #stage-slideover-sidebar), html.cgpt-focus-mode-on header#page-header, html.cgpt-focus-mode-on main .gizmo-suggestions, html.cgpt-focus-mode-on main .text-4xl.font-semibold { display: none !important; }
-html.cgpt-focus-mode-on #thread-bottom-container { visibility: hidden !important; }
-html.cgpt-focus-mode-on main .flex.h-full.flex-col { padding-top: 1.25rem; }
+/* Focus targets shared native navigation and headers through features.css. */
 
 /* --- Misc & Animations --- */
 .aurora-target-limit { display: var(--aurora-display-limit) !important; }
@@ -293,20 +222,10 @@ html.cgpt-focus-mode-on main .flex.h-full.flex-col { padding-top: 1.25rem; }
 .aurora-target-sora { display: var(--aurora-display-sora) !important; }
 .aurora-target-gpts { display: var(--aurora-display-gpts) !important; }
 
-.bg-red-500.text-white.border-red-500 { display: none !important; }
-
 /* --- FIX: Transparent Duplicated Header (Perplexity Comet) - Do NOT hide, just make transparent --- */
-div.draggable.h-header-height.bg-token-bg-primary { 
-  background: transparent !important; 
+html.cgpt-ambient-on div.draggable.h-header-height.bg-token-bg-primary {
+  background: transparent !important;
   box-shadow: none !important;
-}
-/* --- FIX: Glass Effect for Custom GPT/Project Header --- */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) div.sticky.content-fade-top:has(button[data-testid="project-modal-trigger"]) {
-  /* Add padding and rounded corners for better appearance */
-  padding: 8px 12px;
-  border-radius: var(--glass-radius);
-  margin-top: 8px !important;
-  margin-bottom: 8px !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) .flex-col.w-full.h-full.flex.z-50.top-0.start-0.fixed.bg-token-main-surface-primary {
   background: rgba(18, 18, 18, 0.5) !important;
@@ -349,7 +268,7 @@ html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) .flex-col.w-full
   max-width: 90vw;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
-  border-radius: var(--glass-radius);
+  border-radius: var(--aurora-ui-radius);
   padding: 32px 40px;
   text-align: center;
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
@@ -475,135 +394,6 @@ html.cgpt-light-mode #aurora-welcome-overlay .progress-dots .dot.active {
   100% { stroke-dashoffset: 0; }
 }
 
-/* --- Support Screen (Step 3) --- */
-.support-screen {
-  position: fixed;
-  inset: 0;
-  z-index: 100001;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(10, 10, 10, 0.5);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
-  backdrop-filter: blur(16px) saturate(1.2);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s ease;
-}
-.support-screen.active {
-  opacity: 1;
-  pointer-events: auto;
-}
-.support-card {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--glass-radius);
-  padding: 32px 40px;
-  width: 420px;
-  max-width: 90vw;
-  text-align: center;
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  box-shadow: inset 0 1.5px 1px 0 var(--glass-inner-highlight), var(--glass-shadow);
-  animation: content-fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  opacity: 0;
-  transform: translateY(20px);
-}
-html.cgpt-appearance-clear .support-card {
-  background: var(--clear-bg) !important;
-  border: 1px solid var(--clear-border) !important;
-  box-shadow: inset 0 0 2px 0 var(--clear-glow), var(--clear-shadow) !important;
-}
-.support-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-.support-icon {
-  font-size: 32px;
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-@keyframes pulse-glow {
-  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
-  50% { transform: scale(1.1); filter: drop-shadow(0 0 12px rgba(255, 105, 180, 0.5)); }
-}
-.support-card h2 {
-  color: var(--theme-text-primary);
-  font-size: 24px;
-  font-weight: 600;
-  margin: 0;
-}
-.support-description {
-  color: var(--theme-text-secondary);
-  font-size: 15px;
-  line-height: 1.6;
-  margin: 0 0 24px;
-}
-.support-buttons {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-.support-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 14px 20px;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 500;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-.support-btn .btn-icon {
-  font-size: 18px;
-}
-.donate-btn {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
-  color: white;
-  border: none;
-}
-.donate-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
-}
-.github-btn {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--theme-text-primary);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-.github-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-2px);
-}
-html.cgpt-light-mode .github-btn {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.15);
-  color: var(--theme-text-primary);
-}
-html.cgpt-light-mode .github-btn:hover {
-  background: rgba(0, 0, 0, 0.1);
-}
-.welcome-btn-link {
-  background: none;
-  border: none;
-  color: var(--theme-text-secondary);
-  font-size: 14px;
-  cursor: pointer;
-  padding: 8px 16px;
-  margin-top: 8px;
-  transition: color 0.2s ease;
-  font-family: inherit;
-}
-.welcome-btn-link:hover {
-  color: var(--theme-text-primary);
-}
-
 /* Setup bar exiting animation */
 .aurora-setup-bar.exiting {
   transform: translateX(-50%) translateY(150%);
@@ -709,11 +499,6 @@ html.cgpt-light-mode .aurora-setup-bar .track { background: rgba(0,0,0,0.2); }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, .stage-sidebar-pure-surface) {
   position: relative;
   background: transparent !important;
-  overflow: hidden;
-}
-
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar {
-  border-radius: var(--glass-radius);
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, .stage-sidebar-pure-surface) :is(.bg-token-bg-elevated-secondary, [class*="bg-token-bg-"]:not([class*="bg-token-bg-elevated-secondary"]), [class*="bg-token-surface"], [class*="bg-token-sidebar-surface"], [class*="bg-\("], .bg-\(--sidebar-surface-primary\)) {
@@ -743,7 +528,6 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, .s
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, .stage-sidebar-pure-surface) :is(.sticky, .tall\:sticky) {
   isolation: isolate;
   background: transparent !important;
-  border-radius: var(--glass-radius);
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, .stage-sidebar-pure-surface) :is(.sticky, .tall\:sticky)::before {
@@ -786,76 +570,6 @@ html.cgpt-ambient-on.cgpt-light-mode :is(#stage-slideover-sidebar, .stage-sideba
   color: var(--theme-text-secondary) !important;
 }
 
-/* --- Activity Flyout Glass Treatment --- */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) .bg-token-sidebar-surface-primary:has(section[data-testid="screen-threadFlyOut"]) {
-  background-color: transparent !important;
-}
-
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) section[data-testid="screen-threadFlyOut"] {
-  position: relative;
-  border-radius: var(--activity-glass-radius, var(--glass-radius, 18px));
-  isolation: isolate;
-  overflow-y: auto;
-  overflow-x: hidden;
-  border-inline-start-color: var(--activity-glass-stroke, var(--sidebar-glass-stroke));
-  border-inline-start-style: solid;
-  background-color: var(--activity-glass-bg, var(--sidebar-glass-bg)) !important;
-  background-image: var(--activity-gradient-overlay, var(--sidebar-gradient-overlay));
-  background-repeat: no-repeat;
-  background-origin: border-box;
-  -webkit-backdrop-filter: blur(var(--activity-glass-blur, var(--sidebar-glass-blur))) saturate(var(--activity-glass-sat, var(--sidebar-glass-sat)));
-  backdrop-filter: blur(var(--activity-glass-blur, var(--sidebar-glass-blur))) saturate(var(--activity-glass-sat, var(--sidebar-glass-sat)));
-  box-shadow: inset -1px 0 0 var(--activity-glass-stroke, var(--sidebar-glass-stroke)), var(--activity-glass-shadow, var(--sidebar-glass-shadow));
-  --activity-header-divider: color-mix(in srgb, var(--activity-glass-stroke, rgba(255,255,255,0.2)) 65%, transparent);
-  /* Removed transition to prevent open glitches */
-  transition: none;
-}
-
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) section[data-testid="screen-threadFlyOut"] > * {
-  position: relative;
-  z-index: 1;
-}
-
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) section[data-testid="screen-threadFlyOut"] :is(.bg-token-bg-elevated-secondary, [class*="bg-token-bg-"], [class*="bg-token-surface"], [class*="bg-token-main-surface"], .bg-primary) {
-  background-color: transparent !important;
-}
-
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) section[data-testid="screen-threadFlyOut"] :is(.border-token-border-sharp, .dark\:border-token-main-surface-secondary) {
-  border-color: var(--activity-header-divider, var(--activity-glass-stroke, rgba(255,255,255,0.16))) !important;
-}
-
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) section[data-testid="screen-threadFlyOut"] .sticky,
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) section[data-testid="screen-threadFlyOut"] .tall\:sticky {
-  isolation: isolate;
-  background: transparent !important;
-  border-radius: var(--activity-glass-radius, var(--glass-radius, 18px));
-}
-
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) section[data-testid="screen-threadFlyOut"] .sticky::before,
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) section[data-testid="screen-threadFlyOut"] .tall\:sticky::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  border-radius: inherit;
-  background: var(--activity-glass-bg, var(--sidebar-glass-bg));
-  -webkit-backdrop-filter: blur(var(--activity-glass-blur, var(--sidebar-glass-blur))) saturate(var(--activity-glass-sat, var(--sidebar-glass-sat)));
-  backdrop-filter: blur(var(--activity-glass-blur, var(--sidebar-glass-blur))) saturate(var(--activity-glass-sat, var(--sidebar-glass-sat)));
-  box-shadow: 0 1px 0 var(--sidebar-sticky-highlight) inset, var(--activity-glass-shadow, var(--sidebar-glass-shadow));
-}
-
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) section[data-testid="screen-threadFlyOut"] .sticky > *,
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) section[data-testid="screen-threadFlyOut"] .tall\:sticky > * {
-  position: relative;
-  z-index: 1;
-}
-
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) section[data-testid="screen-threadFlyOut"] .hover\:bg-token-surface-hover:hover,
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) section[data-testid="screen-threadFlyOut"] .focus-visible\:bg-token-surface-hover:focus-visible {
-  background-color: color-mix(in oklab, currentColor 7%, transparent) !important;
-}
-
 /* --- SCOPED TRANSITIONS (Prevents Open Glitch) --- */
 /* Transitions are only enabled when the user is actively switching themes */
 
@@ -871,15 +585,13 @@ html.cgpt-theme-transitioning section[data-testid="screen-threadFlyOut"] {
 }
 
 /* --- Hiding Utility Classes --- */
-.cgpt-hide-upgrade, .cgpt-hide-gpt5-limit { display: none !important; }
+.cgpt-hide-upgrade:not(html) { display: none !important; }
 
 /* --- Unified Aurora Style: Missing Elements (Tables, Inputs, Math, Scrollbars) --- */
 
 /* 1. Markdown Tables - Remove solid backgrounds to blend with glass */
 html.cgpt-ambient-on table {
   background: transparent !important;
-  border-collapse: separate !important;
-  border-spacing: 0 !important;
 }
 html.cgpt-ambient-on table thead,
 html.cgpt-ambient-on table tbody,
@@ -899,7 +611,7 @@ html.cgpt-ambient-on input[type="text"],
 html.cgpt-ambient-on input[type="search"],
 html.cgpt-ambient-on textarea:not(#prompt-textarea) {
   background-color: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
   color: inherit !important;
   transition: all 0.2s ease !important;
 }
@@ -924,51 +636,6 @@ html.cgpt-ambient-on .katex-display {
   box-shadow: none !important;
 }
 
-/* 4. Unified Glass Scrollbars */
-html.cgpt-ambient-on ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-  background-color: transparent;
-}
-html.cgpt-ambient-on ::-webkit-scrollbar-track {
-  background-color: transparent;
-}
-html.cgpt-ambient-on ::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-html.cgpt-ambient-on ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.3);
-}
-html.cgpt-ambient-on.cgpt-light-mode ::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.15);
-}
-html.cgpt-ambient-on.cgpt-light-mode ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0, 0, 0, 0.3);
-}
-/* --- Aurora Glass Switches (Unified) --- */
-html.cgpt-ambient-on button[role="switch"] {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
-  transition: all 0.3s ease !important;
-}
-
-html.cgpt-ambient-on button[role="switch"][aria-checked="true"],
-html.cgpt-ambient-on button[role="switch"][data-state="checked"] {
-  background-color: rgba(59, 130, 246, 0.5) !important;
-  border-color: rgba(59, 130, 246, 0.6) !important;
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
-}
-
-html.cgpt-ambient-on button[role="switch"] > span {
-  background-color: #fff !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
-}
-
 /* --- Welcome Screen Buttons (Unified Aurora) --- */
 #aurora-welcome-overlay .welcome-btn.primary {
   background: rgba(79, 140, 255, 0.25) !important;
@@ -989,47 +656,6 @@ html.cgpt-ambient-on button[role="switch"] > span {
 
 /* --- START OF NEW ADDITIONS --- */
 
-/* 1. Activity Flyout (History Search Popup) - Glass Treatment */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) section[data-testid="screen-threadFlyOut"] {
-  background-color: var(--sidebar-glass-bg) !important;
-  border-inline-start: 1px solid var(--sidebar-glass-stroke);
-  border-radius: var(--glass-radius);
-  -webkit-backdrop-filter: blur(var(--sidebar-glass-blur)) saturate(var(--sidebar-glass-sat));
-  backdrop-filter: blur(var(--sidebar-glass-blur)) saturate(var(--sidebar-glass-sat));
-  box-shadow: -10px 0 30px rgba(0,0,0,0.2);
-}
-
-/* Remove solid backgrounds inside the flyout */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) section[data-testid="screen-threadFlyOut"] :is(.bg-token-bg-elevated-secondary, [class*="bg-token-"], .bg-primary) {
-  background-color: transparent !important;
-}
-
-/* 2. Unified Glass Scrollbars (Chrome/Webkit) */
-html.cgpt-ambient-on ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-  background-color: transparent;
-}
-html.cgpt-ambient-on ::-webkit-scrollbar-track {
-  background-color: transparent;
-}
-html.cgpt-ambient-on ::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-html.cgpt-ambient-on ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.3);
-}
-/* Light Mode Scrollbar adjustments */
-html.cgpt-ambient-on.cgpt-light-mode ::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.15);
-}
-html.cgpt-ambient-on.cgpt-light-mode ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0, 0, 0, 0.3);
-}
-
 /* 3. Markdown Tables - Make transparent */
 html.cgpt-ambient-on table, 
 html.cgpt-ambient-on table :is(thead, tbody, tr, th, td) {
@@ -1043,7 +669,7 @@ html.cgpt-ambient-on.cgpt-light-mode table :is(th, td) {
 /* 4. Form Inputs & Search Bars - Glass Effect */
 html.cgpt-ambient-on :is(input[type="text"], input[type="search"], textarea:not(#prompt-textarea)) {
   background-color: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
   color: inherit !important;
   transition: all 0.2s ease !important;
 }
@@ -1071,240 +697,57 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) .bg-\(--sidebar-bg\,var\(--bg-el
   background-color: transparent !important;
 }
 
-/* === NEW: Header & Navigation Cleanups === */
-
-/* 1. Make Black Box Header Transparent (Keep content visible) */
-div.h-header-height.bg-token-bg-primary.flex.items-center.gap-8.p-2.select-none.max-md\:hidden {
+/* Native discovery, project, and search surfaces use the same glass material.
+ * Their host styles retain the layout, radii, active underlines, and motion. */
+html.cgpt-ambient-on :is(
+  div.h-header-height.bg-token-bg-primary,
+  div.absolute.start-0.top-0.z-10.from-token-bg-primary,
+  div.absolute.end-0.top-0.z-10.to-token-bg-primary,
+  div.absolute.start-0.top-2.hidden.h-full.items-end.bg-linear-to-r.from-white,
+  div.absolute.end-0.top-2.hidden.h-full.bg-linear-to-l.from-white,
+  div.bg-token-main-surface-primary.sticky.top-14.z-10,
+  div.bg-token-main-surface-primary.sticky.top-14.z-10 .absolute.end-0,
+  div.bg-token-main-surface-primary.sticky.top-14.z-10 .absolute.start-0,
+  div.bg-token-main-surface-primary.sticky.top-14.z-10 .no-scrollbar
+) {
   background: transparent !important;
   box-shadow: none !important;
-  border: none !important;
 }
 
-/* 2. Remove Specific Side Gradients (only if empty - prevents hiding GPTs/Settings buttons) */
-div.absolute.start-0.top-0.z-10.from-token-bg-primary:not(:has(*)),
-div.absolute.end-0.top-0.z-10.to-token-bg-primary:not(:has(*)) {
-  display: none !important;
-}
-
-/* Make arrow containers transparent (remove gradient) but visible */
-div.absolute.start-0.top-2.hidden.h-full.items-end.bg-linear-to-r.from-white,
-div.absolute.end-0.top-2.hidden.h-full.bg-linear-to-l.from-white {
+html.cgpt-ambient-on :is(input#search, input[name="search"]) {
   background: transparent !important;
-  display: flex !important; /* Force visible */
-  align-items: center;
-  top: -8px !important; /* Move arrows higher up */
-  height: 100% !important;
-}
-
-/* Style the Arrow Buttons to match Glass Theme */
-div.absolute.start-0.top-2.hidden.h-full.items-end.bg-linear-to-r.from-white button,
-div.absolute.end-0.top-2.hidden.h-full.bg-linear-to-l.from-white button {
-  background: var(--switch-bg) !important;
-  border: 1px solid var(--switch-border) !important;
-  -webkit-backdrop-filter: blur(4px) !important;
-  backdrop-filter: blur(4px) !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
   color: var(--theme-text-primary) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-  border-radius: 50% !important;
 }
 
-div.absolute.start-0.top-2.hidden.h-full.items-end.bg-linear-to-r.from-white button:hover,
-div.absolute.end-0.top-2.hidden.h-full.bg-linear-to-l.from-white button:hover {
-  background: var(--switch-glider-bg) !important;
-}
-
-/* === NEW: Project & Modal Glass Effects === */
-
-/* 3. Glass Effect for Project Header */
-/* Targeting the container that holds the project modal trigger */
-div.flex.justify-between.max-md\:flex-col.max-md\:gap-4:has([data-testid="project-modal-trigger"]) {
-  background: var(--switch-bg) !important;
-  -webkit-backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate)) !important;
-  backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate)) !important;
-  border: 1px solid var(--switch-border) !important;
-  box-shadow: var(--switch-shadow) !important;
-  border-radius: 12px !important;
-  padding: 12px !important;
-  margin-bottom: 12px !important;
-}
-
-/* 4. Glass Effect for Dropdowns (Recently Used & Suggestions) */
-/* Apply Glass to the main container only */
-div[data-radix-popper-content-wrapper] > div[role="dialog"] {
-  background-color: var(--switch-bg) !important;
-  -webkit-backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate)) !important;
-  backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate)) !important;
-  border: 1px solid var(--switch-border) !important;
-  box-shadow: var(--switch-shadow) !important;
-  border-radius: 16px !important; /* Softer rounded corners */
-  overflow: hidden !important; /* Clip children */
-}
-
-/* Remove "boxy" layers from children */
-div[role="dialog"] ul[role="listbox"],
-div[role="dialog"] li[role="option"],
-div[role="dialog"] button[role="tab"] {
+html.cgpt-ambient-on :is(
+  div[role="dialog"] ul[role="listbox"],
+  div[role="dialog"] li[role="option"],
+  div[role="dialog"] button[role="tab"],
+  div.bg-token-bg-primary.sticky.top-14.z-30 > div.relative.z-0,
+  div.bg-token-bg-primary.sticky.top-14.z-30 div.rounded-md,
+  div.bg-token-main-surface-primary:has(input#search)
+) {
   background: transparent !important;
-  border: none !important;
   box-shadow: none !important;
 }
 
-/* Add hover effect to list items instead */
-div[role="dialog"] li[role="option"]:hover {
+/* Filter tabs keep the native active indicator and hit area. */
+html.cgpt-ambient-on div.bg-token-main-surface-primary.sticky.top-14.z-10 div.cursor-pointer {
+  background: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+  color: var(--theme-text-primary) !important;
+}
+html.cgpt-ambient-on :is(
+  div[role="dialog"] li[role="option"],
+  button.btn.relative.btn-secondary.w-full,
+  div.bg-token-main-surface-primary.sticky.top-14.z-10 div.cursor-pointer,
+  div.bg-token-main-surface-primary.sticky.top-14.z-10 .absolute.end-0 button,
+  div.bg-token-main-surface-primary.sticky.top-14.z-10 .absolute.start-0 button,
+  a.gizmo-link, a[class*="gizmo-link"], div.grid a.group
+):hover {
   background: var(--menu-item-hover) !important;
-}
-
-/* === NEW: Search Bar & Button Styling === */
-
-/* 5. Glass Effect for Search Input */
-/* We make the input itself transparent and apply the glass to the wrapper to avoid double-glass issues */
-input#search,
-input[name="search"] {
-  background: transparent !important;
-  background-color: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
-  color: var(--theme-text-primary) !important;
-}
-
-/* Apply glass to the wrapper */
-div.relative.z-10.grow div.rounded-md,
-div:has(> div > input#search) {
-  background: var(--switch-bg) !important;
-  -webkit-backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate)) !important;
-  backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate)) !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-/* Override any specific solid backgrounds on the input's ancestors */
-div.bg-token-main-surface-primary:has(input#search) {
-  background-color: transparent !important;
-}
-
-/* 6. Glass Effect for "See More" Button */
-button.btn.relative.btn-secondary.w-full {
-  background: var(--switch-bg) !important;
-  border: 1px solid var(--switch-border) !important;
-  -webkit-backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate)) !important;
-  backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate)) !important;
-}
-
-button.btn.relative.btn-secondary.w-full:hover {
-  background: var(--switch-glider-bg) !important;
-  opacity: 0.9;
-}
-
-/* === NEW: Sticky Tabs & Filters === */
-
-/* 7. Glass Effect for Sticky Search/Tabs Container */
-/* Outer sticky wrapper containing search and category tabs */
-div.bg-token-bg-primary.sticky.top-14.z-30 {
-  background: var(--switch-bg) !important;
-  -webkit-backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate)) !important;
-  backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate)) !important;
-  border: none !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
-  padding: 0 !important;
-  /* Subtle separator instead of Box */
-  border-bottom: 1px solid var(--switch-border) !important;
-}
-
-/* Ensure the relative z-0 wrapper inside is also transparent */
-div.bg-token-bg-primary.sticky.top-14.z-30 > div.relative.z-0,
-div.bg-token-bg-primary.sticky.top-14.z-30 div.rounded-md {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-/* Force the inner list container to be transparent to avoid double-boxing */
-div.bg-token-main-surface-primary.sticky.top-14.z-10 {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-  padding-bottom: 0 !important;
-}
-
-/* 7b. Uniform Glass Filter Controls */
-/* Target all filter items (both active tab-style and chips) and unify them */
-div.bg-token-main-surface-primary.sticky.top-14.z-10 div.cursor-pointer,
-div.bg-token-main-surface-primary.sticky.top-14.z-10 div.cursor-pointer.border-b-2 {
-  background: var(--switch-bg) !important;
-  border: 1px solid var(--switch-border) !important;
-  border-radius: 6px !important; /* Compact control corners */
-  padding: 6px 16px !important;
-  margin-right: 6px !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-  backdrop-filter: blur(8px) !important;
-  color: var(--theme-text-primary) !important;
-  box-shadow: none !important;
-  
-  /* Reset specific tab styles */
-  border-bottom: 1px solid var(--switch-border) !important;
-}
-
-div.bg-token-main-surface-primary.sticky.top-14.z-10 div.cursor-pointer:hover {
-  background: var(--switch-glider-bg) !important;
-}
-
-/* Position the scroll arrow comfortably */
-/* Target BOTH start (left) and end (right) scroll arrows */
-div.bg-token-main-surface-primary.sticky.top-14.z-10 .absolute.end-0,
-div.bg-token-main-surface-primary.sticky.top-14.z-10 .absolute.start-0 {
-  background: transparent !important;
-  top: 0 !important; /* Align with top */
-  height: 100% !important;
-  display: flex !important;
-  align-items: center !important;
-  padding-left: 8px !important;
-  padding-right: 8px !important;
-  z-index: 50 !important; /* Force on top of list */
-}
-
-div.bg-token-main-surface-primary.sticky.top-14.z-10 .absolute.end-0 button,
-div.bg-token-main-surface-primary.sticky.top-14.z-10 .absolute.start-0 button {
-  background: var(--switch-bg) !important;
-  -webkit-backdrop-filter: blur(4px) !important;
-  backdrop-filter: blur(4px) !important;
-  border: 1px solid var(--switch-border) !important;
-  border-radius: 50% !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-}
-
-/* === NEW: Cards & Grids === */
-
-/* 8. Glass Effect for GPT/Gizmo Cards */
-a.gizmo-link,
-a[class*="gizmo-link"],
-div.grid a.group {
-  background: var(--switch-bg) !important;
-  -webkit-backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate)) !important;
-  backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate)) !important;
-  border: 1px solid var(--switch-border) !important;
-  box-shadow: var(--switch-shadow) !important;
-  border-radius: 16px !important;
-  transition: background 0.2s ease, transform 0.2s ease !important;
-}
-
-a.gizmo-link:hover,
-a[class*="gizmo-link"]:hover,
-div.grid a.group:hover {
-  background: var(--switch-glider-bg) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
-}
-
-/* Category tabs container background */
-div.bg-token-main-surface-primary.sticky.top-14.z-10 .no-scrollbar {
-  background: transparent !important;
-}
-
-div.bg-token-main-surface-primary.sticky.top-14.z-10 div[class*="cursor-pointer"]:hover {
-  background: rgba(255, 255, 255, 0.15) !important;
 }
 
 /* === NEW: Deeper GPT Search Logic === */
@@ -1403,7 +846,7 @@ html.cgpt-ambient-on [role="dialog"] .dark\:hover\:bg-white\/10:hover {
 /* Settings Dialog Sidebar (Tab List) Glass Blur */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[data-settings-tab-list="true"] {
   background: color-mix(in oklab, var(--aurora-glass-fill) 60%, transparent) !important;
-  border-inline-end: 1px solid var(--aurora-glass-border) !important;
+  border-inline-end-color: var(--aurora-glass-border) !important;
   -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
   backdrop-filter: var(--aurora-glass-backdrop, none) !important;
 }
@@ -1425,24 +868,9 @@ html.cgpt-ambient-on.cgpt-light-mode [role="dialog"] li[role="option"]:hover {
 /* ========================================================================
    CINEMA MODE - Full Width Chat Layout
    ======================================================================== */
-html.cgpt-cinema-mode [class*="xl:max-w-"],
-html.cgpt-cinema-mode [class*="max-w-3xl"],
-html.cgpt-cinema-mode main [class*="max-w-"] {
-  max-width: 100% !important;
-}
-html.cgpt-cinema-mode .mx-auto[class*="max-w-"] {
-  max-width: 95vw !important;
-  padding-left: 2rem;
-  padding-right: 2rem;
-}
+
+
 /* Ensure code blocks expand properly in Cinema Mode */
-html.cgpt-cinema-mode pre,
-html.cgpt-cinema-mode code {
-  max-width: 100% !important;
-}
+
 /* Keep composer at a reasonable max-width for usability */
-html.cgpt-cinema-mode form[data-type="unified-composer"] {
-  max-width: min(95vw, 1200px) !important;
-  margin-left: auto;
-  margin-right: auto;
-}
+

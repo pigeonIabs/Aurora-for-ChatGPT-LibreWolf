@@ -22,15 +22,28 @@
         },
         analyze(imgElement) {
           const s = A.getSettings?.() || {};
-          if (!s.autoContrast) return;
+          if (!s.autoContrast || !A.isActive?.()) return;
+          const source = imgElement.currentSrc || imgElement.src;
+          if (/^https?:/.test(source) && !imgElement.crossOrigin) {
+            const sample = new Image();
+            this.pendingSample = sample;
+            sample.crossOrigin = 'anonymous';
+            sample.onload = () => {
+              if (this.pendingSample !== sample) return;
+              this.pendingSample = null;
+              this.analyze(sample);
+            };
+            sample.onerror = () => {
+              if (this.pendingSample !== sample) return;
+              this.pendingSample = null;
+              if (A.isActive?.()) document.documentElement.style.removeProperty('--bg-opacity');
+            };
+            sample.src = source;
+            return;
+          }
           this.init();
 
           try {
-            // Handle cross-origin if possible (won't work for all external URLs)
-            if (imgElement.src.startsWith('http') && !imgElement.src.includes(location.host)) {
-              imgElement.crossOrigin = 'Anonymous';
-            }
-
             this.ctx.drawImage(imgElement, 0, 0, 50, 50);
             const data = this.ctx.getImageData(0, 0, 50, 50).data;
             let colorSum = 0;

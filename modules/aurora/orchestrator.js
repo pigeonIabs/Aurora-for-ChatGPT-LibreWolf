@@ -8,125 +8,11 @@
   const cfg = A.config || {};
   const ID = cfg.ID || 'cgpt-ambient-bg';
   const LOCAL_BG_KEY = cfg.LOCAL_BG_KEY || 'customBgData';
-  const SELECTORS = cfg.SELECTORS || {};
 
   const debounce = A.utils?.debounce || ((fn) => fn);
 
   const isEnabled = () => (A.isEnabled ? A.isEnabled() : true);
   const getSettings = () => (A.getSettings ? A.getSettings() : {});
-
-  class AuroraBackgroundController {
-    ensure() {
-      A.background?.show?.();
-    }
-    applyStyles() {
-      A.background?.applyStyles?.();
-    }
-    update() {
-      A.background?.update?.();
-    }
-  }
-
-  class AuroraQuickSettingsController {
-    ensure() {
-      A.quickSettings?.ensure?.();
-    }
-    remove() {
-      A.quickSettings?.remove?.();
-    }
-  }
-
-  class AuroraRootFlagsController {
-    apply() {
-      A.rootFlags?.apply?.();
-    }
-  }
-
-  class AuroraUpgradeController {
-    applyLimitPopup() {
-      A.upgrade?.applyLimitPopup?.();
-    }
-    applyUpgradeButtons() {
-      A.upgrade?.applyUpgradeButtons?.();
-    }
-  }
-
-  class AuroraGlassController {
-    tagFast(root = document) {
-      A.glass?.tagFast?.(root);
-    }
-    tagAll(root = document) {
-      A.glass?.tagAll?.(root);
-    }
-    scheduleFullScan() {
-      A.glass?.scheduleFullScan?.();
-    }
-    hasSlowHints(node) {
-      return !!A.glass?.hasSlowHints?.(node);
-    }
-    tagAncestorsForSlowHints(root) {
-      A.glass?.tagAncestorsForSlowHints?.(root);
-    }
-  }
-
-  class AuroraDefaultModelController {
-    maybeApply(force = false) {
-      A.defaultModel?.maybeApply?.(force);
-    }
-  }
-
-  class AuroraAudioController {
-    ensureContext() {
-      const s = getSettings();
-      if (s.soundEnabled) A.audio?.ensureContext?.();
-    }
-    attachOrDetach() {
-      const s = getSettings();
-      if (s.soundEnabled) A.audio?.attachIfEnabled?.();
-      else A.audio?.detach?.();
-    }
-  }
-
-  class AuroraContrastController {
-    apply() {
-      const s = getSettings();
-      if (!s.autoContrast) {
-        document.documentElement.style.removeProperty('--bg-opacity');
-        return;
-      }
-
-      const bgNode = document.getElementById(ID);
-      if (!bgNode) return;
-      const activeImg = bgNode.querySelector('.media-layer.active img');
-      if (activeImg && activeImg.complete) {
-        A.contrast?.engine?.analyze?.(activeImg);
-      }
-    }
-  }
-
-  class AuroraDataMaskingController {
-    applyInitial() {
-      A.masking?.applyInitial?.();
-    }
-  }
-
-  class AuroraMessageQueueController {
-    pulse() {
-      A.queue?.pulse?.();
-    }
-    schedulePulse(delay = 0) {
-      A.queue?.schedulePulse?.(delay);
-    }
-    shutdown() {
-      A.queue?.shutdown?.();
-    }
-    isEnabled() {
-      return !!A.queue?.isEnabled?.();
-    }
-    hasWork() {
-      return !!A.queue?.hasWork?.();
-    }
-  }
 
   class AuroraOrchestrator {
     constructor() {
@@ -134,17 +20,14 @@
       this.settingsLoaded = false;
       this.welcomeScreenChecked = false;
       this.settingsRequestRevision = 0;
+      this.settingsReadPending = false;
+      this.pendingSettings = {};
 
-      this.background = new AuroraBackgroundController();
-      this.quickSettings = new AuroraQuickSettingsController();
-      this.rootFlags = new AuroraRootFlagsController();
-      this.upgrade = new AuroraUpgradeController();
-      this.glass = new AuroraGlassController();
-      this.defaultModel = new AuroraDefaultModelController();
-      this.audio = new AuroraAudioController();
-      this.contrast = new AuroraContrastController();
-      this.dataMasking = new AuroraDataMaskingController();
-      this.queue = new AuroraMessageQueueController();
+      this.appliedBody = null;
+      this.renderFrameId = null;
+      this.pendingNodes = new Set();
+      this.needsResumeScan = false;
+
     }
 
     init() {
@@ -160,15 +43,13 @@
         }
       })();
 
-      const initialLoad = () => {
-        this.refreshSettingsAndApply();
-        this.startObservers();
-      };
-
+      // Fetch preferences while the host parses. Root material can be applied
+      // immediately, and body-dependent features reconcile as soon as it mounts.
+      this.startObservers();
+      A.centralObserver?.start?.();
+      this.refreshSettingsAndApply();
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initialLoad, { once: true });
-      } else {
-        initialLoad();
+        document.addEventListener('DOMContentLoaded', () => this.reconcile(), { once: true });
       }
 
       try {
@@ -182,26 +63,17 @@
     refreshSettingsAndApply() {
       const extensionApi = globalThis.chrome;
       const revision = ++this.settingsRequestRevision;
+      this.settingsReadPending = true;
 
       const applyFreshSettings = (freshSettings) => {
         if (revision !== this.settingsRequestRevision || !freshSettings) return;
 
-        // Welcome screen once per session.
-        if (!this.welcomeScreenChecked) {
-          if (this.isSupportedRoute() && freshSettings.extensionEnabled !== false && !freshSettings.hasSeenWelcomeScreen) {
-            try {
-              A.welcome?.show?.(() => this.applyAllSettings());
-            } catch (e) {
-              // ignore
-            }
-          }
-          this.welcomeScreenChecked = true;
-        }
-
         // Keep a stable settings object reference.
         A.state = A.state || {};
         A.state.settings = A.state.settings || {};
-        Object.assign(A.state.settings, freshSettings);
+        Object.assign(A.state.settings, A.preferences.normalize({ ...freshSettings, ...this.pendingSettings }));
+        this.pendingSettings = {};
+        this.settingsReadPending = false;
         this.settingsLoaded = true;
 
         this.applyAllSettings();
@@ -209,7 +81,7 @@
 
       const readStorageFallback = () => {
         try {
-          extensionApi?.storage?.sync?.get?.(null, (storedSettings) => {
+          extensionApi?.storage?.sync?.get?.(A.preferences.defaults, (storedSettings) => {
             if (extensionApi?.runtime?.lastError || !storedSettings) return;
             applyFreshSettings({
               ...storedSettings,
@@ -241,43 +113,107 @@
 
     applyAllSettings() {
       if (!this.settingsLoaded) return;
-      if (!this.isSupportedRoute()) {
-        this.queue.shutdown();
-        A.disable?.all?.();
+      if (!this.isSupportedRoute() || !isEnabled()) {
+        this.suspend();
         return;
       }
 
-      if (!isEnabled()) {
-        this.queue.shutdown();
-        A.disable?.all?.();
-        return;
-      }
-
-      this.background.ensure();
+      A.rootFlags?.apply?.();
+      if (!document.body) return;
+      this.clearPendingRender();
+      this.appliedBody = document.body;
+      this.ensureOwnedUI();
 
       const s = getSettings();
-      if (!s.hideQuickSettings) this.quickSettings.ensure();
-      else this.quickSettings.remove();
+      if (s.hideQuickSettings) A.quickSettings?.remove?.();
+      A.background?.applyStyles?.();
+      A.background?.update?.();
 
-      this.rootFlags.apply();
-      this.background.applyStyles();
-      this.background.update();
+      A.interface?.tagElements?.(document);
+      A.glass?.tagFast?.(document);
+      A.glass?.scheduleFullScan?.();
 
-      this.upgrade.applyLimitPopup();
-      this.upgrade.applyUpgradeButtons();
-
-      this.glass.tagFast(document);
-      this.glass.scheduleFullScan();
-
-      this.defaultModel.maybeApply();
+      A.defaultModel?.maybeApply?.();
 
       // Optional engines.
-      this.audio.ensureContext();
-      this.audio.attachOrDetach();
-      this.contrast.apply();
-      this.dataMasking.applyInitial();
+      this.applyAudio();
+      this.applyContrast();
+      A.masking?.applyInitial?.();
+      if (!s.hideQuickSettings) A.quickSettings?.ensure?.();
 
-      this.queue.pulse();
+      A.queue?.pulse?.();
+
+      if (!this.welcomeScreenChecked) {
+        this.welcomeScreenChecked = true;
+        if (!s.hasSeenWelcomeScreen) A.welcome?.show?.(() => this.applyAllSettings());
+      }
+    }
+
+    applyAudio() {
+      if (getSettings().soundEnabled) {
+        A.audio?.ensureContext?.();
+        A.audio?.attachIfEnabled?.();
+      } else A.audio?.detach?.();
+    }
+
+    applyContrast() {
+      if (!getSettings().autoContrast) {
+        document.documentElement.style.removeProperty('--bg-opacity');
+        return;
+      }
+      const image = document.getElementById(ID)?.querySelector('.media-layer.active img');
+      if (image?.complete) A.contrast?.engine?.analyze?.(image);
+    }
+
+    ensureOwnedUI() {
+      if (!document.body) return;
+      if (!document.getElementById(ID)) A.background?.show?.();
+      else A.background?.ensureAppOnTop?.();
+      if (!getSettings().hideQuickSettings && !document.getElementById(cfg.QS_BUTTON_ID || 'cgpt-qs-btn')) {
+        A.quickSettings?.ensure?.();
+      }
+    }
+
+    reconcile() {
+      if (!this.settingsLoaded || document.hidden || !isEnabled() || !this.isSupportedRoute()) return;
+      if (this.appliedBody !== document.body) {
+        this.applyAllSettings();
+        return true;
+      }
+      this.ensureOwnedUI();
+      if (!document.documentElement.classList.contains(cfg.HTML_CLASS || 'cgpt-ambient-on') ||
+          !document.documentElement.style.getPropertyValue('--aurora-glass-fill-opacity')) A.rootFlags?.apply?.();
+    }
+
+    clearPendingRender() {
+      if (this.renderFrameId !== null) cancelAnimationFrame(this.renderFrameId);
+      this.renderFrameId = null;
+      this.pendingNodes.clear();
+    }
+
+    suspend() {
+      this.clearPendingRender();
+      this.otherChecks?.cancel?.();
+      this.appliedBody = null;
+      A.disable?.all?.();
+    }
+
+    resume() {
+      if (document.hidden) return;
+      const bodyApplied = this.reconcile();
+      if (this.needsResumeScan && isEnabled() && this.isSupportedRoute()) {
+        this.needsResumeScan = false;
+        if (!bodyApplied) {
+          A.glass?.tagFast?.(document);
+          A.glass?.scheduleFullScan?.();
+          A.masking?.applyInitial?.();
+          A.interface?.tagElements?.(document);
+          if (!getSettings().hideQuickSettings) A.quickSettings?.ensure?.();
+          this.applyAudio();
+        }
+      }
+      A.defaultModel?.maybeApply?.();
+      A.queue?.schedulePulse?.(0);
     }
 
     isSupportedRoute() {
@@ -300,7 +236,8 @@
 
           const bgNode = document.getElementById(ID);
           document.documentElement.classList.toggle('cgpt-tab-hidden', document.hidden);
-          if (!document.hidden) this.applyAllSettings();
+          if (document.hidden) this.needsResumeScan = true;
+          else this.resume();
           if (!bgNode) return;
 
           const videos = bgNode.querySelectorAll('video');
@@ -315,81 +252,101 @@
         { passive: true }
       );
 
-      window.addEventListener('focus', () => this.applyAllSettings(), { passive: true });
+      window.addEventListener('focus', () => this.resume(), { passive: true });
 
-      let lastUrl = location.href;
-      const checkUrl = debounce(() => {
-        if (location.href === lastUrl) return;
-        lastUrl = location.href;
+      this.lastUrl = location.href;
+      const checkUrl = this.checkUrl = debounce(() => {
+        if (location.href === this.lastUrl) return;
+        this.lastUrl = location.href;
         A.defaultModel?.cancel?.();
-        this.queue.pulse();
-        if (this.isSupportedRoute()) this.refreshSettingsAndApply();
-        else this.applyAllSettings();
+        A.queue?.pulse?.();
+        this.applyAllSettings();
       }, 50);
 
       window.addEventListener('popstate', checkUrl, { passive: true });
       window.navigation?.addEventListener('currententrychange', checkUrl);
-      window.addEventListener('pageshow', () => this.applyAllSettings(), { passive: true });
+      window.addEventListener('pageshow', () => this.resume(), { passive: true });
       window.addEventListener('pagehide', () => {
-        this.queue.shutdown();
+        this.needsResumeScan = true;
+        A.queue?.shutdown?.();
         A.defaultModel?.cancel?.();
         A.masking?.stop?.();
       }, { passive: true });
 
-      const originalPushState = history.pushState;
-      history.pushState = function (...args) {
-        originalPushState.apply(this, args);
-        setTimeout(checkUrl, 0);
-      };
-
-      const originalReplaceState = history.replaceState;
-      history.replaceState = function (...args) {
-        originalReplaceState.apply(this, args);
-        setTimeout(checkUrl, 0);
-      };
-
-      // Debounce less-critical UI checks that don't cause flicker.
-      const debouncedOtherChecks = debounce(() => {
-        this.upgrade.applyLimitPopup();
-        this.defaultModel.maybeApply();
-        this.upgrade.applyUpgradeButtons();
-      }, 150);
-
-      let renderFrameId = null;
-      const pendingNodes = new Set();
-      this.domObserverCallback = ({ addedElements }) => {
-        checkUrl();
-        if (!this.settingsLoaded || document.hidden || !isEnabled() || !this.isSupportedRoute()) return;
-        for (const node of addedElements || []) {
-          if (node.isConnected) pendingNodes.add(node);
+      if (!window.navigation) {
+        for (const method of ['pushState', 'replaceState']) {
+          const original = history[method];
+          history[method] = function (...args) {
+            const result = original.apply(this, args);
+            checkUrl();
+            return result;
+          };
         }
-        if (renderFrameId) return;
-        renderFrameId = requestAnimationFrame(() => {
-          renderFrameId = null;
-          const nodes = [...pendingNodes];
-          pendingNodes.clear();
-          if (!isEnabled() || !this.isSupportedRoute()) return;
-          // The app hydrates after DOMContentLoaded and can replace body nodes.
-          if (!document.getElementById(ID)) { this.background.ensure(); this.background.update(); }
-          if (!getSettings().hideQuickSettings && !document.getElementById(cfg.QS_BUTTON_ID || 'cgpt-qs-btn')) this.quickSettings.ensure();
-          if (!document.documentElement.classList.contains(cfg.HTML_CLASS || 'cgpt-ambient-on') ||
-              !document.documentElement.style.getPropertyValue('--aurora-glass-fill-opacity')) {
-            this.rootFlags.apply();
-          }
-          for (const node of nodes) {
-            if (!node.isConnected || nodes.some(parent => parent !== node && parent.contains(node))) continue;
-            this.glass.tagFast(node);
-            if (this.glass.hasSlowHints(node)) this.glass.tagAncestorsForSlowHints(node);
-          }
-          if (this.queue.isEnabled() || this.queue.hasWork()) this.queue.schedulePulse(0);
-          debouncedOtherChecks();
-        });
-      };
-
-      if (window.AuroraExt?.centralObserver) {
-          window.AuroraExt.centralObserver.subscribe(this.domObserverCallback);
       }
 
+      // Debounce less-critical UI checks that don't cause flicker.
+      this.otherChecks = debounce(() => {
+        A.defaultModel?.maybeApply?.();
+      }, 150);
+
+      this.domObserverCallback = event => this.onDOMChanged(event);
+
+      A.centralObserver.subscribe(this.domObserverCallback);
+
+      // Native stylesheets can finish after early material activation. Refresh
+      // ownership from that signal and coalesce multiple loads into one frame.
+      document.addEventListener('load', event => {
+        if (event.target?.tagName !== 'LINK' || event.target.rel !== 'stylesheet') return;
+        A.material.invalidate();
+        if (document.body) this.domObserverCallback({ addedElements: [document.body] });
+      }, true);
+
+      this.observeTheme();
+    }
+
+    onDOMChanged({ mutations, addedElements, addedTexts }) {
+      if (location.href !== this.lastUrl) this.checkUrl();
+      if (!this.settingsLoaded || document.hidden || !isEnabled() || !this.isSupportedRoute()) return;
+      for (const node of addedElements || []) {
+        if (node.isConnected) this.pendingNodes.add(node);
+      }
+      for (const text of addedTexts || []) {
+        const control = A.upgrade?.changedOwner?.(text.parentElement);
+        if (control?.isConnected) this.pendingNodes.add(control);
+      }
+      // Removed labels and emptied text still need their native owner checked.
+      for (const mutation of mutations || []) {
+        if (mutation.type === 'characterData' && mutation.target.nodeValue?.trim()) continue;
+        if (mutation.type !== 'characterData' &&
+            !(mutation.type === 'childList' && mutation.removedNodes.length)) continue;
+        const node = mutation.target.nodeType === 1 ? mutation.target : mutation.target.parentElement;
+        const control = A.upgrade?.changedOwner?.(node);
+        if (control?.isConnected) this.pendingNodes.add(control);
+      }
+      if (A.queue?.isEnabled?.() || A.queue?.hasWork?.()) A.queue?.schedulePulse?.(0);
+      if (!this.pendingNodes.size && !mutations?.some(mutation => mutation.type === 'childList')) return;
+      if (this.renderFrameId !== null) return;
+      this.renderFrameId = requestAnimationFrame(() => this.flushDOMChanges());
+    }
+
+    flushDOMChanges() {
+      this.renderFrameId = null;
+      const nodes = A.utils.minimalRoots(this.pendingNodes);
+      this.pendingNodes.clear();
+      if (document.hidden || !isEnabled() || !this.isSupportedRoute()) return;
+      const previousBody = this.appliedBody;
+      this.reconcile();
+      if (previousBody !== this.appliedBody) return;
+      for (const node of nodes) {
+        A.glass?.tagFast?.(node);
+        A.interface?.tagElements?.(node);
+        if (A.glass?.hasSlowHints?.(node)) A.glass?.tagAncestorsForSlowHints?.(node);
+      }
+      if (nodes.length) this.otherChecks();
+      A.quickSettings?.refreshCapabilities?.();
+    }
+
+    observeTheme() {
       const hostTheme = () => A.sites.readTheme() === 'light';
       let lastHostLight = hostTheme();
       const themeObserver = new MutationObserver(() => {
@@ -401,7 +358,7 @@
         lastHostLight = hostLight;
         if (!root.classList.contains(cfg.HTML_CLASS || 'cgpt-ambient-on') ||
             !root.style.getPropertyValue('--aurora-glass-fill-opacity') ||
-            (s.theme === 'auto' && changed)) this.rootFlags.apply();
+            (s.theme === 'auto' && changed)) A.rootFlags?.apply?.();
       });
       themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'style', 'data-mode', 'data-theme', 'data-appearance-theme'] });
       let observedBody = null;
@@ -415,7 +372,7 @@
       observeBody();
       A.centralObserver?.subscribe(observeBody);
       matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        if (isEnabled() && this.isSupportedRoute()) this.rootFlags.apply();
+        if (isEnabled() && this.isSupportedRoute()) A.rootFlags?.apply?.();
       });
     }
 
@@ -425,7 +382,10 @@
         const settings = getSettings();
 
         changedKeys.forEach((key) => {
-          if (changes[key]) settings[key] = changes[key].newValue;
+          if (!changes[key]) return;
+          const value = A.preferences.value(key, changes[key].newValue);
+          settings[key] = value;
+          if (this.settingsReadPending) this.pendingSettings[key] = value;
         });
 
         const disabledHere = value => Array.isArray(value) && value.includes(A.site.id);
@@ -433,9 +393,9 @@
           disabledHere(changes.disabledSites.oldValue) !== disabledHere(changes.disabledSites.newValue);
         if (changes.extensionEnabled || siteEnableChanged) {
           this.settingsRequestRevision += 1;
-          this.queue.shutdown();
+          A.queue?.shutdown?.();
           if (!isEnabled()) {
-            A.disable?.all?.();
+            this.suspend();
             return;
           }
           // Re-hydrate authoritative state from background cache (includes defaults).
@@ -445,7 +405,7 @@
 
         if (!isEnabled() || !this.isSupportedRoute()) return;
 
-        if (changes.queueWhileGenerating) this.queue.schedulePulse(0);
+        if (changes.queueWhileGenerating) A.queue?.schedulePulse?.(0);
 
         const rootFlagKeys = [
           'legacyComposer',
@@ -454,6 +414,8 @@
           'cuteVoiceUI',
           'blurChatHistory',
           'blurAvatar',
+          'hideUpgradeButtons',
+          'hideRateLimitMessages',
           'theme',
           'customFont',
           'voiceColor',
@@ -464,41 +426,39 @@
           'glassUserMessages',
         ];
         if (changedKeys.some((k) => rootFlagKeys.includes(k))) {
-          this.rootFlags.apply();
+          A.rootFlags?.apply?.();
         }
 
         if (changes.customBgUrl || changes.backgroundBlur || changes.backgroundScaling) {
-          this.background.update();
-          this.background.applyStyles();
+          A.background?.update?.();
+          A.background?.applyStyles?.();
         }
 
-        if (changes.hideGpt5Limit) this.upgrade.applyLimitPopup();
-        if (changes.hideUpgradeButtons) this.upgrade.applyUpgradeButtons();
+        if (changes.hideUpgradeButtons || changes.hideRateLimitMessages) A.upgrade?.applyUpgradeButtons?.();
 
         if (changes.hideQuickSettings !== undefined) {
-          if (!settings.hideQuickSettings) this.quickSettings.ensure();
-          else this.quickSettings.remove();
+          if (!settings.hideQuickSettings) A.quickSettings?.ensure?.();
+          else A.quickSettings?.remove?.();
         }
 
         const siteModelChanged = changes.siteDefaultModels &&
           changes.siteDefaultModels.oldValue?.[A.site.id] !== changes.siteDefaultModels.newValue?.[A.site.id];
         if ((A.site.id === 'chatgpt' && changes.defaultModel) || siteModelChanged) {
           A.defaultModel?.cancel?.();
-          this.defaultModel.maybeApply(true);
+          A.defaultModel?.maybeApply?.(true);
         }
         if (changes.dataMaskingEnabled || changes.maskingRandomMode) {
-          this.dataMasking.applyInitial();
-          this.queue.schedulePulse();
+          A.masking?.applyInitial?.();
+          A.queue?.schedulePulse?.();
         }
-        if (changes.autoContrast) this.contrast.apply();
-        if (!settings.hideQuickSettings && changedKeys.some(key => ['focusMode', 'blurChatHistory', 'hideUpgradeButtons', 'queueWhileGenerating', 'appearance'].includes(key))) this.quickSettings.ensure();
+        if (changes.autoContrast) this.applyContrast();
+        if (!settings.hideQuickSettings && changedKeys.some(key => ['focusMode', 'blurChatHistory', 'blurAvatar', 'cinemaMode', 'hideUpgradeButtons', 'hideRateLimitMessages', 'queueWhileGenerating', 'appearance', 'dataMaskingEnabled'].includes(key))) A.quickSettings?.ensure?.();
 
         if (changes.soundEnabled || changes.soundVolume) {
-          this.audio.ensureContext();
-          this.audio.attachOrDetach();
+          this.applyAudio();
         }
       } else if (area === 'local' && changes[LOCAL_BG_KEY]) {
-        if (isEnabled() && this.isSupportedRoute()) this.background.update();
+        if (isEnabled() && this.isSupportedRoute()) A.background?.update?.(true);
       }
     }
   }

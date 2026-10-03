@@ -1,0 +1,6 @@
+/* Clear both Opal document backdrops so Gemini's Aurora background shows through. */
+html[data-aurora-opal-active],
+html[data-aurora-opal-active] :is(body, opal-root, opal-shell, iframe.opal-iframe, bb-lite-home) {
+  background: transparent !important;
+  border-color: transparent !important;
+}

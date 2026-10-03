@@ -1,37 +1,42 @@
-# Universal development
+# Development
 
-## Release policy
+Aurora uses plain JavaScript and CSS. Each website loads its own adapter and styles through `manifest.json`.
 
-Keep incremental Universal work on `main`. The next release should collect the larger overhaul. Publishing a tag or release and changing the manifest version require a release request.
+## Build and releases
 
-Preserve the Gecko ID `aurora-for-chatgpt-librewolf@local` so users retain preferences and uploaded backgrounds.
+```sh
+python scripts/build_xpi.py --output build/aurora-universal-development.xpi
+```
 
-## Integration
+The builder packages tracked source and manifest resources with stable ordering, normalized line endings, and fixed ZIP timestamps. Keep generated XPIs in `build/` and local captures, backups, and installation receipts in `work/`.
 
-- `modules/aurora/sites.js` holds the four-host registry, capability rules, and native theme detection. The popup uses the same registry.
-- `modules/aurora/adapters/` holds site routes, app roots, surface selectors, and workflow selectors. Authentication and billing routes on the additional sites retain their native UI.
-- `modules/aurora/dom.js` locates visible composers and native send controls. Textareas use their native value setter. Rich editors use browser editing commands and input events.
-- `modules/aurora/surfaces.js` tags surfaces on Claude, Gemini, and Grok. `universal.css` supplies their glass treatment and native palette overrides.
-- `shared.css` supplies common tokens, backgrounds, quick settings, queue controls, and sensitive draft blur. ChatGPT also uses `styles.css`, `new-features.css`, and `app-skin.css`.
-- `modules/message-queue.js` owns queued text in page memory. Prepared sends, acknowledgments, active drafts, and uncertain submissions have distinct states. A new chat's canonical URL can be adopted only while generating and while its first message node remains the same.
-- `data-masking.js` owns reversible visual masking. Its scheduled scans use cancellation revisions and the orchestrator's current settings and route. Editable values stay native.
-- `modules/aurora/model-preferences.js` reads the additional sites' native model menus and applies exact label preferences to new chats. Catalogs are bounded to 32 labels per site. User interaction cancels an automatic picker operation.
-- `modules/aurora/default-model.js` retains ChatGPT's model and reasoning integration with route, visibility, preference, and interaction guards.
-- `modules/aurora/orchestrator.js` owns settings, navigation, visibility, and module cleanup. The central observer filters Aurora's own UI updates and follows body replacement.
-- `manifest.json` declares matching scripts and styles for all four hosts. Each website loads only its own adapter.
+Develop on `main`. Create tags and publish releases when requested. Preserve the Gecko ID `aurora-for-chatgpt-librewolf@local` so settings and backgrounds carry forward.
 
-## Settings
+## Source map
 
-Appearance and privacy controls remain shared. `disabledSites` records per-site enable preferences. `siteDefaultModels` holds model labels for Claude, Gemini, and Grok. ChatGPT retains `defaultModel`. Local `modelCatalog:<site>` entries hold native picker labels.
+| Location | Purpose |
+| --- | --- |
+| `modules/aurora/sites.js` | Website registry and page capabilities |
+| `modules/aurora/adapters/` | Native routes, surfaces, composers, and workflow controls |
+| `modules/aurora/material.js` and `glass.js` | Native surface ownership and glass appearance |
+| `modules/aurora/central-observer.js` | Shared observation and incremental updates |
+| `modules/aurora/interface.js` and `features.css` | Focus, width, and privacy targets |
+| `modules/message-queue.js` | Conversation-scoped message queue |
+| `modules/aurora/model-preferences.js` | Native model catalogs and per-website preferences |
+| `modules/aurora/preferences.js` | Shared defaults |
+| `popup.html`, `popup.js`, and `popup.css` | Toolbar settings |
+| `assets/fonts/` and `fonts.css` | Bundled fonts and licenses |
 
-The master switch changes only the enable preference. Existing backups from the previous toggle implementation are recovered once. The popup supports active-site detection, explicit site selection, settings search, keyboard-accessible choices, and import/export.
+## Implementation rules
 
-## Verification scope
+Glass changes existing native surface fills, tint, border colors, shadows, and backdrop blur. Preserve website shapes, dimensions, spacing, typography, icons, and hit areas. Keep appearance separate from focus and cinema settings.
 
-Run `node tests/startup-scope.cjs` for the critical startup regression. It checks all four adapters with both shared and Firefox-style separate window/global scopes, including activation flags and enable preferences.
+Use the shared observer and process changed branches incrementally. Discover workflow controls independently of glass surfaces. Scope selectors to known composers and use native send controls.
 
-The workflow changes receive focused critical checks for draft preservation, chat changes, duplicate-send prevention, failed editor writes, disabling, URL canonicalization, and masking restoration. Syntax checks and manifest-resource validation cover the packaged scripts.
+Queues preserve active drafts and stay within the current conversation. Navigation, cleanup, or disabling the feature clears pending work. Guard against duplicate submissions and pause uncertain sends for an explicit retry.
 
-Live DOM inspection informed Gemini's desktop and mobile composer selectors and Grok's composer, picker, and palette. Claude's `/new` page supplied its current CDS editor, composer boundary, send button, model trigger and label, sidebar, avatar, and nested theme roots. Its native model menu remained collapsed in this browser, so menu choices retain semantic fallbacks. Functional and visual use across account-specific layouts belongs to the user's testing pass.
+Page capabilities determine which controls appear in both settings panels. Reading fonts load from the extension package. User data stays in browser storage or page memory as described in [PRIVACY.md](PRIVACY.md).
 
-Keep selectors scoped to known composers. Preserve native handlers and account restrictions. Avoid document-wide send fallbacks or continuous full-page scans. Cleanup removes owned tags, cancels pending workflow operations, and restores app stacking properties.
+## Verification
+
+Use focused startup or installation checks when a change needs them. The startup regression is available with `node tests/startup-scope.cjs`. Live interface acceptance belongs to the user's testing pass.

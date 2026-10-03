@@ -154,7 +154,7 @@
             if (!node?.isConnected || !node.textContent?.trim()) return;
             const parent = node.parentElement;
             if (!parent || ['SCRIPT', 'STYLE', 'NOSCRIPT', 'IFRAME', 'INPUT', 'TEXTAREA'].includes(parent.tagName)) return;
-            if (parent.closest('[contenteditable], [role="textbox"], #cgpt-qs-panel, #cgpt-qs-btn, #cgpt-ambient-bg, #aurora-queue-panel, #aurora-queue-toast')) return;
+            if (parent.closest('[contenteditable], [role="textbox"]') || parent.closest(window.AuroraExt.ownedUI)) return;
             const previous = this.originalData.get(node);
             if (previous && previous.masked === node.textContent) return;
 
@@ -180,8 +180,8 @@
 
         maskEditor(target) {
             if (!this.isEnabled()) return;
-            const editor = target?.closest?.('[contenteditable="true"],textarea');
-            if (!editor || editor.closest('#cgpt-qs-panel, #aurora-queue-panel')) return;
+            const editor = target?.closest?.('[contenteditable="true"],textarea,input:is([type="text"],[type="email"],[type="tel"],[type="search"]):not([readonly])');
+            if (!editor || editor.closest(window.AuroraExt.ownedUI)) return;
             const text = editor.value ?? editor.textContent ?? '';
             const sensitive = Object.values(PATTERNS).some(pattern => { pattern.lastIndex = 0; return pattern.test(text); });
             editor.toggleAttribute('data-aurora-sensitive-editor', sensitive);
@@ -190,7 +190,7 @@
         maskElement(element) {
             if (!element?.isConnected || !this.isEnabled()) return;
             this.maskEditor(element);
-            element.querySelectorAll?.('[contenteditable="true"],textarea').forEach(editor => this.maskEditor(editor));
+            element.querySelectorAll?.('[contenteditable="true"],textarea,input:is([type="text"],[type="email"],[type="tel"],[type="search"]):not([readonly])').forEach(editor => this.maskEditor(editor));
             if (this.queuedRoots.has(element)) return;
             // An ancestor already waiting for a scan covers this subtree too.
             if (this.scanQueue.some(task => !task.walker && task.root.contains(element))) return;

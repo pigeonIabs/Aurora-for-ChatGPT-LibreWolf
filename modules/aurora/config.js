@@ -30,10 +30,7 @@
 
     // Storage / misc
     LOCAL_BG_KEY: 'customBgData',
-    HIDE_LIMIT_CLASS: 'cgpt-hide-gpt5-limit',
     HIDE_UPGRADE_CLASS: 'cgpt-hide-upgrade',
-    TIMESTAMP_KEY: 'gpt5LimitHitTimestamp',
-    FIVE_MINUTES_MS: 5 * 60 * 1000,
 
     // Preset URLs / assets
     BLUE_WALLPAPER_URL:

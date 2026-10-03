@@ -3,7 +3,7 @@
     "message": "Aurora Universal"
   },
   "extensionDescription": {
-    "message": "Glass themes and custom backgrounds for ChatGPT, Claude, Gemini, and Grok."
+    "message": "Glass themes and backgrounds for ChatGPT, Claude, Gemini, Grok, Qwen, Google AI Studio, DeepSeek, and Hugging Face."
   },
   "actionTitle": {
     "message": "Aurora Universal Settings"
@@ -161,17 +161,11 @@
   "sectionHideElements": {
     "message": "Hide Elements"
   },
-  "labelHideGpt5Limit": {
-    "message": "GPT-5 limit message"
-  },
-  "tooltipHideGpt5Limit": {
-    "message": "Hides the GPT-5 limit popup 5 minutes after it appears"
-  },
   "labelHideUpgradeButtons": {
-    "message": "\"Upgrade plan\" elements"
+    "message": "Hide upgrade promotions"
   },
   "tooltipHideUpgradeButtons": {
-    "message": "Hide all 'Upgrade your plan' buttons and sections"
+    "message": "Hide upgrade buttons, banners and promotional notices"
   },
   "labelHideGptsButton": {
     "message": "'Explore GPTs' button"
@@ -205,6 +199,9 @@
   },
   "bgPresetOptionDefault": {
     "message": "Default Wallpaper"
+  },
+  "bgPresetOptionSpace": {
+    "message": "Space"
   },
   "bgPresetOptionGpt5Animated": {
     "message": "Animated Gradient"
@@ -248,12 +245,6 @@
   "statusAnimatedBackground": {
     "message": "Animated background is active"
   },
-  "creditPrefix": {
-    "message": "Made by"
-  },
-  "creditSuffix": {
-    "message": "on X"
-  },
   "placeholderSearch": {
     "message": "Search settings..."
   },
@@ -273,7 +264,7 @@
     "message": "Voice UI"
   },
   "quickSettingsLabelHideUpgradeButtons": {
-    "message": "Hide Upgrade Elements"
+    "message": "Hide upgrade promotions"
   },
   "quickSettingsLabelHideGptsButton": {
     "message": "Hide 'Explore GPTs'"
@@ -338,24 +329,6 @@
   "welcomeBtnFinish": {
     "message": "Finish Setup"
   },
-  "welcomeBtnNext": {
-    "message": "Next"
-  },
-  "welcomeBtnSkip": {
-    "message": "Skip for now"
-  },
-  "welcomeSupportTitle": {
-    "message": "Support Aurora"
-  },
-  "welcomeSupportDescription": {
-    "message": "Aurora is free and open source. If you enjoy it, consider supporting development with a small donation or starring us on GitHub!"
-  },
-  "welcomeSupportDonate": {
-    "message": "Buy me a coffee"
-  },
-  "welcomeSupportStar": {
-    "message": "Star on GitHub"
-  },
   "welcomeLabelVoice": {
     "message": "Voice Customization"
   },
@@ -417,7 +390,7 @@
     "message": "Auto-scroll disabled"
   },
   "labelBlurChatHistory": {
-    "message": "Blur chat history (Streamer mode)"
+    "message": "Blur chat history"
   },
   "tooltipBlurChatHistory": {
     "message": "Blur the chat history sidebar for privacy when streaming or recording"
@@ -551,60 +524,6 @@
   "labelMaskPassport": {
     "message": "Passport"
   },
-  "feedbackLink": {
-    "message": "Have feedback or found a bug?"
-  },
-  "feedbackPlaceholder": {
-    "message": "Tell us what you think..."
-  },
-  "feedbackSend": {
-    "message": "Send Feedback"
-  },
-  "feedbackSuccess": {
-    "message": "Feedback sent! Thank you."
-  },
-  "feedbackError": {
-    "message": "Failed to send. Please try again."
-  },
-  "feedbackSending": {
-    "message": "Sending..."
-  },
-  "feedbackReportSent": {
-    "message": "Report Sent!"
-  },
-  "feedbackQueuedMessage": {
-    "message": "Your feedback has been queued."
-  },
-  "feedbackYourTicketId": {
-    "message": "Your Ticket ID"
-  },
-  "feedbackCopyIdTooltip": {
-    "message": "Copy ID"
-  },
-  "feedbackCopied": {
-    "message": "Copied!"
-  },
-  "feedbackPrioritizeTitle": {
-    "message": "Want this prioritized?"
-  },
-  "feedbackDonatePre": {
-    "message": "Donate to support development and include your "
-  },
-  "feedbackDonatePost": {
-    "message": " to fast-track this request."
-  },
-  "feedbackSupportKofi": {
-    "message": "☕ Support on Ko-fi"
-  },
-  "feedbackClose": {
-    "message": "No thanks, just close"
-  },
-  "ticketIdLabel": {
-    "message": "Ticket ID"
-  },
-  "feedbackServerError": {
-    "message": "Server error"
-  },
   "buttonCopied": {
     "message": "✓ Copied!"
   },
@@ -643,5 +562,23 @@
   },
   "queueFull": {
     "message": "Queue is full"
+  },
+  "labelHideRateLimitMessages": {
+    "message": "Hide rate limit notices"
+  },
+  "tooltipHideRateLimitMessages": {
+    "message": "Hide native usage and rate limit notices"
+  },
+  "labelSoundVolume": {
+    "message": "Sound volume"
+  },
+  "soundVolumeLow": {
+    "message": "Low"
+  },
+  "soundVolumeMedium": {
+    "message": "Medium"
+  },
+  "soundVolumeHigh": {
+    "message": "High"
   }
 }

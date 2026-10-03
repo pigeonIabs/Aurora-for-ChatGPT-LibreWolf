@@ -20,6 +20,19 @@
   let escapeKey = null;
 
   function syncPanel(panel, settings) {
+    const context = { capabilities: A.interface?.capabilities?.() };
+    panel.querySelectorAll('.qs-row[data-setting]').forEach(row => {
+      row.hidden = !A.sites.supports(A.site, row.dataset.setting, context);
+    });
+    panel.querySelectorAll('.qs-section-title').forEach(title => {
+      let row = title.nextElementSibling;
+      let visible = false;
+      while (row && !row.classList.contains('qs-section-title')) {
+        if (!row.hidden) visible = true;
+        row = row.nextElementSibling;
+      }
+      title.hidden = !visible;
+    });
     panel.querySelectorAll('.qs-row[data-setting] input').forEach(input => {
       input.checked = !!settings[input.closest('.qs-row').dataset.setting];
     });
@@ -32,7 +45,7 @@
   }
 
   function ensure() {
-    if (!isEnabled()) return;
+    if (!A.isActive() || getSettings().hideQuickSettings) { remove(); return; }
     if (!document.body) {
       if (!qsInitScheduled) {
         qsInitScheduled = true;
@@ -75,7 +88,11 @@
       document.body.appendChild(panel);
 
       panel.setAttribute('data-state', 'closed');
-      const openPanel = () => { panel.setAttribute('data-state', 'open'); btn.setAttribute('aria-expanded', 'true'); };
+      const openPanel = () => {
+        populatePanel(panel);
+        panel.setAttribute('data-state', 'open');
+        btn.setAttribute('aria-expanded', 'true');
+      };
       const closePanel = () => {
         panel.setAttribute('data-state', (getSettings().disableAnimations || matchMedia('(prefers-reduced-motion: reduce)').matches) ? 'closed' : 'closing');
         btn.setAttribute('aria-expanded', 'false');
@@ -110,11 +127,14 @@
       document.addEventListener('keydown', escapeKey);
     }
 
-    // Update settings in place so keyboard focus survives storage events.
-    if (panel.childElementCount) {
-      syncPanel(panel, settings);
-      return;
-    }
+    // Build controls when opened. Hydration and settings updates retain the same
+    // panel and focused inputs once it has been populated.
+    if (panel.childElementCount) syncPanel(panel, settings);
+  }
+
+  function populatePanel(panel) {
+    const settings = getSettings();
+    if (panel.childElementCount) { syncPanel(panel, settings); return; }
 
     const createSectionTitle = (messageKey) => {
       const title = document.createElement('div');
@@ -177,14 +197,20 @@
     panel.replaceChildren(
       createSectionTitle('quickSettingsSectionVisibility'),
       createToggleRow('focusMode', 'labelFocusMode'),
-      ...(A.sites.supports(A.site, 'hideUpgradeButtons') ? [createToggleRow('hideUpgradeButtons', 'quickSettingsLabelHideUpgradeButtons')] : []),
-      createToggleRow('blurChatHistory', 'quickSettingsLabelStreamerMode'),
-      ...(A.sites.supports(A.site, 'queueWhileGenerating') ? [createSectionTitle('tabBehavior'), createToggleRow('queueWhileGenerating', 'labelQueueWhileGenerating')] : []),
+      createToggleRow('hideUpgradeButtons', 'quickSettingsLabelHideUpgradeButtons'),
+      createToggleRow('hideRateLimitMessages', 'labelHideRateLimitMessages'),
+      createSectionTitle('tabPrivacy'),
+      createToggleRow('blurChatHistory', 'labelBlurChatHistory'),
+      createToggleRow('blurAvatar', 'labelBlurAvatar'),
+      createToggleRow('dataMaskingEnabled', 'labelEnableDataMasking'),
+      createSectionTitle('tabBehavior'),
+      createToggleRow('cinemaMode', 'labelCinemaMode'),
+      createToggleRow('queueWhileGenerating', 'labelQueueWhileGenerating'),
       createSectionTitle('sectionAppearance'),
       appearanceRow
     );
 
-    const qsToggles = ['focusMode', 'hideUpgradeButtons', 'blurChatHistory', 'queueWhileGenerating'];
+    const qsToggles = ['focusMode', 'hideUpgradeButtons', 'hideRateLimitMessages', 'blurChatHistory', 'blurAvatar', 'dataMaskingEnabled', 'cinemaMode', 'queueWhileGenerating'];
     qsToggles.forEach((key) => {
       const checkbox = document.getElementById(`qs-${key}`);
       if (!checkbox) return;
@@ -232,5 +258,9 @@
   }
 
   A.quickSettings.ensure = A.quickSettings.ensure || ensure;
+  A.quickSettings.refreshCapabilities = () => {
+    const panel = document.getElementById(QS_PANEL_ID);
+    if (panel?.getAttribute('data-state') === 'open') syncPanel(panel, getSettings());
+  };
   A.quickSettings.remove = A.quickSettings.remove || remove;
 })();

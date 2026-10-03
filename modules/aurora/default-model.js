@@ -18,8 +18,14 @@
   let defaultModelApplyPromise = null;
   let applyingDefaultModel = false;
   let revision = 0;
+  let controller = null;
   let activeGuard = () => false;
-  const cancel = (manual = false) => { revision++; if (manual) lastDefaultModelApplied = `${location.pathname}|${getSettings().defaultModel || ''}`; };
+  const cancel = (manual = false) => {
+    revision++;
+    controller?.abort();
+    A.centralObserver.setAttributeScope('model-picker', null);
+    if (manual) lastDefaultModelApplied = `${location.pathname}|${getSettings().defaultModel || ''}`;
+  };
   document.addEventListener('pointerdown', event => { if (event.isTrusted) cancel(true); }, true);
   document.addEventListener('keydown', event => { if (event.isTrusted) cancel(true); }, true);
 
@@ -80,17 +86,7 @@
   }
 
   function waitFor(getter, timeout = 1200) {
-    return new Promise((resolve) => {
-      const start = performance.now();
-      const tick = () => {
-        if (!activeGuard()) return resolve(null);
-        const value = typeof getter === 'function' ? getter() : document.querySelector(getter);
-        if (value) return resolve(value);
-        if (performance.now() - start >= timeout) return resolve(null);
-        setTimeout(tick, 50);
-      };
-      tick();
-    });
+    return A.centralObserver.waitFor(getter, { timeout, signal: controller?.signal, valid: () => activeGuard() });
   }
 
   async function applyDefaultModelOnce(slug) {
@@ -111,7 +107,7 @@
       let menu = await waitFor(() => findModelMenu(button), 1200);
       if (!menu || !activeGuard()) return false;
 
-      const option = findMenuOption(menu, slug);
+      const option = await waitFor(() => findMenuOption(menu, slug));
       if (!option || !activeGuard() || option.getAttribute('aria-disabled') === 'true') return false;
 
       option.click();
@@ -153,12 +149,13 @@
       if (!option || !isCurrent() || option.getAttribute('aria-disabled') === 'true') return false;
       // Selecting the current model also returns the picker to its power view.
       option.click();
-      await new Promise(resolve => setTimeout(resolve, 160));
+      if (!await waitFor(() => !option.isConnected || option.getAttribute('aria-checked') === 'true' ||
+          button.getAttribute('aria-expanded') !== 'true')) return false;
       if (!isCurrent()) return false;
       if (choice.effort && button.getAttribute('data-selected-reasoning-effort') !== choice.effort) {
         openPicker(button);
         menu = await waitFor(() => findModelMenu(button));
-        const control = await waitFor(() => A.dom.firstVisible('[data-reasoning-slider]:not([aria-disabled="true"])', menu));
+        let control = await waitFor(() => A.dom.firstVisible('[data-reasoning-slider]:not([aria-disabled="true"])', menu));
         if (!control || !isCurrent()) return false;
         control.focus();
         const slider = control.querySelector('[role="slider"]');
@@ -168,7 +165,12 @@
         for (let index = 0; index < Math.abs(current - choice.step); index += 1) {
           if (!isCurrent()) return false;
           control.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true }));
-          await new Promise(resolve => setTimeout(resolve, 80));
+          const expected = current + (key === 'ArrowLeft' ? -1 : 1) * (index + 1);
+          control = await waitFor(() => {
+            const updated = A.dom.firstVisible('[data-reasoning-slider]:not([aria-disabled="true"])', menu);
+            return Number(updated?.querySelector('[role="slider"]')?.getAttribute('aria-valuenow')) === expected && updated;
+          });
+          if (!control) return false;
         }
         if (!await waitFor(() => button.getAttribute('data-selected-reasoning-effort') === choice.effort)) return false;
       }
@@ -181,7 +183,7 @@
   }
 
   function maybeApply(force = false) {
-    if (!isEnabled() || document.hidden || !A.site.isNewConversation(location.pathname) || A.dom.getComposerText(A.dom.findActiveComposer()).trim()) return;
+    if (!isEnabled() || document.hidden || !A.site.isNewConversation(location.pathname)) return;
 
     const s = getSettings();
     const slug = String(s.defaultModel || '').trim();
@@ -194,28 +196,33 @@
     if (!force && Date.now() < modelApplyCooldownUntil) return;
     if (!force && lastDefaultModelApplied === `${location.pathname}|${slug}`) return;
     if (applyingDefaultModel || defaultModelApplyPromise) return;
+    if (A.dom.getComposerText(A.dom.findActiveComposer()).trim()) return;
 
     const ownRevision = revision;
     const ownPath = location.pathname;
+    const ownController = new AbortController();
+    controller = ownController;
+    A.centralObserver.setAttributeScope('model-picker', document.body, ['class', 'style'], node =>
+      !!node.closest('[role="menu"], [role="listbox"], [data-codex-intelligence-trigger], [data-testid="model-switcher-dropdown-button"]'));
     activeGuard = () => ownRevision === revision && ownPath === location.pathname && isEnabled() && !document.hidden &&
       getSettings().defaultModel === slug && !A.dom.getComposerText(A.dom.findActiveComposer()).trim();
-    const attempt = async (remaining) => {
-      if (!activeGuard()) return false;
-      const success = await applyDefaultModelOnce(slug);
+    const attempt = async () => {
+      if (!await waitFor(() => A.dom.findModelSwitcher(), 2500)) return false;
+      const success = activeGuard() && await applyDefaultModelOnce(slug);
       if (success) {
         lastDefaultModelApplied = `${location.pathname}|${slug}`;
         modelApplyCooldownUntil = Date.now() + 1500;
         return true;
       }
-      if (remaining <= 0) {
-        modelApplyCooldownUntil = Date.now() + 6000;
-        return false;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      return attempt(remaining - 1);
+      modelApplyCooldownUntil = Date.now() + 6000;
+      return false;
     };
 
-    defaultModelApplyPromise = attempt(2).finally(() => {
+    defaultModelApplyPromise = attempt().finally(() => {
+      if (controller === ownController) {
+        controller = null;
+        A.centralObserver.setAttributeScope('model-picker', null);
+      }
       defaultModelApplyPromise = null;
     });
   }

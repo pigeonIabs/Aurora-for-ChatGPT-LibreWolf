@@ -30,9 +30,10 @@ EXCLUDED_PARTS = {
     "venv",
     ".venv",
     "work",
+    "scripts",
     "__pycache__",
 }
-EXCLUDED_FILES = {".gitignore", ".ds_store", "amo-metadata.json"}
+EXCLUDED_FILES = {".gitignore", ".ds_store", "amo-metadata.json", "agents.md", "project_context.md"}
 TEXT_SUFFIXES = {
     ".css",
     ".html",

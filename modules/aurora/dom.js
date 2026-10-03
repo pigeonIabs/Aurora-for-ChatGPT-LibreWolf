@@ -86,7 +86,10 @@
   function findComposerButton(composer, kind) {
     const form = getComposerForm(composer);
     if (!form) return null;
-    if (A.site?.workflow) return firstVisible(A.site.workflow[kind], form);
+    if (A.site?.workflow) {
+      const scope = A.site.workflow.buttonScope ? composer.closest(A.site.workflow.buttonScope) : form;
+      return A.site.workflow.findButton?.(composer, kind, firstVisible) || firstVisible(A.site.workflow[kind], scope || form);
+    }
     const selector = kind === 'stop'
       ? 'button[data-testid="stop-button"],button[data-testid*="stop-generating"],button[aria-label="Stop generating"],button[aria-label="Stop streaming"],button[aria-label="Stop response"],button[aria-label="Stop"]'
       : 'button[data-testid="send-button"],button[type="submit"],button[aria-label="Send message"],button[aria-label="Send prompt"],button[aria-label="Send"]';

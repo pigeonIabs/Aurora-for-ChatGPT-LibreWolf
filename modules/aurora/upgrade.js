@@ -1,168 +1,98 @@
-// modules/aurora/upgrade.js
-// Hiding GPT-5 limit popup and Upgrade UI.
+// Shared, reversible hiding of native promotions and usage notices.
 (() => {
   'use strict';
+  const A = window.AuroraExt;
+  const selectors = A.site.selectors || {};
+  const controls = 'button, a, [role="button"], [role="link"], [role="menuitem"]';
+  const content = [
+    'pre, code, textarea, input, [contenteditable], [data-message-author-role], [data-message-id], [data-testid="user-message"], [data-testid="assistant-message"], [data-testid^="conversation-turn-"], .message-bubble, .prose, .markdown, .markdown-body, .md-render, .ds-markdown, .qwen-chat-message, model-response, user-query, ms-chat-turn',
+    A.site.workflow?.userMessage,
+    selectors.history, selectors.noticeContent, '[data-aurora-history]',
+  ].filter(Boolean).join(',');
+  const pageShells = ['html, body, main, [role="main"], [role="navigation"]',
+    A.site.appRoot, selectors.plane, selectors.sidebar, selectors.content,
+  ].filter(Boolean).join(',');
+  const explicitUpgrade = [selectors.upgrade, selectors.upgradeContainer,
+    '[data-testid="upgrade-button"], [data-test-id="upgrade-button"], [data-testid="upsell-button"], [data-test-id="upsell-button"], [data-testid="upgrade-banner"], [data-testid="upsell-banner"]',
+  ].filter(Boolean).join(',');
+  const explicitRate = [selectors.rateLimit,
+    '[data-testid="rate-limit"], [data-testid="rate-limit-message"], [data-testid="rate-limit-banner"], [data-testid="usage-limit"], [data-testid="usage-limit-banner"], [data-test-id="rate-limit-banner"], [data-test-id="usage-limit-banner"]',
+  ].filter(Boolean).join(',');
+  const notices = [selectors.notice,
+    '[role="alert"], [role="status"], [data-sonner-toast], [data-radix-toast-root], [data-testid="toast"], [data-test-id="toast"], [data-testid="banner"], [data-test-id="banner"], [class*="banner" i], [class*="callout" i], [class*="notice" i], [class*="rate-limit"], [class*="quota-exceeded"], [class*="usage-limit"]',
+  ].filter(Boolean).join(',');
+  const tagged = '[data-aurora-upgrade], [data-aurora-rate-limit]';
+  const leafNotice = ':is(p,span,div):not(:has(p,span,div,textarea,input,[contenteditable],pre,code))';
+  const candidatesSelector = [controls, explicitUpgrade, explicitRate, notices, leafNotice, tagged, '[role="dialog"]'].join(',');
+  const upgradeAction = /^(?:upgrade\b|(?:get|try|unlock|subscribe(?:\s+to)?|switch\s+to)\s+(?:a\s+paid\s+plan|pro\b|max\b|plus\b|premium\b|super\s?grok\b|chatgpt\s+(?:plus|pro|go|business)|claude\s+(?:pro|max)|gemini\s+advanced|google\s+(?:ai|one)\b|hugging\s?face\s+pro)|super\s?grok(?:\s+heavy)?\s*$|(?:view|compare|explore)\s+(?:plans|subscriptions)|mejorar(?:\s+plan)?\b|actualizar\s+(?:el\s+)?plan\b|pasar\s+a\s+(?:pro|plus)|(?:mettre\s+à\s+niveau|passer\s+à\s+(?:pro|plus)|améliorer\s+(?:le\s+)?forfait)|(?:улучшить|обновить|повысить)\s+(?:план|тариф)|(?:升级|升級|订阅|訂閱))/i;
+  const upgradeCopy = /(?:upgrade\s+(?:your\s+)?(?:plan|to|for)|unlock\s+(?:more|higher|premium)|(?:get|try)\s+(?:super\s?grok|claude\s+(?:pro|max)|chatgpt\s+(?:plus|pro|go)|google\s+ai\s+(?:pro|ultra))|(?:passer\s+à|mejorar\s+(?:tu\s+)?plan|повысить\s+тариф|升级|升級))/i;
+  const limitCopy = /(?:rate[ -]?limit(?:ed|ing)?|too\s+many\s+(?:requests|messages)|(?:usage|message|daily|weekly|monthly|free|token|generation|request|model)\s+(?:\w+\s+){0,2}limit\s+(?:reached|exceeded)|(?:reached|hit|exceeded)\s+(?:your\s+|the\s+|a\s+)?(?:\w+\s+){0,3}(?:limit|quota)|(?:out\s+of|run\s+out\s+of|used\s+(?:up\s+)?all)\s+(?:your\s+)?(?:free\s+)?(?:messages|requests|generations|credits)|quota\s+(?:exceeded|exhausted)|\d+\s+(?:messages|requests|generations)\s+(?:left|remaining)|(?:límite|limite)\s+(?:de\s+\w+\s+)?(?:alcanzado|excedido|atteinte?|dépassée?)|(?:лимит|квота).{0,35}(?:достигнут|исчерпан|превышен)|(?:已达|超出|超过|超過|达到上限|使用上限|请求过于频繁|請求過於頻繁|额度已用完|額度已用完|配额已用完))/i;
+  const normalize = text => String(text || '').replace(/\s+/g, ' ').trim();
+  const labels = node => [node.getAttribute('aria-label'), node.getAttribute('title'), node.textContent].map(normalize);
+  const excluded = node => !node || !!node.closest(A.ownedUI) || !!node.closest(content);
 
-  const A = (window.AuroraExt = window.AuroraExt || {});
-  A.upgrade = A.upgrade || {};
+  function changedOwner(node) {
+    if (!node?.closest || excluded(node)) return null;
+    return node.closest([controls, explicitUpgrade, explicitRate, notices, tagged].join(',')) || node.closest(leafNotice);
+  }
 
-  const cfg = A.config || {};
-  const SELECTORS = cfg.SELECTORS || {};
+  function classify(node) {
+    // A wrapper can contain "Rate limits" navigation or upgrade documentation.
+    // Its aggregated text never makes the application itself a usage notice.
+    if (excluded(node) || node.matches(pageShells)) return { upgrade: false, rate: false };
+    const text = normalize(node.textContent);
+    const short = text.length > 0 && text.length < 900;
+    const notice = node.matches(notices);
+    const leaf = node.matches(leafNotice);
+    const rate = node.matches(explicitRate) || ((notice || leaf || node.matches(controls)) && short && labels(node).some(label => limitCopy.test(label)));
+    const upgrade = node.matches(explicitUpgrade) ||
+      (node.matches(controls) && labels(node).some(label => label.length < 200 && upgradeAction.test(label))) ||
+      ((notice || leaf) && short && upgradeCopy.test(text));
+    return { upgrade, rate };
+  }
 
-  const HIDE_LIMIT_CLASS = cfg.HIDE_LIMIT_CLASS || 'cgpt-hide-gpt5-limit';
-  const HIDE_UPGRADE_CLASS = cfg.HIDE_UPGRADE_CLASS || 'cgpt-hide-upgrade';
-  const TIMESTAMP_KEY = cfg.TIMESTAMP_KEY || 'gpt5LimitHitTimestamp';
-  const FIVE_MINUTES_MS = cfg.FIVE_MINUTES_MS || 5 * 60 * 1000;
-
-  const getCachedElement = A.utils?.getCachedElement || ((_, fn) => fn());
-  const toggleClassForElements =
-    A.utils?.toggleClassForElements ||
-    ((elements, className, force) => {
-      elements.forEach((el) => {
-        if (el) el.classList.toggle(className, force);
-      });
-    });
-
-  const isEnabled = () => (A.isEnabled ? A.isEnabled() : true);
-  const getSettings = () => (A.getSettings ? A.getSettings() : {});
-
-  let cachedLimitTimestamp = null;
-  let hasCheckedTimestamp = false;
-  let isTimestampCleared = false;
-
-  function applyLimitPopup() {
-    if (!isEnabled()) return;
-
-    const s = getSettings();
-    const popup = document.querySelector(SELECTORS.GPT5_LIMIT_POPUP || 'div[class*="text-token-text-primary"]');
-    const isLimitMsg = popup && (popup.textContent || '').toLowerCase().includes("you've reached the gpt-5 limit");
-
-    // If popup exists but it's not the limit message, ignore it.
-    if (popup && !isLimitMsg) return;
-
-    // If feature is disabled, just ensure it's visible.
-    if (!s.hideGpt5Limit) {
-      if (popup) popup.classList.remove(HIDE_LIMIT_CLASS);
-      return;
+  function tagElements(root = document) {
+    if (!A.isActive() || (root.nodeType === 1 && excluded(root))) return new Set();
+    const candidates = new Set(A.utils.matchingElements(root, candidatesSelector));
+    const owner = changedOwner(root);
+    if (owner) candidates.add(owner);
+    for (let parent = root.parentElement; parent && parent !== document.body; parent = parent.parentElement) {
+      if (excluded(parent)) break;
+      if (parent.matches([notices, explicitUpgrade, explicitRate, tagged].join(','))) candidates.add(parent);
     }
-
-    if (!chrome?.runtime?.id) return;
-
-    if (popup) {
-      // Popup IS present.
-      isTimestampCleared = false; // Reset cleared flag so we clean up later when it disappears.
-
-      // If we already have a cached timestamp, use it.
-      if (cachedLimitTimestamp) {
-        if (Date.now() - cachedLimitTimestamp > FIVE_MINUTES_MS) {
-          popup.classList.add(HIDE_LIMIT_CLASS);
-        }
-        return;
-      }
-
-      // If we haven't checked storage yet, check it once.
-      if (!hasCheckedTimestamp) {
-        hasCheckedTimestamp = true; // Prevent spamming GET.
-        chrome.storage.local.get([TIMESTAMP_KEY], (result) => {
-          if (chrome.runtime.lastError) {
-            hasCheckedTimestamp = false; // Retry next time.
-            return;
-          }
-          if (result[TIMESTAMP_KEY]) {
-            cachedLimitTimestamp = result[TIMESTAMP_KEY];
-            if (Date.now() - cachedLimitTimestamp > FIVE_MINUTES_MS) {
-              popup.classList.add(HIDE_LIMIT_CLASS);
-            }
-          } else {
-            // No timestamp exists, set one.
-            const now = Date.now();
-            cachedLimitTimestamp = now;
-            chrome.storage.local.set({ [TIMESTAMP_KEY]: now });
-          }
-        });
-      }
-    } else {
-      // Popup is NOT present.
-      if (!isTimestampCleared) {
-        isTimestampCleared = true;
-        cachedLimitTimestamp = null;
-        hasCheckedTimestamp = false; // Reset so we fetch again next time it appears.
-
-        chrome.storage.local.remove([TIMESTAMP_KEY], () => {
-          // ignore errors to avoid loops
-        });
+    for (const node of candidates) {
+      const { upgrade, rate } = classify(node);
+      A.utils.toggleAttribute(node, 'data-aurora-upgrade', upgrade);
+      A.utils.toggleAttribute(node, 'data-aurora-rate-limit', rate);
+      if (A.site.id === 'chatgpt') A.utils.toggleClass(node, 'cgpt-hide-upgrade', upgrade && !!A.getSettings().hideUpgradeButtons);
+      if (node.matches('[role="dialog"]') && A.getSettings().hideUpgradeButtons && A.sites.supports(A.site, 'hideUpgradeButtons')) {
+        const text = normalize(node.textContent);
+        const promotion = text.length < 1600 && upgradeCopy.test(text) &&
+          !node.querySelector('input, textarea, [contenteditable], [role="tablist"]') &&
+          [...node.querySelectorAll(controls)].some(control => classify(control).upgrade);
+        const close = promotion && [...node.querySelectorAll('button, [role="button"]')].find(button =>
+          labels(button).some(label => /^(?:close|dismiss|not now|maybe later|fermer|cerrar|закрыть|关闭|關閉)(?:\s.*)?$/i.test(label)));
+        if (close && A.dom.isVisible(close)) close.click();
       }
     }
+    return candidates;
   }
 
   function applyUpgradeButtons() {
-    if (!isEnabled()) return;
-
-    const s = getSettings();
-    if (!s.hideUpgradeButtons) {
-      const hiddenElements = document.getElementsByClassName(HIDE_UPGRADE_CLASS);
-      if (hiddenElements.length > 0) {
-        Array.from(hiddenElements).forEach((el) => el.classList.remove(HIDE_UPGRADE_CLASS));
-      }
-      return;
+    const root = document.documentElement;
+    const active = A.isActive();
+    for (const [setting, className] of [['hideUpgradeButtons', 'cgpt-hide-upgrade'], ['hideRateLimitMessages', 'cgpt-hide-rate-limits']]) {
+      A.utils.toggleClass(root, className, active && A.sites.supports(A.site, setting) && !!A.getSettings()[setting]);
     }
-
-    const upgradeElements = [
-      ...Array.from(document.querySelectorAll('button, a, [role="menuitem"]')).filter(el =>
-        /^(upgrade(?: your plan| plan| to .+)?|get chatgpt (?:plus|pro|go))$/i.test(
-          (el.getAttribute('aria-label') || el.textContent || '').trim()
-        )
-      ),
-      getCachedElement('upgradePanelButton', () =>
-        Array.from(document.querySelectorAll(SELECTORS.UPGRADE_MENU_ITEM || 'a.__menu-item')).find((el) =>
-          (el.textContent || '').toLowerCase().includes('upgrade')
-        )
-      ),
-      getCachedElement('upgradeTopButtonContainer', () =>
-        document.querySelector(SELECTORS.UPGRADE_TOP_BUTTON_CONTAINER || '.start-1\\/2.absolute')
-      ),
-      getCachedElement('upgradeProfileButton', () =>
-        document.querySelector(
-          SELECTORS.UPGRADE_PROFILE_BUTTON_TRAILING_ICON ||
-            '[data-testid="accounts-profile-button"] .__menu-item-trailing-btn'
-        )
-      ),
-      getCachedElement('upgradeNewSidebarButton', () =>
-        Array.from(document.querySelectorAll(SELECTORS.UPGRADE_SIDEBAR_BUTTON || 'div.gap-1\\.5.__menu-item.group')).find(
-          (el) => (el.textContent || '').toLowerCase().includes('upgrade')
-        )
-      ),
-      getCachedElement('upgradeTinySidebarIcon', () =>
-        document.querySelector(SELECTORS.UPGRADE_TINY_SIDEBAR_ICON || '#stage-sidebar-tiny-bar > div:nth-of-type(4)')
-      ),
-      getCachedElement('upgradeBottomBanner', () => {
-        const banner = Array.from(document.querySelectorAll(SELECTORS.UPGRADE_BOTTOM_BANNER || 'div[role="button"]')).find(
-          (el) => (el.textContent || '').toLowerCase().includes('upgrade your plan')
-        );
-        return banner ? banner.parentElement : null;
-      }),
-      getCachedElement('upgradeAccountSection', () => {
-        const allSettingRows = document.querySelectorAll(SELECTORS.UPGRADE_SETTINGS_ROW_CONTAINER || 'div.py-2.border-b');
-        for (const row of allSettingRows) {
-          const rowText = row.textContent || '';
-          const hasUpgradeTitle = rowText.includes('Get ChatGPT Plus') || rowText.includes('Get ChatGPT Go');
-          const hasUpgradeButton = Array.from(row.querySelectorAll('button')).some((btn) => btn.textContent.trim() === 'Upgrade');
-          if (hasUpgradeTitle && hasUpgradeButton) return row;
-        }
-        return null;
-      }),
-      getCachedElement('upgradeGoHeaderButton', () => document.querySelector('.rounded-full.dark\\:bg-\\[\\#373669\\]')),
-      getCachedElement('upgradeToGoRobust', () => {
-        const allCandidates = Array.from(document.querySelectorAll('button, a, div[role="button"], span'));
-        const textMatch = allCandidates.find((el) => (el.textContent || '').includes('Upgrade to Go'));
-        return textMatch ? textMatch.closest('.rounded-full') || textMatch : null;
-      }),
-    ];
-
-    toggleClassForElements(upgradeElements.filter(Boolean), HIDE_UPGRADE_CLASS, true);
+    if (active) tagElements();
   }
 
-  A.upgrade.applyLimitPopup = A.upgrade.applyLimitPopup || applyLimitPopup;
-  A.upgrade.applyUpgradeButtons = A.upgrade.applyUpgradeButtons || applyUpgradeButtons;
+  function untag() {
+    document.querySelectorAll(tagged).forEach(node => {
+      node.removeAttribute('data-aurora-upgrade');
+      node.removeAttribute('data-aurora-rate-limit');
+      node.classList.remove('cgpt-hide-upgrade');
+    });
+  }
+  A.upgrade = { applyUpgradeButtons, tagElements, changedOwner, untag };
 })();
-

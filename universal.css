@@ -1,4 +1,5 @@
-/* Shared adapter surface treatment. Host layout and interaction stay native. */
+/* Shared adapter surface treatment. Host layout, corners, border widths,
+ * and interaction stay native. Glass edges use inset shadows. */
 html.cgpt-ambient-on[data-aurora-site],
 html.cgpt-ambient-on[data-aurora-site] body {
   background: transparent !important;
@@ -6,36 +7,56 @@ html.cgpt-ambient-on[data-aurora-site] body {
 }
 html.cgpt-ambient-on [data-aurora-plane] {
   background: transparent !important;
+  border-color: transparent !important;
   box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 html.cgpt-ambient-on [data-aurora-plane]::before,
 html.cgpt-ambient-on [data-aurora-plane]::after {
   background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 html.cgpt-ambient-on [data-aurora-surface] {
   background: var(--aurora-glass-fill) !important;
-  border: 1px solid var(--aurora-glass-border) !important;
-  border-radius: 6px !important;
-  box-shadow: var(--aurora-glass-shadow) !important;
+  border-color: var(--aurora-surface-edge, var(--aurora-glass-border)) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-surface-edge, var(--aurora-glass-border)), var(--aurora-glass-shadow) !important;
   backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
   -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
   color: var(--theme-text-primary) !important;
 }
 html.cgpt-ambient-on [data-aurora-surface="sidebar"] {
   background: var(--aurora-sidebar-glass-fill) !important;
-  border-radius: 0 !important;
   box-shadow: none !important;
+}
+/* Chat toolbars sit directly over the page background. A glass shadow here
+ * creates a dark band fading over the beginning of every conversation. */
+html.cgpt-ambient-on [data-aurora-surface="toolbar"] {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html.cgpt-ambient-on [data-aurora-surface="toolbar"]::before,
+html.cgpt-ambient-on [data-aurora-surface="toolbar"]::after {
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 html.cgpt-ambient-on [data-aurora-surface="composer"] :is(textarea, [contenteditable="true"]) {
   background: transparent !important;
   color: var(--theme-text-primary) !important;
   caret-color: currentColor;
 }
-html.cgpt-ambient-on [data-aurora-surface="composer"] :is(button, [role="button"]) {
-  border-radius: 6px !important;
+html.cgpt-ambient-on:not([data-aurora-site="grok"]) [data-aurora-surface="composer"] :is(button, [role="button"]) {
   color: var(--theme-text-primary);
 }
-html.cgpt-ambient-on [data-aurora-surface="composer"] button:hover {
+html.cgpt-ambient-on:not([data-aurora-site="grok"]) [data-aurora-surface="composer"] button:hover {
   background: var(--menu-item-hover) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-glass-user-messages) [data-aurora-surface="message"] {
@@ -46,12 +67,12 @@ html.cgpt-ambient-on:not(.cgpt-glass-user-messages) [data-aurora-surface="messag
 }
 html.cgpt-ambient-on.cgpt-blur-chat-history [data-aurora-history],
 html.cgpt-ambient-on.cgpt-blur-avatar [data-aurora-avatar] {
-  filter: blur(8px);
+  filter: blur(8px) !important;
   transition: filter 150ms ease;
 }
 html.cgpt-ambient-on.cgpt-blur-chat-history [data-aurora-history]:is(:hover, :focus-within),
 html.cgpt-ambient-on.cgpt-blur-avatar [data-aurora-avatar]:hover {
-  filter: none;
+  filter: none !important;
 }
 /* Visibility keeps the site's own navigation geometry and toggle state intact. */
 html.cgpt-ambient-on.cgpt-focus-mode-on [data-aurora-surface="sidebar"] {
@@ -68,8 +89,33 @@ html.cgpt-ambient-on[data-aurora-site="claude"] body {
 html.cgpt-ambient-on[data-aurora-site="claude"] [data-aurora-surface="composer"] :is(.bg-bg-000, .bg-bg-100, .bg-surface-1, .bg-surface-2) {
   background: transparent !important;
 }
+/* The model row is a sibling below the rounded composer. Its page-colored
+ * 32px spread shadow reaches behind the editor and blocks the glass backdrop. */
+html.cgpt-ambient-on[data-aurora-site="claude"] [data-cds="ChatComposerChin"] {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+/* Claude also paints a noninteractive fade above the scrolling messages.
+ * Clear that decoration while preserving the header's controls and layout. */
+html.cgpt-ambient-on[data-aurora-site="claude"] :is(
+  [data-aurora-surface="toolbar"] :is(div, span)[class*="bg-gradient-to-b"],
+  [data-aurora-surface="toolbar"] :is(div, span)[class*="bg-linear-to-b"],
+  main .pointer-events-none.top-0:is([class*="bg-gradient-to-b"], [class*="bg-linear-to-b"], [style*="linear-gradient"])
+) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+/* Settings content has its own opaque paint inside the glass dialog.
+ * Clear layout surfaces so the dialog owns the shared tint and blur. */
+html.cgpt-ambient-on[data-aurora-site="claude"] [role="dialog"][data-aurora-surface="menu"] :is(
+  div, section, main, nav, aside
+):is(.bg-bg-000, .bg-bg-100, .bg-surface-0, .bg-surface-1, .bg-surface-2):not([data-aurora-surface]):not([role="group"]):not([role="tablist"]):not([data-cds-part="paint"]),
+html.cgpt-ambient-on[data-aurora-site="claude"] [role="dialog"][data-aurora-surface="menu"] [role="tabpanel"]:not([data-aurora-surface]) {
+  background: transparent !important;
+}
 
-/* Gemini's visual wrappers sit inside the semantic custom elements. */
+/* Gemini's input-area-v2 host owns the native rounded composer surface.
+ * Its inner text-input-field only arranges the editor and controls. */
 html.cgpt-ambient-on[data-aurora-site="gemini"],
 html.cgpt-ambient-on[data-aurora-site="gemini"] body {
   --gem-sys-color--on-surface: var(--theme-text-primary);
@@ -83,7 +129,7 @@ html.cgpt-ambient-on[data-aurora-site="gemini"] body {
   --mat-form-field-filled-input-text-color: var(--theme-text-primary);
 }
 html.cgpt-ambient-on[data-aurora-site="gemini"] :is(
-  .text-input-field-main-area, .text-input-field_textarea-inner, .textarea-wrapper,
+  .text-input-field, .text-input-field-main-area, .text-input-field_textarea-inner, .textarea-wrapper,
   .sidenav-container, .sidenav-content, .input-area-container, .conversation-container
 ) {
   background: transparent !important;
@@ -92,9 +138,173 @@ html.cgpt-ambient-on[data-aurora-site="gemini"] :is(input-container, chat-window
 html.cgpt-ambient-on[data-aurora-site="gemini"] :is(input-container, chat-window)::after {
   background: transparent !important;
 }
+/* The top action group only positions icons and blends into the page. */
+html.cgpt-ambient-on[data-aurora-site="gemini"] top-bar-actions {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
 html.cgpt-ambient-on[data-aurora-site="gemini"] [data-aurora-surface="composer"] .gem-button {
   background: transparent !important;
-  border-radius: 6px !important;
+}
+/* Chat/Spark navigation owns separate solid fills inside the glass sidebar.
+ * Paint these native owners on insertion and keep the moving selection layer. */
+html.cgpt-ambient-on[data-aurora-site="gemini"] side-navigation-content :is(
+  mode-switcher-toggle .app-tabs,
+  .gem-nav-list-item:is(.is-active, .mdc-list-item--activated),
+  gem-nav-list-item[data-test-id="new-chat-button"] .gem-nav-list-item[data-aurora-surface="control"]
+) {
+  background: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-glass-border) !important;
+  color: var(--theme-text-primary) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="gemini"] side-navigation-content mode-switcher-toggle .app-tabs-slider {
+  background: var(--menu-item-hover) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-glass-border) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="gemini"] side-navigation-content mode-switcher-toggle .app-tab {
+  color: var(--theme-text-primary) !important;
+}
+/* Sidebar destinations retain the same material in discovery, search, brief
+ * and library views. Only each native painted layer owns tint and blur. */
+html.cgpt-ambient-on[data-aurora-site="gemini"] :is(
+  search-bar .search-container,
+  library-list-item .list-item-container,
+  library-item-card .library-item-card,
+  study-notebooks-section .empty-state-card,
+  hero-tile .card-image-container,
+  image-card .image-card
+)[data-aurora-surface="panel"] {
+  border-color: transparent !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--aurora-surface-edge, var(--aurora-glass-border)) 55%, transparent), var(--aurora-glass-shadow) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="gemini"] library-list-item .list-item-container[data-aurora-surface="panel"]:not(.placeholder):is(:hover, :focus-within),
+html.cgpt-ambient-on[data-aurora-site="gemini"] library-item-card:is(:hover, :focus-within) .library-item-card[data-aurora-surface="panel"] {
+  background: color-mix(in srgb, var(--aurora-glass-fill), var(--menu-item-hover) 30%) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="gemini"] :is(
+  your-day-viewer, learn-landing-page, discovery-images-page, discovery-videos-page,
+  library-sections-overview-page, library-page
+) [data-aurora-surface="control"]:is(:hover, :focus-visible):not(:disabled) {
+  background: color-mix(in srgb, var(--aurora-glass-fill), var(--menu-item-hover) 30%) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="gemini"] template-filter-chips .filter-chip.selected[data-aurora-surface="control"] {
+  background: color-mix(in srgb, var(--aurora-glass-fill), var(--menu-item-hover) 50%) !important;
+  box-shadow: inset 0 0 0 1px var(--theme-text-secondary) !important;
+}
+/* These rows paint only on native hover or focus. Keep their resting state. */
+html.cgpt-ambient-on[data-aurora-site="gemini"] your-day-viewer:is(.your-day-redesign-enabled) .your-day-item:is(:hover, :focus-within):not(:has(> .your-day-item-content > .your-day-item-actions > .your-day-buttons-container:is(:hover, :focus-within))),
+html.cgpt-ambient-on[data-aurora-site="gemini"] your-day-viewer .your-day-item.redesign-item:is(:hover, :focus-within):not(:has(> .your-day-item-content > .your-day-item-actions > .your-day-buttons-container:is(:hover, :focus-within))) {
+  background: var(--aurora-glass-fill) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+}
+/* Page-colored scroll fades belong to layout. Media thumbnail scrims retain
+ * their native paint, and the existing caption strips receive their own glass. */
+html.cgpt-ambient-on[data-aurora-site="gemini"] :is(
+  lx-overflow-carousel .carousel-scrim,
+  input-container .autosuggest-scrim
+) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+/* Gems, Notebooks and Connected Apps share glass paint without a hard gray perimeter.
+ * Native sizing and corners remain on the real tile owners. */
+html.cgpt-ambient-on[data-aurora-site="gemini"] :is(
+  template-gallery-card .template-gallery-card,
+  all-bots .empty-instructions,
+  project-mgmt-row .project-card,
+  project-mgmt .empty-instructions,
+  extension-card .extension-card-container,
+  extension-card .parent-card,
+  extension-card child-card .child-card
+)[data-aurora-surface="panel"] {
+  background: var(--aurora-glass-fill) !important;
+  border-color: transparent !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--aurora-glass-border) 55%, transparent), var(--aurora-glass-shadow) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="gemini"] extension-card child-card .child-card[data-aurora-surface="panel"] {
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--aurora-glass-border) 55%, transparent) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="gemini"] template-gallery-card .template-gallery-card[data-aurora-surface="panel"]:is(:hover, :focus-visible),
+html.cgpt-ambient-on[data-aurora-site="gemini"] project-mgmt-row .project-card[data-aurora-surface="panel"]:is(:hover, :focus-visible, .is-menu-open) {
+  background: color-mix(in srgb, var(--aurora-glass-fill), var(--menu-item-hover) 30%) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="gemini"] bot-experiment-badge .bot-status-badge {
+  border-color: color-mix(in srgb, var(--aurora-glass-border) 55%, transparent) !important;
+}
+/* Gemini's automatic follow-up prompts each have their own glass surface. */
+html.cgpt-ambient-on[data-aurora-site="gemini"] elicitations .elicitations-container > .elicitation-item[data-aurora-surface="panel"] {
+  background: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-surface-edge, var(--aurora-glass-border)) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-surface-edge, var(--aurora-glass-border)), var(--aurora-glass-shadow) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+}
+
+/* Spark's Remy components have their own material tokens and painted layers.
+ * Keep those layers translucent inside the tagged sidebar, panels and menus. */
+html.cgpt-ambient-on[data-aurora-site="gemini"] :is(
+  chat-app.remy-route, remy-new-task-page, remy-viewer, schedules-tab, scheduled-tasks-tab,
+  scheduled-tasks-side-pane, schedule-editor, skills-viewer, skill-editor,
+  skill-folder-manager, remy-memory-viewer
+) {
+  --lumi-sys-color--surface-bright: var(--aurora-glass-fill);
+  --lumi-sys-color--surface-dim: var(--aurora-glass-fill);
+  --bard-color-remy-surface: var(--aurora-glass-fill);
+  --bard-color-lm-on-surface-variant: var(--theme-text-secondary);
+  --gem-sys-color--on-surface-low: var(--theme-text-secondary);
+}
+html.cgpt-ambient-on[data-aurora-site="gemini"] :is(
+  [data-aurora-surface="menu"] gem-dialog,
+  [data-aurora-surface="menu"] .mat-mdc-menu-content,
+  [data-aurora-surface="menu"] .gem-bottom-sheet,
+  [data-aurora-surface="menu"] .gem-bottom-sheet-header-container,
+  [data-aurora-surface="menu"] .extension-info-dialog,
+  extension-card [data-aurora-surface] .opt-in-container.expanded,
+  remy-side-panel .ghost-header.section-header
+) {
+  background: transparent !important;
+}
+/* Suggested tasks are native text rows. Glass follows their hover surface. */
+html.cgpt-ambient-on[data-aurora-site="gemini"] remy-task-discovery .suggestion-card:is(:hover, :focus-visible) {
+  background: var(--aurora-glass-fill) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="gemini"] :is(
+  remy-task-list .goal-card, schedules-tab .schedules-list-item,
+  scheduled-tasks-tab .schedules-list-item, skill-card
+)[data-aurora-surface]:is(:hover, :focus-visible, .goal-card-selected) {
+  background: color-mix(in srgb, var(--aurora-glass-fill), var(--menu-item-hover) 30%) !important;
+}
+/* Filled native controls consume glass paint while their existing shapes,
+ * switch tracks, selected indicators and bare icon buttons stay site-owned. */
+html.cgpt-ambient-on[data-aurora-site="gemini"] chat-app.remy-route :is(
+  gem-button.gem-button-type-filled, gem-button.gem-button-type-tonal,
+  gem-button.gem-button-type-bright, gem-button.gem-button-type-accent
+) :is(button, a)[data-aurora-surface="control"],
+html.cgpt-ambient-on[data-aurora-site="gemini"] chat-app.remy-route :is(
+  gem-icon-button.gem-button-type-tonal, gem-icon-button.gem-button-type-bright,
+  gem-icon-button.gem-button-type-accent,
+  skill-editor .save-button, skill-folder-manager .nav-btn,
+  schedule-editor .create-save-button, schedule-editor .delete-button,
+  :is(extension-card, capabilities-card) .example-prompt,
+  discovery-card button[mat-flat-button]
+)[data-aurora-surface="control"] {
+  background: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-surface-edge, var(--aurora-glass-border)) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-surface-edge, var(--aurora-glass-border)) !important;
+  color: var(--theme-text-primary) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="gemini"] chat-app.remy-route :is(
+  skill-editor .save-button, skill-folder-manager .nav-btn,
+  schedule-editor .create-save-button, schedule-editor .delete-button,
+  :is(extension-card, capabilities-card) .example-prompt,
+  discovery-card button[mat-flat-button]
+):is(:hover, :focus-visible):not(:disabled) {
+  background: color-mix(in srgb, var(--aurora-glass-fill), var(--menu-item-hover) 30%) !important;
 }
 
 /* Keep icon ligatures and code fonts intact when choosing a reading font. */
@@ -108,32 +318,23 @@ html.cgpt-ambient-on:not([data-custom-font="system"]) :is(body, p, li, h1, h2, h
   font-family: var(--aurora-reading-font, inherit) !important;
 }
 
-/* Reading width expands without altering attachment, artifact, or code editors. */
-html.cgpt-ambient-on.cgpt-cinema-mode [data-aurora-content] {
-  max-width: min(100%, 1440px) !important;
-  width: 100% !important;
-  box-sizing: border-box;
-}
-html.cgpt-ambient-on.cgpt-cinema-mode [data-aurora-surface="composer"] {
-  max-width: min(100%, 1200px) !important;
-}
+/* Shared cinema width targets live in features.css. */
 html.cgpt-ambient-on [data-aurora-surface="toolbar"] {
-  border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+  border-color: transparent !important; box-shadow: none !important;
 }
 html.cgpt-ambient-on [data-aurora-surface="code"] {
-  overflow: auto; box-shadow: none !important;
+  box-shadow: none !important;
   background: color-mix(in srgb, var(--aurora-glass-fill), var(--composer-bg) 25%) !important;
+}
+html.cgpt-ambient-on [data-aurora-surface="control"] {
+  border-color: var(--aurora-surface-edge, var(--aurora-glass-border)) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-surface-edge, var(--aurora-glass-border)) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 html.cgpt-ambient-on [data-aurora-surface="code"] :is(pre, code) {
   background: transparent !important;
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace !important;
-}
-html.cgpt-ambient-on :is(button, [role="button"], [role="menuitem"], [role="menuitemradio"], [role="option"]) {
-  border-radius: 6px !important;
-}
-html.cgpt-ambient-on [data-aurora-surface="composer"] :is(button, [role="button"]) {
-  background: var(--aurora-glass-fill) !important;
-  border-color: var(--aurora-glass-border) !important;
 }
 html.cgpt-ambient-on :is([data-aurora-surface="menu"], [data-aurora-surface="sidebar"]) :is(button, a, [role="menuitem"], [role="menuitemradio"], [role="option"]):hover {
   background-color: var(--menu-item-hover) !important;
@@ -172,16 +373,753 @@ html.cgpt-ambient-on[data-aurora-site="grok"] body {
   --fg-primary: 0 0% 96%; --fg-secondary: 0 0% 73%; --fg-tertiary: 0 0% 61%;
   --fg-invert: 0 0% 8%; --surface-base: 225 12% 10%; --surface-l1: 225 12% 13%;
   --surface-l2: 225 12% 16%; --surface-l3: 225 12% 20%; --surface-elevated: 225 12% 18%;
-  --wd-composer-radius: 6px;
 }
 html.cgpt-ambient-on.cgpt-light-mode[data-aurora-site="grok"] body {
   --fg-primary: 0 0% 10%; --fg-secondary: 0 0% 34%; --fg-tertiary: 0 0% 44%;
   --fg-invert: 0 0% 98%; --surface-base: 220 15% 98%; --surface-l1: 220 15% 95%;
   --surface-l2: 220 15% 92%; --surface-l3: 220 15% 88%; --surface-elevated: 220 15% 96%;
 }
-html.cgpt-ambient-on[data-aurora-site="grok"] [data-testid="chat-submit"] > div,
-html.cgpt-ambient-on[data-aurora-site="grok"] [data-testid="chat-submit"] > div::before {
-  background: transparent !important; border-radius: 6px !important; color: var(--theme-text-primary) !important;
+
+/* Qwen's named color tokens serve both desktop and mobile components. */
+html.cgpt-ambient-on[data-aurora-site="qwen"],
+html.cgpt-ambient-on[data-aurora-site="qwen"] body {
+  --text-primary: var(--theme-text-primary);
+  --text-secondary: var(--theme-text-secondary);
+  --text-caption: var(--theme-text-secondary);
+  --character-primary-text: var(--theme-text-primary);
+  --character-secondary-text: var(--theme-text-secondary);
+  --character-tertiary-text: var(--theme-text-secondary);
+  --input-primary-text-active: var(--theme-text-primary);
+  --input-primary-text-inactive: var(--theme-text-primary);
+  --title-color: var(--theme-text-primary);
+  --line-primary-border: var(--aurora-glass-border);
+  --line-secondary-border: var(--aurora-glass-border);
+}
+html.cgpt-ambient-on[data-aurora-site="qwen"] :is(
+  .message-input-textarea, .wms-trigger__text, .wms-list__name-text
+) {
+  color: var(--theme-text-primary) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="qwen"] .wms-list__desc,
+html.cgpt-ambient-on[data-aurora-site="qwen"] .message-input-textarea::placeholder {
+  color: var(--theme-text-secondary) !important;
+}
+/* The collapsed rail paints .sidebar-hide-side inside its outer sidebar.
+ * One outer backdrop serves both widths and the native settings navigation. */
+html.cgpt-ambient-on[data-aurora-site="qwen"] :is(.sidebar, .setting-side-bar) {
+  background: var(--aurora-sidebar-glass-fill) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="qwen"] :is(
+  .sidebar-wrapper, .sidebar .sidebar-side, .sidebar .sidebar-hide-side,
+  .sidebar .sidebar-user, .sidebar .user-menu-btn-mobile,
+  .qwen-chat-setting, .qwen-chat-setting-content,
+  .setting-content, .settings-overlay,
+  .qwen-chat-setting .layout-header, .settings-overlay-header
+) {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+/* Current Qwen uses member-upgrade-button in the profile row. Consume glass
+ * directly so its specific resting and hover rules cannot restore black. */
+html.cgpt-ambient-on[data-aurora-site="qwen"] .sidebar-user :is(
+  .member-upgrade-button, .sidebar-user-upgrade-plan-button
+) {
+  background: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-glass-border) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: var(--theme-text-primary) !important;
+}
+/* Settings and their portaled menus use several independent native palettes.
+ * Their filled fields and panels all share Aurora's material and hover tint. */
+html.cgpt-ambient-on[data-aurora-site="qwen"] :is(
+  .qwen-chat-setting, .settings-overlay, [data-aurora-surface="menu"]
+) {
+  --background-primary: var(--aurora-glass-fill);
+  --background-capsule: var(--aurora-glass-fill);
+  --background-light-gray: transparent;
+  --background-option: var(--menu-item-hover);
+  --background-gray-button-hover: var(--aurora-glass-fill);
+  --container-primary-fill: var(--aurora-glass-fill);
+  --container-secondary-fill: var(--aurora-glass-fill);
+  --container-secondary-bgweb: var(--menu-item-hover);
+  --line-border: var(--aurora-glass-border);
+  --line-parting: var(--aurora-glass-border);
+}
+html.cgpt-ambient-on[data-aurora-site="qwen"] :is(
+  .qwen-chat-v2-modal .ant-modal-content, .qwen-modal-content,
+  .qwen-chat-v2-popup, .qwen-select-dropdown, .ant-select-dropdown,
+  .qwen-chat-v2-dropdown-menu-content, .ant-popover-inner
+) {
+  background: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+  box-shadow: var(--aurora-glass-shadow) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  color: var(--theme-text-primary) !important;
+}
+/* Text rows and nested layout layers reveal their containing glass. They keep
+ * native separators and selection while receiving no extra glass hitboxes. */
+html.cgpt-ambient-on[data-aurora-site="qwen"] :is(
+  .setting-side-bar-group-content-item, .qwen-chat-setting-content-item,
+  .qwen-chat-setting-content-item-wrapper, .setting-content-title,
+  .model-item-shell-top-button, .subscription-usage-history-item,
+  .subscription-usage-history-heading, .qwen-chat-voice-list-item,
+  .settings-overlay .language-item, .settings-overlay .theme-item,
+  .settings-overlay .profile-overlay, .settings-overlay .about-shell,
+  .settings-overlay .subscription-usage-history-list,
+  .settings-overlay .qwen-chat-comp-mobile-voice-content-footer,
+  .settings-overlay .account-content :is(.email, .change-password, .delete-all-chats),
+  .qwen-chat-v2-popup .ant-drawer-content,
+  .qwen-chat-v2-popup .ant-drawer-header, .qwen-chat-v2-popup .ant-drawer-body,
+  .qwen-chat-v2-modal .ant-modal-header
+) {
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html.cgpt-ambient-on[data-aurora-site="qwen"] :is(
+  .setting-side-bar-group-content-item.selected,
+  .setting-side-bar-group-content-item:hover,
+  .qwen-chat-voice-list-item:hover,
+  .qwen-chat-v2-tabs-capsule .qwen-chat-v2-tabs-tab-active
+) {
+  background: var(--menu-item-hover) !important;
+  box-shadow: none !important;
+}
+html.cgpt-ambient-on[data-aurora-site="qwen"] :is(
+  .qwen-chat-setting, .settings-overlay, .qwen-modal-content,
+  .ant-modal-content, .qwen-chat-v2-popup
+) [data-aurora-surface="control"] {
+  background: var(--aurora-glass-fill) !important;
+  box-shadow: none !important;
+  color: var(--theme-text-primary) !important;
+}
+/* Library layout reveals the shared background. Glass follows only existing
+ * filters, actions and painted preview overlays, preserving thumbnail artwork. */
+html.cgpt-ambient-on[data-aurora-site="qwen"] :is(.library-content, .collections-page) :is(
+  .qwen-chat-v2-tabs-tab-active,
+  .qwen-chat-v2-tabs-tab:hover:not(:disabled):not(.qwen-chat-v2-tabs-tab-active)
+) {
+  background: var(--menu-item-hover) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="qwen"] :is(.library-content, .collections-page)
+  .qwen-chat-v2-tabs-button .qwen-chat-v2-tabs-tab-active {
+  background: var(--aurora-glass-fill) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="qwen"] :is(.library-content, .collections-page) :is(
+  .qwen-chat-v2-tabs-capsule .qwen-chat-v2-tabs-nav-list,
+  .header-collections-button, .library-item-operation-icon, .item-card-tag,
+  .play-pause-btn, .audio-controls
+)[data-aurora-surface] {
+  background: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+  box-shadow: none !important;
+  color: var(--theme-text-primary) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="qwen"] :is(.library-content, .collections-page) :is(
+  .header-collections-button, .library-item-operation-icon, .play-pause-btn
+)[data-aurora-surface]:is(:hover, :focus-visible):not(:disabled) {
+  background: color-mix(in srgb, var(--aurora-glass-fill), var(--menu-item-hover) 30%) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="qwen"] .library-content .library-item-operation,
+html.cgpt-ambient-on[data-aurora-site="qwen"] :is(.library-content, .collections-page)
+  .item-card-img:is(.item-card-pdf, .item-card-web-dev, .item-card-ppt)::after {
+  background: var(--aurora-glass-fill) !important;
+  box-shadow: none !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+}
+/* Mobile gallery menus paint their individual rows inside the native popup. */
+html.cgpt-ambient-on[data-aurora-site="qwen"] :is(
+  .qwen-chat-v2-dropdown-menu-popup, .touch-more-dropdown
+) .qwen-chat-v2-dropdown-menu-item {
+  background: transparent !important;
+}
+html.cgpt-ambient-on[data-aurora-site="qwen"] :is(
+  .qwen-chat-v2-dropdown-menu-popup, .touch-more-dropdown
+) .qwen-chat-v2-dropdown-menu-item:hover {
+  background: var(--menu-item-hover) !important;
+}
+/* AI Studio has separate original and v3 semantic palettes. */
+html.cgpt-ambient-on[data-aurora-site="aistudio"],
+html.cgpt-ambient-on[data-aurora-site="aistudio"] body {
+  --color-on-surface: var(--theme-text-primary);
+  --color-on-surface-variant: var(--theme-text-secondary);
+  --color-run-settings-text: var(--theme-text-primary);
+  --color-v3-text: var(--theme-text-primary);
+  --color-v3-text-var: var(--theme-text-secondary);
+  --color-v3-outline: var(--aurora-glass-border);
+  --color-v3-outline-var: var(--aurora-glass-border);
+  --aurora-aistudio-selected-fill: color-mix(in srgb, var(--aurora-glass-fill), var(--menu-item-hover) 45%);
+  --mat-select-enabled-trigger-text-color: var(--theme-text-primary);
+  --mat-option-label-text-color: var(--theme-text-primary);
+  --mat-menu-item-label-text-color: var(--theme-text-primary);
+}
+html.cgpt-ambient-on[data-aurora-site="aistudio"] :is(
+  [data-aurora-surface="composer"], [data-aurora-surface="panel"], [data-aurora-surface="menu"]
+) {
+  --color-prompt-input-background: var(--aurora-glass-fill);
+  --color-prompt-input-border: var(--aurora-glass-border);
+  --color-surface: var(--aurora-glass-fill);
+  --color-surface-bright: var(--aurora-glass-fill);
+  --color-v3-surface-container: var(--aurora-glass-fill);
+}
+/* The current workspace paints its page and navigation independently. The
+ * native prompt box and run-settings panel each retain one glass owner. */
+html.cgpt-ambient-on[data-aurora-site="aistudio"] .nav-content[data-aurora-surface="sidebar"] :is(
+  .navbar-header, nav, ms-nav-items-v2, .bottom-actions,
+  .back-item-container, ms-nav-items-documentation, .search-container
+) {
+  background: transparent !important;
+}
+html.cgpt-ambient-on[data-aurora-site="aistudio"] ms-run-settings[data-aurora-surface="panel"] {
+  box-shadow: none !important;
+}
+/* Navigation selection and hover own native fills independently of the rail.
+ * Apply glass by state so hover and router class changes paint immediately. */
+html.cgpt-ambient-on[data-aurora-site="aistudio"] ms-nav-items-v2 {
+  --color-nav-item-active: var(--aurora-aistudio-selected-fill);
+  --color-nav-item-hover: var(--menu-item-hover);
+}
+html.cgpt-ambient-on[data-aurora-site="aistudio"] ms-nav-items-v2 [ms-button]:is(.active, .active-override, :hover) {
+  background: var(--color-nav-item-hover) !important;
+  border-color: var(--aurora-glass-border) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-glass-border) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  color: var(--theme-text-primary) !important;
+  transition: none !important;
+}
+html.cgpt-ambient-on[data-aurora-site="aistudio"] ms-nav-items-v2 [ms-button]:is(.active, .active-override) {
+  background: var(--color-nav-item-active) !important;
+}
+/* These named components own native filled surfaces. Match their paint layers
+ * directly so newly mounted controls and grid cards are glass on first paint,
+ * before the shared observer's next surface-tagging frame. */
+html.cgpt-ambient-on[data-aurora-site="aistudio"] :is(
+  .nav-flyout-panel,
+  ms-prompt-box-tools > button[aria-label="Open tools menu"],
+  ms-paid-api-key-button > button.paid-api-key-button,
+  ms-grid-view ms-button-toggle .toggle-group,
+  ms-run-settings mat-form-field:has(mat-select:is([aria-label="Thinking Level"], [aria-label="Media resolution"])) > .mat-mdc-text-field-wrapper,
+  ms-model-grid .category-card,
+  ms-agent-grid .category-card,
+  ms-dashboard-selector .mat-mdc-text-field-wrapper,
+  ms-api-switcher .mat-mdc-text-field-wrapper,
+  ms-nav-items-documentation .search-input,
+  ms-documentation mat-card.docs-card,
+  ms-documentation ms-callout,
+  ms-global-banner .global-banner
+) {
+  background: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-glass-border), var(--aurora-glass-shadow) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  color: var(--theme-text-primary) !important;
+  transition: none !important;
+}
+/* Instruction and schema controls own paint inside their native dialogs.
+ * Nested select popovers keep an independent glass surface even when shared
+ * menu tagging finds the surrounding dialog first. */
+html.cgpt-ambient-on[data-aurora-site="aistudio"] :is(
+  .ms-sliding-right-panel-dialog .mat-mdc-dialog-surface:has(ms-system-instructions),
+  .mat-mdc-dialog-surface:has(ms-edit-schema-dialog),
+  ms-system-instructions .mat-mdc-text-field-wrapper,
+  ms-system-instructions .mat-mdc-select-panel,
+  ms-system-instructions input[ms-input],
+  ms-system-instructions textarea[ms-input],
+  ms-json-schema-editor .mat-mdc-text-field-wrapper,
+  ms-json-schema-editor .mat-mdc-select-panel,
+  ms-json-schema-editor input[ms-input]
+) {
+  background: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-glass-border), var(--aurora-glass-shadow) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="aistudio"] :is(ms-system-instructions, ms-json-schema-editor) mat-form-field {
+  --mat-form-field-outlined-outline-color: var(--aurora-glass-border);
+  --mat-form-field-outlined-hover-outline-color: var(--aurora-glass-border);
+  --mat-form-field-outlined-focus-outline-color: var(--theme-text-secondary);
+}
+html.cgpt-ambient-on[data-aurora-site="aistudio"] :is(ms-system-instructions, ms-json-schema-editor) :is(input[ms-input], textarea[ms-input]):focus {
+  border-color: var(--theme-text-secondary) !important;
+}
+/* Keep the native selected segment visible through its translucent paint. */
+html.cgpt-ambient-on[data-aurora-site="aistudio"] ms-grid-view ms-button-toggle .slide-indicator {
+  background: color-mix(in srgb, var(--aurora-glass-fill), var(--menu-item-hover) 45%) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-glass-border) !important;
+  transition: none !important;
+}
+html.cgpt-ambient-on[data-aurora-site="aistudio"] ms-grid-view ms-button-toggle .toggle-button {
+  background: transparent !important;
+  color: var(--theme-text-secondary) !important;
+  transition: none !important;
+}
+html.cgpt-ambient-on[data-aurora-site="aistudio"] ms-grid-view ms-button-toggle .toggle-button.ms-button-active {
+  color: var(--theme-text-primary) !important;
+}
+/* Documentation code groups and standalone snippets each own one backdrop.
+ * The expansion panels inside them only lay out the code and its header. */
+html.cgpt-ambient-on[data-aurora-site="aistudio"] :is(
+  ms-docs-tabs.code-tabs, ms-code-block > .container
+) {
+  background: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+  box-shadow: none !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="aistudio"] :is(
+  ms-docs-tabs.code-tabs ms-code-block > .container,
+  ms-docs-tabs.code-tabs mat-expansion-panel,
+  ms-code-block > .container > mat-expansion-panel
+) {
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html.cgpt-ambient-on[data-aurora-site="aistudio"] :is(ms-dashboard-selector, ms-api-switcher) mat-form-field {
+  --mat-form-field-outlined-outline-color: var(--aurora-glass-border);
+  --mat-form-field-outlined-hover-outline-color: var(--aurora-glass-border);
+  --mat-form-field-outlined-focus-outline-color: var(--theme-text-secondary);
+}
+html.cgpt-ambient-on[data-aurora-site="aistudio"] .ms-button-docs {
+  --color-v3-button-container-accent: var(--aurora-glass-fill);
+  --color-v3-text-on-button: var(--theme-text-primary);
+  background: var(--aurora-glass-fill) !important;
+  color: var(--theme-text-primary) !important;
+  border-color: var(--aurora-glass-border) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-glass-border) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+}
+/* The form-field wrapper owns the select fill and rounded outline. */
+html.cgpt-ambient-on[data-aurora-site="aistudio"] ms-run-settings mat-form-field:has(mat-select:is(
+  [aria-label="Thinking Level"], [aria-label="Media resolution"]
+)) {
+  --mat-form-field-outlined-outline-color: var(--aurora-glass-border);
+  --mat-form-field-outlined-hover-outline-color: var(--aurora-glass-border);
+  --mat-form-field-outlined-focus-outline-color: var(--theme-text-secondary);
+}
+/* Glass and entrance motion must be settled before either grid is visible. */
+html.cgpt-ambient-on[data-aurora-site="aistudio"] :is(ms-model-grid, ms-agent-grid) :is(.animate-in, .category-card),
+html.cgpt-ambient-on[data-aurora-site="aistudio"] :is(ms-model-grid, ms-agent-grid) .category-card * {
+  animation: none !important;
+  transition: none !important;
+}
+html.cgpt-ambient-on[data-aurora-site="aistudio"] :is(ms-model-grid, ms-agent-grid) .category-card:is(:hover, :focus-visible) {
+  background: color-mix(in srgb, var(--aurora-glass-fill), var(--menu-item-hover) 30%) !important;
+}
+/* AI Studio's selected-state palette is separate from its resting surfaces.
+ * Scope its native tokens to controls so selection never brings back an opaque
+ * fill. Cover the paint owners directly for immediate state changes. */
+html.cgpt-ambient-on[data-aurora-site="aistudio"] :is(
+  [ms-button], ms-button-toggle, .mat-mdc-select-panel,
+  ms-model-carousel-row, ms-model-carousel-agent-row
+) {
+  --color-v3-button-container: var(--aurora-glass-fill);
+  --color-v3-button-container-accent: var(--aurora-aistudio-selected-fill);
+  --color-v3-button-container-high: var(--aurora-aistudio-selected-fill);
+  --color-v3-button-container-hover: var(--aurora-aistudio-selected-fill);
+  --color-v3-button-container-accent-hover: var(--aurora-aistudio-selected-fill);
+  --color-v3-surface-container-highest: var(--aurora-aistudio-selected-fill);
+  --color-v3-hover: var(--menu-item-hover);
+  --color-nav-item-hover: var(--menu-item-hover);
+  --color-v3-text-on-button: var(--theme-text-primary);
+  --mat-option-selected-state-layer-color: var(--aurora-aistudio-selected-fill);
+  --mat-option-selected-state-label-text-color: var(--theme-text-primary);
+  --mat-option-hover-state-layer-color: var(--menu-item-hover);
+  --mat-option-focus-state-layer-color: var(--menu-item-hover);
+}
+/* Borderless and secondary controls paint only in their native interaction
+ * states. Keep that fill owned by the site's hover/focus rules and add glass
+ * material only while the same state is present, including Edit and Back. */
+html.cgpt-ambient-on[data-aurora-site="aistudio"] [ms-button]:is(
+  .ms-button-borderless, .ms-button-secondary
+):not(.toggle-button, .ms-button-link, .ms-button-as, [aria-disabled="true"], :disabled):is(:hover, :focus-visible) {
+  border-color: var(--aurora-glass-border) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-glass-border) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+}
+/* Filled actions include Save. Filter chips include both editor modes and
+ * model categories. Keep their native geometry and selected-dot image. */
+html.cgpt-ambient-on[data-aurora-site="aistudio"] [ms-button]:is(
+  .ms-button-primary, .ms-button-filter-chip, .ms-button-active
+):not(.toggle-button, .ms-button-link, .ms-button-as) {
+  background-color: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-glass-border) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  color: var(--theme-text-primary) !important;
+  transition: none !important;
+}
+html.cgpt-ambient-on[data-aurora-site="aistudio"] [ms-button].ms-button-active:not(
+  .toggle-button, .ms-button-link, .ms-button-as
+) {
+  background-color: var(--aurora-aistudio-selected-fill) !important;
+  border-color: var(--theme-text-secondary) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="aistudio"] [ms-button].ms-button-filter-chip.ms-button-active:not(.ms-button-active-border) {
+  background-image: radial-gradient(circle at 16px center, var(--theme-text-primary) 3px, transparent 3.4px) !important;
+  background-repeat: no-repeat !important;
+  background-size: 100% 100% !important;
+}
+/* Overlay options and carousel hosts own their selected or focused paint.
+ * Their surrounding glass provides blur while the highlight stays translucent. */
+html.cgpt-ambient-on[data-aurora-site="aistudio"] :is(.mat-mdc-select-panel, .mat-mdc-autocomplete-panel) mat-option:is(
+  .mdc-list-item--selected, .mat-mdc-option-active, [aria-selected="true"], :hover, :focus-visible
+),
+html.cgpt-ambient-on[data-aurora-site="aistudio"] :is(ms-model-carousel-row, ms-model-carousel-agent-row):is(
+  .selected, :hover, :focus-within
+) {
+  background: var(--aurora-aistudio-selected-fill) !important;
+  color: var(--theme-text-primary) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-glass-border) !important;
+  transition: none !important;
+}
+
+/* DeepSeek's design-system text follows Aurora's selected theme. */
+html.cgpt-ambient-on[data-aurora-site="deepseek"],
+html.cgpt-ambient-on[data-aurora-site="deepseek"] body {
+  --dsw-alias-label-primary: var(--theme-text-primary);
+  --dsw-alias-label-secondary: var(--theme-text-secondary);
+  --dsw-alias-label-tertiary: var(--theme-text-secondary);
+  --dsw-alias-label-caption: var(--theme-text-secondary);
+  --dsr-text-0: var(--theme-text-primary);
+  --dsr-text-1: var(--theme-text-primary);
+  --dsr-text-2: var(--theme-text-secondary);
+  --dsr-text-3: var(--theme-text-secondary);
+  --dsr-border-1: var(--aurora-glass-border);
+  --dsr-border-2: var(--aurora-glass-border);
+}
+html.cgpt-ambient-on[data-aurora-site="deepseek"] :is(textarea#chat-input, #root textarea.ds-scroll-area) {
+  background: transparent !important;
+  color: var(--theme-text-primary) !important;
+}
+/* The collapsed-message fade consumes the bubble's material, retaining its
+ * native gradient, rounded clipping, expansion button and text geometry. */
+html.cgpt-ambient-on.cgpt-glass-user-messages[data-aurora-site="deepseek"] #root .fbb737a4[data-aurora-surface="message"] {
+  --dsw-specific-bubble: var(--aurora-glass-fill);
+}
+html.cgpt-ambient-on.cgpt-glass-user-messages[data-aurora-site="deepseek"] #root .fbb737a4[data-aurora-surface="message"] .d077096d {
+  background-image: radial-gradient(140px 64px at right 4px bottom 0,
+    var(--aurora-glass-fill) 0%, var(--aurora-glass-fill) 38%,
+    color-mix(in srgb, var(--aurora-glass-fill) 70%, transparent) 60%,
+    transparent 80%) !important;
+}
+html.cgpt-ambient-on.cgpt-glass-user-messages[data-aurora-site="deepseek"] #root .fbb737a4[data-aurora-surface="message"] ._08f18f6 {
+  background: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+}
+/* Thinking and search groups paint their sticky title on ::after. Glass that
+ * existing layer directly, keeping its native square shape and sticky bounds.
+ * The spacer and trailing fade reveal the page around the title. */
+html.cgpt-ambient-on[data-aurora-site="deepseek"] #root ._245c867::after {
+  background: var(--aurora-glass-fill) !important;
+  box-shadow: var(--aurora-glass-shadow) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="deepseek"] #root ._245c867::before,
+html.cgpt-ambient-on[data-aurora-site="deepseek"] #root ._245c867 .c99b79f8 {
+  background: transparent !important;
+}
+/* DeepSeek's responsive shell contains a separately painted history panel.
+ * Its sticky headings and bottom fade reuse the sidebar fill token. Keep those
+ * layers translucent while the panel owns the single backdrop filter. */
+html.cgpt-ambient-on[data-aurora-site="deepseek"] [data-aurora-surface="sidebar"] {
+  --dsw-specific-sidebar-fill: var(--aurora-sidebar-glass-fill);
+  --dsw-specific-sidebar-nav-item-active-accent: var(--menu-item-hover);
+  --dsw-specific-sidebar-nav-item-active: var(--menu-item-hover);
+  --dsw-specific-sidebar-nav-item-hover: var(--menu-item-hover);
+  --dsw-alias-button-elevated-fill: var(--aurora-glass-fill);
+  --dsw-alias-label-primary: var(--theme-text-primary);
+  --dsw-alias-label-secondary: var(--theme-text-secondary);
+  --dsw-alias-label-tertiary: var(--theme-text-secondary);
+  --dsw-alias-brand-primary-invert: var(--theme-text-primary);
+}
+html.cgpt-ambient-on[data-aurora-site="deepseek"] [data-aurora-surface="sidebar"] ._5a8ac7a {
+  border-color: var(--aurora-glass-border) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-glass-border) !important;
+}
+/* The history row's solid trailing mask would cover the glass tint. Native
+ * text overflow already clips long titles without painting over the panel. */
+html.cgpt-ambient-on[data-aurora-site="deepseek"] [data-aurora-surface="sidebar"] ._546d736 ._254829d {
+  background: transparent !important;
+}
+/* The collapsed navigation has a separate fill around its three icon actions.
+ * Tag that group as a control so it shares Aurora's glass and owns one blur. */
+html.cgpt-ambient-on[data-aurora-site="deepseek"] #root ._5a20a69 .e5bf614e {
+  --dsw-alias-label-primary: var(--theme-text-primary);
+}
+
+/* Hub layout wrappers reveal the background. Existing repository panels,
+ * actions, metadata labels and search controls own their glass. */
+html.cgpt-ambient-on[data-aurora-site="huggingface"] body > .flex.min-h-dvh :is(
+  div, section, main, header, footer, nav, article
+):not([data-aurora-surface]):not([role="switch"], [role="switch"] > div) {
+  background: transparent !important;
+}
+html.cgpt-ambient-on[data-aurora-site="huggingface"] body > .flex.min-h-dvh [data-aurora-surface="panel"] > a {
+  background: transparent !important;
+}
+/* Native .btn gradients and .tag fills belong to the element itself. The
+ * scoped material also reaches action links without changing their geometry. */
+html.cgpt-ambient-on[data-aurora-site="huggingface"] body > .flex.min-h-dvh [data-aurora-surface="control"] {
+  background: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-surface-edge, var(--aurora-glass-border)) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-surface-edge, var(--aurora-glass-border)) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  color: var(--theme-text-primary) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="huggingface"] body > .flex.min-h-dvh :is(button, a, label).btn[data-aurora-surface="control"]:is(:hover, :focus-visible):not(:disabled):not([aria-disabled="true"]) {
+  background: var(--menu-item-hover) !important;
+}
+/* Account settings keep their native fields, sidebar and component shells.
+ * Longhand select paint preserves the site's existing dropdown arrow. */
+html.cgpt-ambient-on[data-aurora-site="huggingface"][data-aurora-hub-settings] body > .flex.min-h-dvh :is(
+  select.form-input,
+  select.form-input-alt,
+  input.form-input:is([type="checkbox"], [type="radio"]):not(:checked),
+  [role="switch"][aria-checked="false"]
+) {
+  background-color: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-glass-border) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+}
+/* Native Tailwind ring tokens retain keyboard focus and the theme selection.
+ * The existing ring geometry continues to come from Hugging Face. */
+html.cgpt-ambient-on[data-aurora-site="huggingface"][data-aurora-hub-settings] body > .flex.min-h-dvh :is(
+  .form-input:focus,
+  .form-input-alt:focus,
+  [data-aurora-surface].ring-2,
+  [data-aurora-surface]:focus-visible
+) {
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), inset 0 0 0 1px var(--aurora-glass-border) !important;
+}
+/* Selection follows the native fill classes and checked peers. Plain rows
+ * share the navigation backdrop while their existing dividers stay visible. */
+html.cgpt-ambient-on[data-aurora-site="huggingface"][data-aurora-hub-settings] body > .flex.min-h-dvh main a[href^="/settings/"]:is(
+  .bg-linear-to-r, .bg-gradient-to-r, .bg-gray-50, .bg-gray-100, .bg-gray-200,
+  .bg-gray-800, .bg-gray-900, [class~="dark:bg-gray-800"]
+),
+html.cgpt-ambient-on[data-aurora-site="huggingface"][data-aurora-hub-settings] body > .flex.min-h-dvh main a[href^="/settings/"][class*="hover:bg-"]:is(:hover, :focus-visible),
+html.cgpt-ambient-on[data-aurora-site="huggingface"][data-aurora-hub-settings] body > .flex.min-h-dvh main input.peer[type="radio"]:checked + label[class~="peer-checked:bg-black"],
+html.cgpt-ambient-on[data-aurora-site="huggingface"][data-aurora-hub-settings] body > .flex.min-h-dvh main tr[class*="hover:bg-"]:hover {
+  background: var(--menu-item-hover) !important;
+  color: var(--theme-text-primary) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="huggingface"][data-aurora-hub-settings] body > .flex.min-h-dvh main label > input.peer[type="radio"] + div.border {
+  background: var(--aurora-glass-fill) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="huggingface"][data-aurora-hub-settings] body > .flex.min-h-dvh main :is(.border-t, .border-b, .border-l, .border-r, .divide-y > *) {
+  border-color: var(--aurora-glass-border) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="huggingface"][data-aurora-hub-settings] body > .flex.min-h-dvh [data-aurora-surface="panel"] [data-aurora-surface="panel"] {
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), inset 0 0 0 1px var(--aurora-surface-edge, var(--aurora-glass-border)) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+/* Discussion filters change their native fill class in place. Follow that
+ * class directly so the glass selection moves with the site's current tab. */
+html.cgpt-ambient-on[data-aurora-site="huggingface"] body > .flex.min-h-dvh [data-target="DiscussionList"] button.rounded-lg.bg-black {
+  background: var(--aurora-glass-fill) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-glass-border) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  color: var(--theme-text-primary) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="huggingface"] body > .flex.min-h-dvh [data-target="DiscussionList"] button.rounded-lg:not(.bg-black):is(:hover, :focus-visible) {
+  background: var(--menu-item-hover) !important;
+}
+/* Checkbox glass replaces only the unchecked native fill. Checked colors and
+ * checkmark artwork continue to come from Hugging Face's form-input styles. */
+html.cgpt-ambient-on[data-aurora-site="huggingface"] body > .flex.min-h-dvh [data-target="DiscussionList"] input.form-input[type="checkbox"]:not(:checked) {
+  background-color: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-glass-border) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+}
+/* The file list keeps its native rows and separators inside one glass surface. */
+html.cgpt-ambient-on[data-aurora-site="huggingface"] body > .flex.min-h-dvh [data-target="ViewerIndexTreeList"] > ul[data-aurora-surface="panel"] > li {
+  border-color: var(--aurora-glass-border) !important;
+}
+/* Native discussion shells meet at partial borders. Their existing borders
+ * supply the edge, without a second inset outline across the joined halves. */
+html.cgpt-ambient-on[data-aurora-site="huggingface"] body > .flex.min-h-dvh :is(
+  main > [data-target="ModelHeader"] header.border-b,
+  [data-target="DiscussionHeader"] > .border-b,
+  [data-target="DiscussionEvents"] :is(.border, .border-b, .border-r)
+) {
+  border-color: var(--aurora-glass-border) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="huggingface"] body > .flex.min-h-dvh [data-target="DiscussionEvents"] [data-aurora-surface="panel"] {
+  box-shadow: none !important;
+}
+html.cgpt-ambient-on[data-aurora-site="huggingface"] body > .flex.min-h-dvh [data-target="DiscussionEvents"] [data-aurora-surface="panel"] [data-aurora-surface="panel"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+/* The timeline connector runs behind comment bodies. Clear only its paint
+ * so transparent comments retain their native layout without a crossing line. */
+html.cgpt-ambient-on[data-aurora-site="huggingface"] body > .flex.min-h-dvh [data-target="DiscussionEvents"] .absolute.left-0.border-r {
+  border-color: transparent !important;
+}
+/* The outer editor shell owns the glass. Text entry, attachment footer, and
+ * preview share its backdrop, including the native active tab and submit. */
+html.cgpt-ambient-on[data-aurora-site="huggingface"] body > .flex.min-h-dvh [data-target="DiscussionEvents"] :is(
+  textarea[name="comment"], label:has(input[type="file"]), button.tab
+) {
+  background: transparent !important;
+  border-color: var(--aurora-glass-border) !important;
+  --tw-ring-color: var(--aurora-glass-border);
+  color: var(--theme-text-primary) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="huggingface"] body > .flex.min-h-dvh [data-target="DiscussionEvents"] :is(
+  textarea[name="comment"]:not(:focus), label:has(input[type="file"]), button.tab, button.btn
+) {
+  box-shadow: none !important;
+}
+html.cgpt-ambient-on[data-aurora-site="huggingface"] body > .flex.min-h-dvh [data-target="DiscussionEvents"] button.btn {
+  background: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+  color: var(--theme-text-primary) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="huggingface"] body > .flex.min-h-dvh [data-target="DiscussionEvents"] :is(
+  button.tab.active, button.tab:hover, button.btn:hover
+) {
+  background: var(--menu-item-hover) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="huggingface"] body > .flex.min-h-dvh [data-target="DiscussionEvents"] textarea[name="comment"]:focus {
+  border-color: var(--theme-text-secondary) !important;
+  --tw-ring-color: var(--theme-text-secondary);
+}
+/* The Hub inference bar paints its input, attachment label, and submit button
+ * separately. Apply glass to those native elements, including their gradients. */
+html.cgpt-ambient-on[data-aurora-site="huggingface"] body > .flex.min-h-dvh [data-target="InferenceWidget"] form :is(
+  input[name="prompt"], textarea[name="prompt"], button[type="submit"].btn-widget, label.btn-widget:has(input[type="file"])
+) {
+  background: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-glass-border) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, blur(14px)) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="huggingface"] body > .flex.min-h-dvh [data-target="InferenceWidget"] form :is(
+  button[type="submit"].btn-widget, label.btn-widget:has(input[type="file"])
+):is(:hover, :focus-visible) {
+  background: var(--menu-item-hover) !important;
+}
+/* Both Hub and HuggingChat use explicit Tailwind text colors. */
+html.cgpt-ambient-on[data-aurora-site="huggingface"] :is(#app, body > .flex.min-h-dvh) {
+  color: var(--theme-text-primary) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="huggingface"] :is(#app, body > .flex.min-h-dvh) :is(
+  .text-gray-600, .text-gray-700, .text-gray-800, .text-gray-900,
+  [class~="dark:text-gray-100"], [class~="dark:text-gray-200"], [class~="dark:text-gray-300"]
+) {
+  color: var(--theme-text-primary) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="huggingface"] :is(#app, body > .flex.min-h-dvh) :is(
+  .text-gray-400, .text-gray-500, [class~="dark:text-gray-400"], [class~="dark:text-gray-500"]
+) {
+  color: var(--theme-text-secondary) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="huggingface"] [data-aurora-surface="code"] pre {
+  background: transparent !important;
+}
+/* The desktop navigation shell is transparent around its native paint layers. */
+html.cgpt-ambient-on.cgpt-focus-mode-on[data-aurora-site="huggingface"] #app nav:has(a[href="/chat/models"]) {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+/* Sources and Thoughts accordions paint opaque sticky rows inside the glass
+ * aside. Use its shared tint for rows and expanded multi-agent result groups.
+ * The aside owns the blur so nested results keep a single backdrop filter. */
+html.cgpt-ambient-on[data-aurora-site="grok"] aside[data-aurora-surface="sidebar"] :is(
+  .sticky.top-12.bg-surface-l1,
+  [class~="group/row"] .bg-surface-l2.rounded-lg
+) {
+  background: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="grok"] aside[data-aurora-surface="sidebar"] .sticky.top-12.bg-surface-l1:hover {
+  background: color-mix(in srgb, var(--aurora-glass-fill), var(--menu-item-hover) 30%) !important;
+}
+/* The panel's sticky title fades through the same material as its rows. */
+html.cgpt-ambient-on[data-aurora-site="grok"] aside[data-aurora-surface="sidebar"] > .sticky.top-0.bg-gradient-to-b {
+  background-image: linear-gradient(to bottom, var(--aurora-glass-fill), transparent) !important;
+}
+/* Grok's bare controls keep their native transparent paint and hover states.
+ * Voice, submit, and stop share glass on their existing inner paint layer. */
+html.cgpt-ambient-on[data-aurora-site="grok"] [data-aurora-surface="composer"] :is(button, button > *):is(
+  .bg-button-filled, .bg-button-primary-fill, .bg-button-secondary-fill,
+  .bg-surface-base, .bg-surface-l1, .bg-surface-l2, .bg-surface-l3, .bg-surface-elevated
+)[data-aurora-surface="control"] {
+  background: var(--aurora-glass-fill) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-surface-edge, var(--aurora-glass-border)) !important;
+  color: var(--theme-text-primary) !important;
+}
+/* Voice's full-size pseudo-element otherwise covers its glass paint layer.
+ * Keep one fill while its native clip-path and connecting state change. */
+html.cgpt-ambient-on[data-aurora-site="grok"] [data-aurora-surface="composer"] :is(button, button > *)[class~="before:bg-surface-base"]::before {
+  background: transparent !important;
+}
+/* The submit hover overlay shares the inner layer's native outline and motion. */
+html.cgpt-ambient-on[data-aurora-site="grok"] [data-aurora-surface="composer"] [data-testid="chat-submit"] > .bg-button-filled::before {
+  background: var(--menu-item-hover) !important;
+}
+/* Promotions retain the same glass fill while resting and highlighted. */
+html.cgpt-ambient-on[data-aurora-site="grok"] [data-aurora-surface="promotion"],
+html.cgpt-ambient-on[data-aurora-site="grok"] [data-aurora-surface="promotion"]:is(:hover, :focus, [data-highlighted]) {
+  background: var(--aurora-glass-fill) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="grok"] :is(
+  [data-aurora-surface="promotion"], [data-aurora-surface="panel"]
+) :is(button, a[role="button"]):not([role="switch"])[data-aurora-surface="control"] {
+  background: var(--aurora-glass-fill) !important;
+  color: var(--theme-text-primary) !important;
+  border-color: var(--aurora-surface-edge, var(--aurora-glass-border)) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-surface-edge, var(--aurora-glass-border)) !important;
+}
+html.cgpt-ambient-on[data-aurora-site="grok"] :is(
+  [data-aurora-surface="promotion"], [data-aurora-surface="panel"]
+) :is(button, a[role="button"]):not([role="switch"]):is(:hover, :focus-visible) {
+  background: var(--menu-item-hover) !important;
+}
+/* The full-screen promotion reveals Aurora behind its individual glass panels. */
+html.cgpt-ambient-on[data-aurora-site="grok"] [data-aurora-surface="overlay"] {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 html.cgpt-ambient-on[data-aurora-site="grok"] [data-aurora-plane] { background-image: none !important; }
 html.cgpt-ambient-on.cgpt-animations-disabled [data-aurora-surface],
@@ -194,7 +1132,7 @@ html.cgpt-ambient-on.cgpt-animations-disabled [data-aurora-surface] * {
   }
 }
 
-html.cgpt-ambient-on [data-aurora-surface] [data-aurora-surface] {
+html.cgpt-ambient-on [data-aurora-surface]:not([data-aurora-surface="overlay"]) [data-aurora-surface] {
   backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
 }
 
@@ -228,7 +1166,3 @@ html.cgpt-ambient-on.cgpt-glass-user-messages[data-aurora-site="claude"] :is(bod
 html.cgpt-ambient-on[data-aurora-site="claude"] [data-aurora-surface="composer"] button [data-cds-part="paint"] {
   background: transparent !important;
 }
-html.cgpt-ambient-on[data-aurora-site="claude"] [data-aurora-surface="composer"] :is([data-cds="SegmentedControl"], [role="radio"]) {
-  border-radius: 6px !important;
-}
-html.cgpt-ambient-on[data-aurora-site="claude"] .dframe-root { --df-radius-pill: 6px; }

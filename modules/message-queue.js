@@ -311,7 +311,7 @@
             this.pending = null;
           } else {
             const send = dom().findComposerButton(composer, 'send');
-            if (send && !send.disabled && send.getAttribute('aria-disabled') !== 'true') {
+            if (send && !send.disabled && send.getAttribute('aria-disabled') !== 'true' && !send.classList.contains('ds-button--disabled') && send.getAttribute('data-disabled') !== 'true') {
               // Mark submitted before click because the host may update synchronously.
               pending.phase = 'submitted';
               pending.attemptedAt = Date.now();

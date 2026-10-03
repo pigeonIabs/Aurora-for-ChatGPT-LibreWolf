@@ -1,11 +1,12 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "1.8",
+  "version": "1.8.10",
   "default_locale": "en",
   "description": "__MSG_extensionDescription__",
   "background": {
     "scripts": [
+      "modules/aurora/preferences.js",
       "background.js"
     ]
   },
@@ -23,8 +24,13 @@
     "https://chatgpt.com/*",
     "https://claude.ai/*",
     "https://gemini.google.com/*",
+    "https://opal.google.com/_gemini*",
+    "https://opal.google/_app/*",
     "https://grok.com/*",
-    "https://auroraforchatgpt.tnemoroccan.workers.dev/*"
+    "https://chat.qwen.ai/*",
+    "https://aistudio.google.com/*",
+    "https://chat.deepseek.com/*",
+    "https://huggingface.co/*"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
@@ -35,10 +41,6 @@
       "data_collection_permissions": {
         "required": [
           "none"
-        ],
-        "optional": [
-          "personalCommunications",
-          "technicalAndInteraction"
         ]
       },
       "strict_min_version": "140.0"
@@ -85,14 +87,17 @@
         "data-masking.js",
         "modules/message-queue.js",
         "modules/aurora/namespace.js",
+        "modules/aurora/preferences.js",
         "modules/aurora/central-observer.js",
         "modules/aurora/config.js",
         "modules/aurora/utils.js",
+        "modules/aurora/material.js",
         "modules/aurora/i18n.js",
         "modules/aurora/fonts.js",
         "modules/aurora/contrast.js",
         "modules/aurora/background.js",
         "modules/aurora/upgrade.js",
+        "modules/aurora/interface.js",
         "modules/aurora/glass.js",
         "modules/aurora/default-model.js",
         "modules/aurora/quick-settings.js",
@@ -110,7 +115,9 @@
         "shared.css",
         "styles.css",
         "new-features.css",
-        "app-skin.css"
+        "app-skin.css",
+        "features.css",
+        "fonts.css"
       ],
       "run_at": "document_start"
     },
@@ -125,13 +132,17 @@
         "data-masking.js",
         "modules/message-queue.js",
         "modules/aurora/namespace.js",
+        "modules/aurora/preferences.js",
         "modules/aurora/central-observer.js",
         "modules/aurora/config.js",
         "modules/aurora/utils.js",
+        "modules/aurora/material.js",
         "modules/aurora/i18n.js",
         "modules/aurora/fonts.js",
         "modules/aurora/contrast.js",
         "modules/aurora/background.js",
+        "modules/aurora/upgrade.js",
+        "modules/aurora/interface.js",
         "modules/aurora/surfaces.js",
         "modules/aurora/quick-settings.js",
         "modules/aurora/root-flags.js",
@@ -146,7 +157,9 @@
       ],
       "css": [
         "shared.css",
-        "universal.css"
+        "universal.css",
+        "features.css",
+        "fonts.css"
       ],
       "run_at": "document_start"
     },
@@ -157,17 +170,22 @@
       "js": [
         "modules/aurora/sites.js",
         "modules/aurora/adapters/gemini.js",
+        "modules/aurora/gemini-gems.js",
         "modules/aurora/dom.js",
         "data-masking.js",
         "modules/message-queue.js",
         "modules/aurora/namespace.js",
+        "modules/aurora/preferences.js",
         "modules/aurora/central-observer.js",
         "modules/aurora/config.js",
         "modules/aurora/utils.js",
+        "modules/aurora/material.js",
         "modules/aurora/i18n.js",
         "modules/aurora/fonts.js",
         "modules/aurora/contrast.js",
         "modules/aurora/background.js",
+        "modules/aurora/upgrade.js",
+        "modules/aurora/interface.js",
         "modules/aurora/surfaces.js",
         "modules/aurora/quick-settings.js",
         "modules/aurora/root-flags.js",
@@ -182,7 +200,9 @@
       ],
       "css": [
         "shared.css",
-        "universal.css"
+        "universal.css",
+        "features.css",
+        "fonts.css"
       ],
       "run_at": "document_start"
     },
@@ -197,13 +217,17 @@
         "data-masking.js",
         "modules/message-queue.js",
         "modules/aurora/namespace.js",
+        "modules/aurora/preferences.js",
         "modules/aurora/central-observer.js",
         "modules/aurora/config.js",
         "modules/aurora/utils.js",
+        "modules/aurora/material.js",
         "modules/aurora/i18n.js",
         "modules/aurora/fonts.js",
         "modules/aurora/contrast.js",
         "modules/aurora/background.js",
+        "modules/aurora/upgrade.js",
+        "modules/aurora/interface.js",
         "modules/aurora/surfaces.js",
         "modules/aurora/quick-settings.js",
         "modules/aurora/root-flags.js",
@@ -218,8 +242,190 @@
       ],
       "css": [
         "shared.css",
-        "universal.css"
+        "universal.css",
+        "features.css",
+        "fonts.css"
       ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://chat.qwen.ai/*"
+      ],
+      "js": [
+        "modules/aurora/sites.js",
+        "modules/aurora/adapters/qwen.js",
+        "modules/aurora/dom.js",
+        "data-masking.js",
+        "modules/message-queue.js",
+        "modules/aurora/namespace.js",
+        "modules/aurora/preferences.js",
+        "modules/aurora/central-observer.js",
+        "modules/aurora/config.js",
+        "modules/aurora/utils.js",
+        "modules/aurora/material.js",
+        "modules/aurora/i18n.js",
+        "modules/aurora/fonts.js",
+        "modules/aurora/contrast.js",
+        "modules/aurora/background.js",
+        "modules/aurora/upgrade.js",
+        "modules/aurora/interface.js",
+        "modules/aurora/surfaces.js",
+        "modules/aurora/quick-settings.js",
+        "modules/aurora/root-flags.js",
+        "modules/aurora/audio.js",
+        "modules/aurora/masking.js",
+        "modules/aurora/model-preferences.js",
+        "modules/aurora/queue.js",
+        "modules/aurora/disable.js",
+        "modules/aurora/orchestrator.js",
+        "modules/aurora/init.js",
+        "content.js"
+      ],
+      "css": [
+        "shared.css",
+        "universal.css",
+        "features.css",
+        "fonts.css"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://aistudio.google.com/*"
+      ],
+      "js": [
+        "modules/aurora/sites.js",
+        "modules/aurora/adapters/aistudio.js",
+        "modules/aurora/dom.js",
+        "data-masking.js",
+        "modules/message-queue.js",
+        "modules/aurora/namespace.js",
+        "modules/aurora/preferences.js",
+        "modules/aurora/central-observer.js",
+        "modules/aurora/config.js",
+        "modules/aurora/utils.js",
+        "modules/aurora/material.js",
+        "modules/aurora/i18n.js",
+        "modules/aurora/fonts.js",
+        "modules/aurora/contrast.js",
+        "modules/aurora/background.js",
+        "modules/aurora/upgrade.js",
+        "modules/aurora/interface.js",
+        "modules/aurora/surfaces.js",
+        "modules/aurora/quick-settings.js",
+        "modules/aurora/root-flags.js",
+        "modules/aurora/audio.js",
+        "modules/aurora/masking.js",
+        "modules/aurora/model-preferences.js",
+        "modules/aurora/queue.js",
+        "modules/aurora/disable.js",
+        "modules/aurora/orchestrator.js",
+        "modules/aurora/init.js",
+        "content.js"
+      ],
+      "css": [
+        "shared.css",
+        "universal.css",
+        "features.css",
+        "fonts.css"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://chat.deepseek.com/*"
+      ],
+      "js": [
+        "modules/aurora/sites.js",
+        "modules/aurora/adapters/deepseek.js",
+        "modules/aurora/dom.js",
+        "data-masking.js",
+        "modules/message-queue.js",
+        "modules/aurora/namespace.js",
+        "modules/aurora/preferences.js",
+        "modules/aurora/central-observer.js",
+        "modules/aurora/config.js",
+        "modules/aurora/utils.js",
+        "modules/aurora/material.js",
+        "modules/aurora/i18n.js",
+        "modules/aurora/fonts.js",
+        "modules/aurora/contrast.js",
+        "modules/aurora/background.js",
+        "modules/aurora/upgrade.js",
+        "modules/aurora/interface.js",
+        "modules/aurora/surfaces.js",
+        "modules/aurora/quick-settings.js",
+        "modules/aurora/root-flags.js",
+        "modules/aurora/audio.js",
+        "modules/aurora/masking.js",
+        "modules/aurora/queue.js",
+        "modules/aurora/disable.js",
+        "modules/aurora/orchestrator.js",
+        "modules/aurora/init.js",
+        "content.js"
+      ],
+      "css": [
+        "shared.css",
+        "universal.css",
+        "features.css",
+        "fonts.css"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://huggingface.co/*"
+      ],
+      "js": [
+        "modules/aurora/sites.js",
+        "modules/aurora/adapters/huggingface.js",
+        "modules/aurora/dom.js",
+        "data-masking.js",
+        "modules/message-queue.js",
+        "modules/aurora/namespace.js",
+        "modules/aurora/preferences.js",
+        "modules/aurora/central-observer.js",
+        "modules/aurora/config.js",
+        "modules/aurora/utils.js",
+        "modules/aurora/material.js",
+        "modules/aurora/i18n.js",
+        "modules/aurora/fonts.js",
+        "modules/aurora/contrast.js",
+        "modules/aurora/background.js",
+        "modules/aurora/upgrade.js",
+        "modules/aurora/interface.js",
+        "modules/aurora/surfaces.js",
+        "modules/aurora/quick-settings.js",
+        "modules/aurora/root-flags.js",
+        "modules/aurora/audio.js",
+        "modules/aurora/masking.js",
+        "modules/aurora/queue.js",
+        "modules/aurora/disable.js",
+        "modules/aurora/orchestrator.js",
+        "modules/aurora/init.js",
+        "content.js"
+      ],
+      "css": [
+        "shared.css",
+        "universal.css",
+        "features.css",
+        "fonts.css"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://opal.google.com/_gemini*",
+        "https://opal.google/_app/*"
+      ],
+      "js": [
+        "modules/aurora/gemini-gems.js"
+      ],
+      "css": [
+        "gemini-gems.css"
+      ],
+      "all_frames": true,
       "run_at": "document_start"
     }
   ],
@@ -228,13 +434,20 @@
       "resources": [
         "icons/*",
         "assets/grok-4.webp",
-        "_locales/*/messages.json"
+        "assets/space-stars.svg",
+        "assets/health-zero-state-records-*.svg",
+        "_locales/*/messages.json",
+        "assets/fonts/*"
       ],
       "matches": [
         "https://chatgpt.com/*",
         "https://claude.ai/*",
         "https://gemini.google.com/*",
-        "https://grok.com/*"
+        "https://grok.com/*",
+        "https://chat.qwen.ai/*",
+        "https://aistudio.google.com/*",
+        "https://chat.deepseek.com/*",
+        "https://huggingface.co/*"
       ]
     }
   ],

@@ -3,10 +3,10 @@
     "en-US": "Aurora Universal"
   },
   "summary": {
-    "en-US": "Glass themes and custom backgrounds for ChatGPT, Claude, and Gemini."
+    "en-US": "Glass themes and backgrounds for ChatGPT, Claude, Gemini, Grok, Qwen, Google AI Studio, DeepSeek, and Hugging Face."
   },
   "description": {
-    "en-US": "A lightweight LibreWolf-focused extension with shared glass themes, custom image and video backgrounds, fonts, sidebar privacy styling, and quick settings. ChatGPT also includes data masking, queued messages, model selection, and voice styling. Claude and Gemini adapters are in initial development.\n\nPreferences and custom background files stay in browser storage. Optional feedback is sent only when the user submits the form and grants Firefox data permission.\n\nIndependently maintained and based on Aurora for ChatGPT."
+    "en-US": "Glass themes, image and video backgrounds, fonts, privacy controls, and quick settings for ChatGPT, Claude, Gemini, Grok, Qwen, Google AI Studio, DeepSeek, and Hugging Face, including HuggingChat. Message queues and model preferences follow native website controls. Preferences and uploaded backgrounds stay in browser storage."
   },
   "categories": [
     "appearance",
@@ -19,8 +19,8 @@
   "version": {
     "license": "MIT",
     "release_notes": {
-      "en-US": "Aurora 1.8 is the complete overhaul for the redesigned ChatGPT app shell and Codex Cloud. Restores glass styling for composers, navigation, menus, settings, writing blocks, editable code blocks, and the prompt bar voice button. Keeps glass transparency independent from blur, with fully transparent fills at maximum transparency and zero filtering at zero blur. Repairs default model selection, queued replies, quick settings, and visual privacy masking for the new editor. Improves light theme compatibility with Dark Reader and uses compact control corners. Preserves the dotted message border in temporary chats and keeps the top bar seamless."
+      "en-US": "Adds all eight supported websites, shared appearance and privacy controls, message queues, native model preferences, and bundled fonts. Expands Gemini galleries and AI Studio workspaces. Simplifies the settings popup and welcome setup."
     },
-    "approval_notes": "This is an unofficial MIT-licensed fork of TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT. The upstream copyright and MIT license are preserved. The XPI build script packages the human-readable runtime source without compilation or transpilation. The unlimitedStorage permission is used only for custom image and video backgrounds selected by the user and stored locally, with a 15 MB file limit. The optional feedback form posts user-entered feedback, a random ticket ID, the extension version, and the browser user agent to auroraforchatgpt.tnemoroccan.workers.dev only after the user initiates submission and grants the optional Firefox data permission."
+    "approval_notes": "MIT-licensed browser extension. The XPI contains readable JavaScript and CSS source. The unlimitedStorage permission stores user-selected backgrounds locally within a 15 MB file limit. Website access applies the matching adapter and styles. Copyright and license notices are included in the package."
   }
 }

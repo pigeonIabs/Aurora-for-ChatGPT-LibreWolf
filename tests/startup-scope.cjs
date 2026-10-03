@@ -9,7 +9,7 @@ const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'u
 // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts
 for (const entry of manifest.content_scripts) {
   const origin = entry.matches[0].replace(/\*$/, '');
-  const siteId = new URL(origin).hostname.split('.')[0];
+  const siteId = path.basename(entry.js[1], '.js');
   for (const splitScope of [true, false]) {
     const attributes = new Map();
     const classes = new Set();
@@ -29,7 +29,7 @@ for (const entry of manifest.content_scripts) {
     if (splitScope) Object.setPrototypeOf(scope, scope.window);
     scope.chrome = {runtime: {id: manifest.browser_specific_settings.gecko.id, getURL: name => `moz-extension://test/${name}`}, storage: {local: {set() {}}}};
     const context = vm.createContext(scope);
-    const files = [entry.js[0], entry.js[1], 'modules/aurora/namespace.js', 'modules/aurora/config.js', 'modules/aurora/root-flags.js'];
+    const files = [entry.js[0], entry.js[1], 'modules/aurora/namespace.js', 'modules/aurora/preferences.js', 'modules/aurora/config.js', 'modules/aurora/root-flags.js'];
     for (const file of files) vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context, {filename: file});
     const A = scope.window.AuroraExt;
     assert.equal(A.site.id, siteId);
@@ -43,6 +43,16 @@ for (const entry of manifest.content_scripts) {
     A.state.settings.disabledSites = [];
     A.state.settings.extensionEnabled = false;
     assert.equal(A.isActive(), false);
+    const saved = A.preferences.normalize({disabledSites: [siteId], siteDefaultModels: {[siteId]: '  Native model  '}});
+    assert.equal(saved.disabledSites.includes(siteId), true);
+    assert.equal(saved.siteDefaultModels[siteId], 'Native model');
+    if (siteId === 'huggingface') {
+      assert.equal(A.sites.fromUrl('https://huggingface.co/models').id, 'huggingface');
+      assert.equal(A.sites.fromUrl('https://huggingface.co/').id, 'huggingface');
+      assert.equal(A.site.isSupportedRoute('/chat/login/callback'), false);
+      assert.equal(A.site.isSupportedRoute('/oauth/authorize'), false);
+      assert.equal(A.site.isSupportedRoute('/settings/tokens'), false);
+    }
     console.log(`${siteId} ${splitScope ? 'Firefox content scope' : 'shared window scope'} startup passed`);
   }
 }

@@ -1,107 +1,75 @@
-const DEFAULTS = {
-  legacyComposer: false,
-  theme: 'auto',
-  appearance: 'clear',
-  glassIntensity: 100,
-  glassUserMessages: true,
-  hideGpt5Limit: false,
-  hideUpgradeButtons: false,
-  disableAnimations: false,
-  focusMode: false,
-  hideQuickSettings: false,
-  queueWhileGenerating: false,
-  customBgUrl: '',
-  backgroundBlur: '60',
-  backgroundScaling: 'cover',
-  voiceColor: 'default',
-  cuteVoiceUI: false,
-  hasSeenWelcomeScreen: false,
-  defaultModel: '',
-  customFont: 'system',
-  blurChatHistory: false,
-  blurAvatar: false,
-  soundEnabled: false,
-  soundVolume: 'low',
-  autoContrast: false,
-  smartSelectors: true,
-  dataMaskingEnabled: false,
-  maskingRandomMode: false,
-  cinemaMode: false,
-  extensionEnabled: true,
-  disabledSites: [],
-  siteDefaultModels: {}
-};
+const preferences = window.AuroraExt.preferences;
+const DEFAULTS = preferences.defaults;
+const normalizeDefaultModel = preferences.normalizeDefaultModel;
+const normalizeSiteSettings = preferences.normalize;
 
-const DEFAULT_MODEL_VALUES = new Set([
-  '',
-  'gpt-5.5-instant',
-  'gpt-5.6-sol-medium',
-  'gpt-5.6-sol-high',
-]);
-
-function normalizeDefaultModel(value) {
-  return DEFAULT_MODEL_VALUES.has(value) ? value : '';
-}
-
-const SITE_IDS = ['chatgpt', 'claude', 'gemini', 'grok'];
-function normalizeSitePreference(key, value) {
-  if (key === 'disabledSites') return SITE_IDS.filter(id => Array.isArray(value) && value.includes(id));
-  if (key === 'siteDefaultModels') return Object.fromEntries(SITE_IDS
-    .filter(id => typeof value?.[id] === 'string')
-    .map(id => [id, value[id].replace(/\s+/g, ' ').trim().slice(0, 120)]));
-  return value;
-}
-function normalizeSiteSettings(settings) {
-  return { ...settings, disabledSites: normalizeSitePreference('disabledSites', settings.disabledSites),
-    siteDefaultModels: normalizeSitePreference('siteDefaultModels', settings.siteDefaultModels) };
-}
-
-// --- Settings Cache for Instant Popup Response ---
+// One settings read serves every caller during a cold background-page start.
+// Large uploaded media is read only when a popup requests its local preview.
 let settingsCache = null;
-let localCache = {};
+let localCache = null;
+let localRequest = null;
+let localRevision = 0;
+const LOCAL_KEYS = ['customBgData', 'detectedTheme'];
+const pendingSettings = {};
 
-// Pre-cache settings on service worker startup
-chrome.storage.sync.get(DEFAULTS, (settings) => {
-  const defaultModel = normalizeDefaultModel(settings.defaultModel);
-  settingsCache = normalizeSiteSettings({ ...DEFAULTS, ...settings, defaultModel });
-  if (defaultModel !== settings.defaultModel) {
-    chrome.storage.sync.set({ defaultModel });
-  }
-});
-chrome.storage.local.get(['customBgData', 'detectedTheme'], (local) => {
-  localCache = local || {};
-});
-
-// Restore the user's saved preferences once when upgrading the old toggle behavior.
-chrome.storage.sync.get(['extensionSettingsBackup', 'extensionEnabled'], data => {
-  if (data.extensionSettingsBackup && typeof data.extensionSettingsBackup === 'object') {
-    const restored = Object.fromEntries(Object.keys(DEFAULTS)
-      .filter(key => key !== 'extensionEnabled' && data.extensionSettingsBackup[key] !== undefined)
-      .map(key => [key, data.extensionSettingsBackup[key]]));
-    chrome.storage.sync.set({ ...restored, extensionEnabled: data.extensionEnabled !== false }, () => {
-      if (!chrome.runtime.lastError) chrome.storage.sync.remove('extensionSettingsBackup');
-    });
-  }
-});
-
-// Keep cache in sync with any storage changes
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'sync' && settingsCache) {
-    for (const [key, { newValue }] of Object.entries(changes)) {
-      if (newValue !== undefined) {
-        settingsCache[key] = key === 'defaultModel' ? normalizeDefaultModel(newValue) : normalizeSitePreference(key, newValue);
-      } else {
-        settingsCache[key] = DEFAULTS[key];
-      }
+const settingsReady = new Promise(resolve => {
+  chrome.storage.sync.get({ ...DEFAULTS, extensionSettingsBackup: null }, stored => {
+    stored ||= {};
+    const backup = stored.extensionSettingsBackup;
+    const restored = backup && typeof backup === 'object'
+      ? Object.fromEntries(Object.keys(DEFAULTS)
+        .filter(key => key !== 'extensionEnabled' && backup[key] !== undefined && !(key in pendingSettings))
+        .map(key => [key, backup[key]]))
+      : {};
+    const settings = { ...DEFAULTS, ...stored, ...restored, ...pendingSettings };
+    delete settings.extensionSettingsBackup;
+    const defaultModel = normalizeDefaultModel(settings.defaultModel);
+    settingsCache = normalizeSiteSettings({ ...settings, defaultModel });
+    const updates = { ...restored };
+    if (defaultModel !== settings.defaultModel) updates.defaultModel = defaultModel;
+    if (Object.keys(updates).length) {
+      chrome.storage.sync.set(updates, () => {
+        if (!chrome.runtime.lastError && backup) chrome.storage.sync.remove('extensionSettingsBackup');
+        resolve(settingsCache);
+      });
+    } else {
+      if (backup) chrome.storage.sync.remove('extensionSettingsBackup');
+      resolve(settingsCache);
     }
-  }
-  if (area === 'local') {
+  });
+});
+
+function getLocalData() {
+  if (localCache) return Promise.resolve(localCache);
+  if (localRequest) return localRequest;
+  const revision = localRevision;
+  localRequest = new Promise(resolve => chrome.storage.local.get(LOCAL_KEYS, resolve))
+    .then(local => {
+      localRequest = null;
+      // A concurrent upload or theme change wins over an older storage response.
+      if (revision !== localRevision) return getLocalData();
+      localCache = local || {};
+      return localCache;
+    });
+  return localRequest;
+}
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'sync') {
     for (const [key, { newValue }] of Object.entries(changes)) {
-      if (newValue !== undefined) {
-        localCache[key] = newValue;
-      } else {
-        delete localCache[key];
-      }
+      if (key === 'extensionSettingsBackup') continue;
+      const normalized = preferences.value(key, newValue);
+      if (settingsCache) settingsCache[key] = normalized;
+      else pendingSettings[key] = normalized;
+    }
+  } else if (area === 'local') {
+    for (const key of LOCAL_KEYS) {
+      if (!(key in changes)) continue;
+      localRevision++;
+      if (!localCache) continue;
+      const value = changes[key].newValue;
+      if (value === undefined) delete localCache[key];
+      else localCache[key] = value;
     }
   }
 });
@@ -130,48 +98,26 @@ chrome.runtime.onInstalled.addListener((details) => {
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  // GET_SETTINGS: Returns just settings object (for content.js compatibility)
   if (request.type === 'GET_SETTINGS') {
     if (settingsCache) {
       sendResponse(settingsCache);
-      return false; // Synchronous response
-    } else {
-      // Fallback: cache not ready yet (rare edge case)
-      chrome.storage.sync.get(DEFAULTS, (settings) => {
-        settingsCache = normalizeSiteSettings({
-          ...DEFAULTS,
-          ...settings,
-          defaultModel: normalizeDefaultModel(settings.defaultModel),
-        });
-        sendResponse(settingsCache);
-      });
-      return true; // Async response
+      return false;
     }
+    settingsReady.then(() => sendResponse(settingsCache));
+    return true;
   }
-  
-  // GET_SETTINGS_FULL: Returns settings + local data (for popup.js instant open)
+
   if (request.type === 'GET_SETTINGS_FULL') {
-    if (settingsCache) {
+    if (settingsCache && localCache) {
       sendResponse({ settings: settingsCache, local: localCache });
-      return false; // Synchronous response
-    } else {
-      // Fallback: cache not ready yet (rare edge case)
-      Promise.all([
-        chrome.storage.sync.get(DEFAULTS),
-        chrome.storage.local.get(['customBgData', 'detectedTheme'])
-      ]).then(([sync, local]) => {
-        settingsCache = normalizeSiteSettings({
-          ...DEFAULTS,
-          ...sync,
-          defaultModel: normalizeDefaultModel(sync.defaultModel),
-        });
-        localCache = local || {};
-        sendResponse({ settings: settingsCache, local: localCache });
-      });
-      return true; // Async response
+      return false;
     }
+    Promise.all([settingsReady, getLocalData()]).then(([, local]) => {
+      sendResponse({ settings: settingsCache, local });
+    });
+    return true;
   }
-  
+
   if (request.type === 'GET_DEFAULTS') {
     sendResponse(DEFAULTS);
     return false;

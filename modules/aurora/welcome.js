@@ -32,7 +32,6 @@
               <div class="progress-dots">
                 <span class="dot active"></span>
                 <span class="dot"></span>
-                <span class="dot"></span>
               </div>
               <button id="get-started-btn" class="welcome-btn primary">${escapeHtml(
                 getMessage('welcomeBtnGetStarted')
@@ -80,42 +79,11 @@
           <div class="progress-dots bar-dots">
             <span class="dot"></span>
             <span class="dot active"></span>
-            <span class="dot"></span>
           </div>
 
-          <button id="next-to-support-btn" class="welcome-btn primary finish-button">${escapeHtml(
-            getMessage('welcomeBtnNext')
+          <button id="finish-btn" class="welcome-btn primary finish-button">${escapeHtml(
+            getMessage('welcomeBtnFinish')
           )}</button>
-        </div>
-
-        <div id="aurora-support-screen" class="support-screen">
-          <div class="support-card">
-            <div class="support-header">
-              <span class="support-icon">A</span>
-              <h2>${escapeHtml(getMessage('welcomeSupportTitle'))}</h2>
-            </div>
-            <p class="support-description">${escapeHtml(getMessage('welcomeSupportDescription'))}</p>
-
-            <div class="support-buttons">
-              <a href="https://ko-fi.com/testtm" target="_blank" rel="noopener" class="support-btn donate-btn">
-                <span>${escapeHtml(getMessage('welcomeSupportDonate'))}</span>
-              </a>
-              <a href="https://github.com/TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT" target="_blank" rel="noopener" class="support-btn github-btn">
-                <span>${escapeHtml(getMessage('welcomeSupportStar'))}</span>
-              </a>
-            </div>
-
-            <div class="progress-dots">
-              <span class="dot"></span>
-              <span class="dot"></span>
-              <span class="dot active"></span>
-            </div>
-
-            <button id="finish-btn" class="welcome-btn primary">${escapeHtml(getMessage('welcomeBtnFinish'))}</button>
-            <button id="skip-support-btn" class="welcome-btn-link">${escapeHtml(
-              getMessage('welcomeBtnSkip')
-            )}</button>
-          </div>
         </div>
 
         <div id="aurora-success-overlay" class="success-overlay">
@@ -142,13 +110,10 @@
     const tempSettings = { ...settings };
 
     const getStartedBtn = document.getElementById('get-started-btn');
-    const nextToSupportBtn = document.getElementById('next-to-support-btn');
     const finishBtn = document.getElementById('finish-btn');
-    const skipSupportBtn = document.getElementById('skip-support-btn');
     const welcomeOverlay = document.getElementById('aurora-welcome-overlay');
     const welcomeContainer = document.querySelector('.welcome-container');
     const styleBar = document.getElementById('aurora-style-bar');
-    const supportScreen = document.getElementById('aurora-support-screen');
 
     const finishWelcome = () => {
       tempSettings.hasSeenWelcomeScreen = true;
@@ -196,15 +161,6 @@
       defaultTile?.classList.add('active');
     });
 
-    nextToSupportBtn?.addEventListener('click', () => {
-      if (styleBar) {
-        styleBar.classList.remove('active');
-        styleBar.classList.add('exiting');
-      }
-      setTimeout(() => supportScreen?.classList.add('active'), 200);
-    });
-
-    skipSupportBtn?.addEventListener('click', finishWelcome);
     finishBtn?.addEventListener('click', finishWelcome);
 
     document.querySelectorAll('#aurora-style-bar .preset-tile').forEach((tile) => {

@@ -6,24 +6,11 @@ const LOCAL_BG_KEY = 'customBgData';
 const BLUE_WALLPAPER_URL = 'https://img.freepik.com/free-photo/abstract-luxury-gradient-blue-background-smooth-dark-blue-with-black-vignette-studio-banner_1258-54581.jpg?semt=ais_hybrid&w=740&q=80';
 const GROK_HORIZON_URL = chrome?.runtime?.getURL ? chrome.runtime.getURL('assets/grok-4.webp') : 'assets/grok-4.webp';
 const PURE_BLACK_BACKGROUND = '__pure_black__';
-const FEEDBACK_API_URL = 'https://auroraforchatgpt.tnemoroccan.workers.dev';
 
-const DEFAULTS = {
-  legacyComposer: false, theme: 'auto', appearance: 'clear', glassIntensity: 100, hideGpt5Limit: false,
-  glassUserMessages: true,
-  hideUpgradeButtons: false, disableAnimations: false, focusMode: false,
-  hideQuickSettings: false, queueWhileGenerating: false, customBgUrl: '', backgroundBlur: '60',
-  backgroundScaling: 'cover', voiceColor: 'default', cuteVoiceUI: false,
-  hasSeenWelcomeScreen: false, defaultModel: '', customFont: 'system',
-  blurChatHistory: false, blurAvatar: false,
-  soundEnabled: false, soundVolume: 'low', autoContrast: false,
-  smartSelectors: true, dataMaskingEnabled: false, maskingRandomMode: false,
-  cinemaMode: false,
-  extensionEnabled: true, disabledSites: [], siteDefaultModels: {}
-};
+const DEFAULTS = window.AuroraExt.preferences.defaults;
 
 const TOGGLE_KEYS = [
-  'legacyComposer', 'hideGpt5Limit', 'hideUpgradeButtons', 'disableAnimations',
+  'legacyComposer', 'hideUpgradeButtons', 'hideRateLimitMessages', 'disableAnimations',
   'focusMode', 'hideQuickSettings', 'queueWhileGenerating', 'blurChatHistory',
   'blurAvatar', 'soundEnabled', 'autoContrast', 'dataMaskingEnabled',
   'maskingRandomMode', 'cuteVoiceUI', 'cinemaMode', 'glassUserMessages'
@@ -53,14 +40,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 1. Cache all DOM elements ONCE (eliminates repeated querySelectorAll)
   cacheElements();
-  
+
   // 2. Apply localization immediately (uses cached elements)
   applyLocalization();
   applySiteScope();
   
-  // 3. Setup static UI (tabs, feedback) - no data needed
+  // 3. Setup static tabs
   setupTabs();
-  setupFeedbackSystem();
   
   // 4. Render with defaults INSTANTLY (0ms blocking - UI appears immediately)
   renderUi(DEFAULTS, { detectedTheme: 'dark' });
@@ -101,7 +87,10 @@ async function applySiteScope() {
   const saveModel = async value => {
     const id = selectedSite.id;
     const stored = await chrome.storage.sync.get({ siteDefaultModels: {} });
-    chrome.storage.sync.set({ siteDefaultModels: { ...stored.siteDefaultModels, [id]: value } });
+    const models = { ...stored.siteDefaultModels, [id]: value };
+    currentSettings = { ...currentSettings, siteDefaultModels: models };
+    renderSiteSettings();
+    chrome.storage.sync.set({ siteDefaultModels: models });
   };
   document.getElementById('siteDefaultModel').addEventListener('change', event => saveModel(event.target.value));
   document.getElementById('useCurrentModel').addEventListener('click', () => {
@@ -112,46 +101,68 @@ async function applySiteScope() {
     selectedSite = AuroraExt.sites.fromUrl(activeSiteTab?.url) || selectedSite;
   } catch { /* The site selector remains available on extension pages. */ }
   select.value = selectedSite.id;
+  chrome.tabs.onUpdated?.addListener((tabId, change, tab) => {
+    if (tabId !== activeSiteTab?.id || !change.url) return;
+    activeSiteTab = tab;
+    const site = AuroraExt.sites.fromUrl(tab.url);
+    if (site && site.id === selectedSite.id) refreshSiteControls();
+  });
   await refreshSiteControls();
+}
+
+function filterSiteControls() {
+  const site = selectedSite;
+  const context = { url: siteState.url || (AuroraExt.sites.fromUrl(activeSiteTab?.url)?.id === site.id ? activeSiteTab.url : undefined), capabilities: siteState.capabilities };
+  [...TOGGLE_KEYS, 'defaultModel', 'voiceColor'].forEach(key => {
+    const el = document.getElementById(key) || document.getElementById(`${key}Selector`);
+    const row = el?.closest('.row');
+    if (row) row.dataset.siteUnsupported = String(!AuroraExt.sites.supports(site, key, context) || (key === 'defaultModel' && site.id !== 'chatgpt') || (key === 'maskingRandomMode' && !currentSettings.dataMaskingEnabled) || (key === 'autoContrast' && ['__pure_black__', '__gpt5_animated__'].includes(currentSettings.customBgUrl)));
+  });
+  document.getElementById('siteDefaultModelRow').dataset.siteUnsupported = String(site.id === 'chatgpt' || !AuroraExt.sites.supports(site, 'defaultModel', context));
+  document.getElementById('soundVolume')?.closest('.row')?.setAttribute('data-site-unsupported', String(!currentSettings.soundEnabled));
+  $.panes?.forEach(pane => {
+    const available = [...pane.querySelectorAll('.row')].some(row => row.dataset.siteUnsupported !== 'true' && !row.hidden);
+    document.querySelector(`.tab-link[data-tab="${pane.id}"]`)?.setAttribute('data-site-unsupported', String(!available));
+  });
+  updateSectionVisibility();
+  buildSearchableData();
+  if ($.settingsSearch?.value) handleSearch();
+  else if (document.querySelector('.tab-link.active')?.dataset.siteUnsupported === 'true') document.querySelector('.tab-link:not([data-site-unsupported="true"])')?.click();
+}
+
+function updateSectionVisibility() {
+  document.querySelectorAll('.section-header').forEach(header => {
+    let sibling = header.nextElementSibling;
+    let available = false;
+    while (sibling && !sibling.classList.contains('section-header')) {
+      if (sibling.classList.contains('row') && sibling.dataset.siteUnsupported !== 'true' && !sibling.classList.contains('is-hidden') && !sibling.hidden) available = true;
+      sibling = sibling.nextElementSibling;
+    }
+    header.dataset.siteUnsupported = String(!available);
+  });
 }
 
 async function refreshSiteControls() {
   const revision = ++siteRequestRevision;
   const site = selectedSite;
   closeAllSelects();
-  [...TOGGLE_KEYS, 'defaultModel', 'voiceColor'].forEach(key => {
-    const el = document.getElementById(key) || document.getElementById(`${key}Selector`);
-    const row = el?.closest('.row');
-    if (row) row.dataset.siteUnsupported = String(!AuroraExt.sites.supports(site, key) || (key === 'defaultModel' && site.id !== 'chatgpt'));
-  });
-  document.getElementById('siteDefaultModelRow').dataset.siteUnsupported = String(site.id === 'chatgpt');
-  document.querySelectorAll('.section-header').forEach(header => {
-    let sibling = header.nextElementSibling;
-    let available = false;
-    while (sibling && !sibling.classList.contains('section-header')) {
-      if (sibling.classList.contains('row') && sibling.dataset.siteUnsupported !== 'true') available = true;
-      sibling = sibling.nextElementSibling;
-    }
-    header.dataset.siteUnsupported = String(!available);
-  });
   siteState = { models: [], currentModel: '' };
   renderSiteSettings();
-  buildSearchableData();
-  if ($.settingsSearch?.value) handleSearch();
-  if (site.id === 'chatgpt') return;
+  filterSiteControls();
   try {
     const key = `modelCatalog:${site.id}`;
     const stored = await chrome.storage.local.get(key);
     if (revision !== siteRequestRevision) return;
     siteState.models = Array.isArray(stored[key]) ? stored[key] : [];
     renderSiteSettings();
-    const tabs = await chrome.tabs.query({ url: `https://${site.host}/*` });
+    const tabs = await chrome.tabs.query({ url: site.matches });
     const tab = tabs.find(item => item.id === activeSiteTab?.id) || tabs.find(item => item.active) || tabs[0];
     if (!tab) return;
     const snapshot = await chrome.tabs.sendMessage(tab.id, { type: 'GET_SITE_STATE' });
     if (revision !== siteRequestRevision || snapshot?.site !== site.id) return;
     siteState = snapshot;
     renderSiteSettings();
+    filterSiteControls();
   } catch { /* Saved model choices also work while a site is closed. */ }
 }
 
@@ -166,6 +177,7 @@ function renderSiteSettings() {
   select.replaceChildren(new Option(getMessage('defaultModelOptionNone'), ''), ...names.map(name => new Option(name, name)));
   select.value = chosen;
   const current = document.getElementById('useCurrentModel');
+  current.hidden = !siteState.currentModel || siteState.currentModel === chosen;
   current.disabled = !siteState.currentModel || siteState.currentModel === chosen;
   current.title = siteState.currentModel || getMessage('openSiteForModel');
 }
@@ -210,19 +222,6 @@ function cacheElements() {
   $.importExportRow = document.getElementById('importExportTextAreaRow');
   $.masterToggleBtn = document.getElementById('masterToggleBtn');
   
-  // Feedback elements
-  $.feedbackTrigger = document.getElementById('feedbackTrigger');
-  $.feedbackBox = document.getElementById('feedbackBox');
-  $.closeFeedback = document.getElementById('closeFeedback');
-  $.sendFeedback = document.getElementById('sendFeedback');
-  $.feedbackInput = document.getElementById('feedbackInput');
-  $.feedbackStatus = document.getElementById('feedbackStatus');
-  $.donationModal = document.getElementById('donationModal');
-  $.closeDonationModal = document.getElementById('closeDonationModal');
-  $.ticketIdDisplay = document.getElementById('ticketIdDisplay');
-  $.copyTicketBtn = document.getElementById('copyTicketBtn');
-  $.copyFeedback = document.getElementById('copyFeedback');
-  
   // Collections (cached once)
   $.tabs = document.querySelectorAll('.tab-link');
   $.panes = document.querySelectorAll('.tab-pane');
@@ -249,6 +248,7 @@ function cacheElements() {
 function renderUi(settings, localData = {}) {
   currentSettings = settings;
   renderSiteSettings();
+  filterSiteControls();
   // Theme Toggle
   let isLightTheme = settings.theme === 'light';
   if (settings.theme === 'auto' && localData.detectedTheme === 'light') {
@@ -286,7 +286,10 @@ function renderUi(settings, localData = {}) {
 
   // Text Inputs
   if ($.bgUrl) {
-    if (settings.customBgUrl === '__gpt5_animated__') {
+    if (settings.customBgUrl === '__space__') {
+      $.bgUrl.value = getMessage('bgPresetOptionSpace') || 'Space';
+      $.bgUrl.disabled = true;
+    } else if (settings.customBgUrl === '__gpt5_animated__') {
       $.bgUrl.value = getMessage('statusAnimatedBackground') || 'Animated Active';
       $.bgUrl.disabled = true;
     } else if (settings.customBgUrl === '__local__') {
@@ -301,6 +304,8 @@ function renderUi(settings, localData = {}) {
 
   // Initialize/Update Custom Selects (Optimized: builds once, updates only values)
   initOrUpdateSelects(settings);
+  const soundVolume = document.getElementById('soundVolume');
+  if (soundVolume) soundVolume.value = settings.soundVolume || 'low';
 }
 
 // --- Custom Selects (Single-Pass Initialization) ---
@@ -310,6 +315,7 @@ const SELECT_CONFIGS = [
     options: [
       { value: 'default', labelKey: 'bgPresetOptionDefault' },
       { value: PURE_BLACK_BACKGROUND, label: 'Pure Black' },
+      { value: '__space__', labelKey: 'bgPresetOptionSpace' },
       { value: '__gpt5_animated__', labelKey: 'bgPresetOptionGpt5Animated' },
       { value: 'grokHorizon', labelKey: 'bgPresetOptionGrokHorizon' },
       { value: 'blue', labelKey: 'bgPresetOptionBlue' },
@@ -320,6 +326,7 @@ const SELECT_CONFIGS = [
       if (v === BLUE_WALLPAPER_URL) return 'blue';
       if (v === GROK_HORIZON_URL) return 'grokHorizon';
       if (v === PURE_BLACK_BACKGROUND) return PURE_BLACK_BACKGROUND;
+      if (v === '__space__') return '__space__';
       if (v === '__gpt5_animated__') return '__gpt5_animated__';
       return 'custom';
     },
@@ -328,8 +335,10 @@ const SELECT_CONFIGS = [
       if (val === 'blue') url = BLUE_WALLPAPER_URL;
       else if (val === 'grokHorizon') url = GROK_HORIZON_URL;
       else if (val === PURE_BLACK_BACKGROUND) url = PURE_BLACK_BACKGROUND;
+      else if (val === '__space__') url = '__space__';
       else if (val === '__gpt5_animated__') url = '__gpt5_animated__';
-      if (val !== 'custom') chrome.storage.local.remove(LOCAL_BG_KEY);
+      // Space preserves the uploaded background and changes only the selection.
+      if (val !== 'custom' && val !== '__space__') chrome.storage.local.remove(LOCAL_BG_KEY);
       chrome.storage.sync.set({ customBgUrl: url });
     }
   },
@@ -542,11 +551,14 @@ document.addEventListener('click', closeAllSelects);
 
 // --- Event Listeners (Setup ONCE) ---
 function setupChangeListeners() {
+  document.getElementById('soundVolume')?.addEventListener('change', event => chrome.storage.sync.set({ soundVolume: event.target.value }));
   // Toggles - event delegation on body
   TOGGLE_KEYS.forEach(key => {
     const el = $.toggles?.[key];
     if (el) {
       el.addEventListener('change', () => {
+        currentSettings = { ...currentSettings, [key]: el.checked };
+        filterSiteControls();
         chrome.storage.sync.set({ [key]: el.checked });
       });
     }
@@ -659,24 +671,6 @@ function setupTabs() {
   });
 }
 
-async function requestFeedbackDataPermission() {
-  const permissionsApi = globalThis.browser?.permissions || chrome?.permissions;
-  const needed = ['personalCommunications', 'technicalAndInteraction'];
-
-  try {
-    if (!permissionsApi?.getAll || !permissionsApi?.request) return true;
-    const current = await permissionsApi.getAll();
-    if (!Array.isArray(current?.data_collection)) return true;
-    if (needed.every((permission) => current.data_collection.includes(permission))) return true;
-    return !!(await permissionsApi.request({ data_collection: needed }));
-  } catch (e) {
-    return true;
-  }
-}
-
-// --- Search Logic ---
-let searchableData = [];
-
 function buildSearchableData() {
   searchableData = [];
   $.panes?.forEach(pane => {
@@ -699,7 +693,8 @@ function handleSearch() {
     $.panes?.forEach(p => p.classList.remove('active'));
     $.tabs?.forEach(t => t.classList.remove('active', 'is-hidden'));
     $.rows?.forEach(r => r.classList.remove('is-hidden'));
-    $.tabs?.[0]?.click();
+    document.querySelector('.tab-link:not([data-site-unsupported="true"])')?.click();
+    updateSectionVisibility();
     return;
   }
 
@@ -716,8 +711,9 @@ function handleSearch() {
     tab.classList.toggle('is-hidden', !matchedTabIds.has(tab.dataset.tab));
   });
 
-  const first = document.querySelector('.tab-link:not(.is-hidden)');
+  const first = document.querySelector('.tab-link:not(.is-hidden):not([data-site-unsupported="true"])');
   if (first) first.click();
+  updateSectionVisibility();
 }
 
 // --- Import/Export ---
@@ -764,90 +760,6 @@ function setupImportExport() {
       }
     });
   }
-}
-
-// --- Feedback System ---
-function setupFeedbackSystem() {
-  if (!$.feedbackTrigger) return;
-
-  const generateTicketId = () => 'AUR-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-
-  $.feedbackTrigger.addEventListener('click', () => {
-    $.feedbackBox.hidden = false;
-    $.feedbackTrigger.hidden = true;
-    $.feedbackInput?.focus();
-  });
-
-  const resetFeedbackUI = () => {
-    $.feedbackBox.hidden = true;
-    $.feedbackTrigger.hidden = false;
-    $.feedbackStatus.hidden = true;
-    $.feedbackStatus.textContent = '';
-    $.feedbackStatus.className = 'feedback-status';
-  };
-
-  $.closeFeedback?.addEventListener('click', resetFeedbackUI);
-
-  $.closeDonationModal?.addEventListener('click', () => {
-    $.donationModal.hidden = true;
-    resetFeedbackUI();
-  });
-
-  $.copyTicketBtn?.addEventListener('click', () => {
-    navigator.clipboard.writeText($.ticketIdDisplay.textContent);
-    $.copyFeedback?.classList.add('visible');
-    setTimeout(() => $.copyFeedback?.classList.remove('visible'), 2000);
-  });
-
-  $.sendFeedback?.addEventListener('click', async () => {
-    const text = $.feedbackInput?.value.trim();
-    if (!text) return;
-
-    const hasDataPermission = await requestFeedbackDataPermission();
-    if (!hasDataPermission) {
-      $.feedbackStatus.textContent = getMessage('feedbackPermissionRequired') || 'Feedback permission is required to send this report.';
-      $.feedbackStatus.className = 'feedback-status error';
-      $.feedbackStatus.hidden = false;
-      return;
-    }
-
-    $.sendFeedback.disabled = true;
-    $.sendFeedback.textContent = getMessage('feedbackSending') || 'Sending...';
-    $.feedbackStatus.hidden = true;
-
-    const ticketId = generateTicketId();
-
-    try {
-      const manifest = chrome.runtime.getManifest();
-      const response = await fetch(FEEDBACK_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          feedback: text,
-          version: manifest.version,
-          userAgent: navigator.userAgent,
-          ticketId: ticketId
-        })
-      });
-
-      if (response.ok) {
-        $.ticketIdDisplay.textContent = '#' + ticketId;
-        $.donationModal.hidden = false;
-        $.feedbackInput.value = '';
-        $.feedbackBox.hidden = true;
-      } else {
-        throw new Error('Server Error');
-      }
-    } catch (err) {
-      console.error(err);
-      $.feedbackStatus.textContent = getMessage('feedbackError') || 'Failed. Try again.';
-      $.feedbackStatus.className = 'feedback-status error';
-      $.feedbackStatus.hidden = false;
-    } finally {
-      $.sendFeedback.disabled = false;
-      $.sendFeedback.textContent = getMessage('feedbackSend') || 'Send Feedback';
-    }
-  });
 }
 
 // --- Live Storage Listener (Keep popup in sync) ---

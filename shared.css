@@ -1,5 +1,15 @@
 /* Aurora shared theme tokens, backgrounds and quick settings. */
 
+/* Flat native fills retain their flat edges. Material never invents a square
+ * outline just because a layout box has a background. Each owner resets the
+ * token so a rounded child keeps its own edge inside a flat painted parent. */
+html.cgpt-ambient-on [data-aurora-surface-edge="true"] {
+  --aurora-surface-edge: var(--aurora-glass-border);
+}
+html.cgpt-ambient-on [data-aurora-surface-edge="false"] {
+  --aurora-surface-edge: transparent;
+}
+
 html.cgpt-ambient-on {
   /* Base Colors & Background */
   --theme-bg-color: #000;
@@ -17,7 +27,7 @@ html.cgpt-ambient-on {
   --glass-bg: rgba(44, 44, 51, 0.75);
   --glass-border: rgba(255, 255, 255, 0.12);
   --glass-inner-highlight: rgba(255, 255, 255, 0.1);
-  --glass-radius: 24px;
+  --aurora-ui-radius: 24px;
   --menu-item-hover: color-mix(in oklab, currentColor 12%, transparent);
   --composer-blur: var(--aurora-glass-blur, 14px);
   --composer-bg: rgba(0,0,0,0.35);
@@ -68,8 +78,8 @@ html.cgpt-ambient-on {
   --aurora-display-gpts: block;
 
   /* --- COMPONENT: AURORA GLASS SWITCH --- */
-  --switch-radius: 6px;
-  --switch-glider-radius: 4px;
+  --aurora-ui-switch-radius: 6px;
+  --aurora-ui-switch-glider-radius: 4px;
   --switch-bg: rgba(0, 0, 0, 0.25);
   --switch-border: rgba(255, 255, 255, 0.08);
   --switch-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
@@ -169,6 +179,8 @@ html.cgpt-bg-anim-disabled #cgpt-ambient-bg { transition: none; }
 #cgpt-ambient-bg .media-layer.pure-black-active { background: #000; }
 #cgpt-ambient-bg.pure-black-mode { background: #000; }
 #cgpt-ambient-bg.pure-black-mode :is(.haze, .overlay) { display: none !important; }
+#cgpt-ambient-bg.space-mode { background: #000; }
+#cgpt-ambient-bg.space-mode :is(.haze, .overlay) { display: none !important; }
 #cgpt-ambient-bg picture, #cgpt-ambient-bg img, #cgpt-ambient-bg video, #cgpt-ambient-bg .haze, #cgpt-ambient-bg .overlay, #cgpt-ambient-bg .animated-bg { position: absolute; inset: 0; width: 100%; height: 100%; }
 #cgpt-ambient-bg img, #cgpt-ambient-bg video { filter: blur(var(--cgpt-bg-blur-radius, 60px)) var(--bg-filter); opacity: var(--bg-opacity); will-change: transform, filter, opacity; z-index: 0; transition: filter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
 #cgpt-ambient-bg .haze { z-index: 2; background: var(--haze-gradient); transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.6s ease; }
@@ -193,6 +205,76 @@ html.cgpt-ambient-on.cgpt-light-mode .animated-bg .blob { opacity: 0.6 !importan
 html.cgpt-ambient-on.cgpt-light-mode .animated-bg .blob:nth-child(1) { background: #ff78b4; }
 html.cgpt-ambient-on.cgpt-light-mode .animated-bg .blob:nth-child(2) { background: #77b5fe; }
 html.cgpt-ambient-on.cgpt-light-mode .animated-bg .blob:nth-child(3) { background: #fdd26e; }
+
+/* Space keeps its pinpoints sharp independently of the image/video blur slider. */
+#cgpt-ambient-bg .space-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background-color: #010102;
+}
+#cgpt-ambient-bg .space-firmament {
+  position: absolute;
+  width: var(--space-diameter);
+  height: var(--space-diameter);
+  background-image: var(--aurora-space-stars);
+  background-size: cover;
+  background-position: center;
+  transform: translate(-50%, -50%) rotate(var(--space-angle));
+  transform-origin: center;
+  animation: aurora-sidereal-drift 10800s linear infinite, aurora-sky-breathe 17s ease-in-out infinite;
+}
+@keyframes aurora-sidereal-drift {
+  from { transform: translate(-50%, -50%) rotate(var(--space-angle)); }
+  to { transform: translate(-50%, -50%) rotate(calc(var(--space-angle) + 360deg)); }
+}
+@keyframes aurora-sky-breathe {
+  0%, 100% { opacity: 0.82; }
+  44% { opacity: 1; }
+  72% { opacity: 0.9; }
+}
+#cgpt-ambient-bg .space-twinkle {
+  position: absolute;
+  width: var(--twinkle-size, 2px);
+  height: var(--twinkle-size, 2px);
+  background: #dbe5f4;
+  box-shadow: 0 0 3px 1px rgba(179, 202, 237, 0.2);
+  opacity: 0.35;
+  animation: aurora-star-flicker var(--twinkle-duration) var(--twinkle-delay) infinite ease-in-out;
+}
+@keyframes aurora-star-flicker {
+  0%, 100% { opacity: 0.22; }
+  32% { opacity: 0.4; }
+  52% { opacity: 0.9; }
+  70% { opacity: 0.32; }
+  83% { opacity: 0.58; }
+}
+#cgpt-ambient-bg .space-meteor {
+  --meteor-distance: clamp(170px, 28vw, 440px);
+  position: absolute;
+  left: 17%;
+  top: 14%;
+  width: clamp(54px, 7vw, 100px);
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(167, 191, 221, 0.18) 55%, #e2ecfa);
+  transform-origin: right center;
+  opacity: 0;
+  animation: aurora-shooting-star 37s 6s infinite linear;
+}
+@keyframes aurora-shooting-star {
+  0% { opacity: 0; transform: translate(0, 0) rotate(var(--meteor-angle, 32deg)); }
+  0.2% { opacity: 0.72; }
+  0.9% { opacity: 0.5; }
+  1.6%, 100% { opacity: 0; transform: translate(var(--meteor-distance), calc(var(--meteor-distance) * var(--meteor-slope, 0.625))) rotate(var(--meteor-angle, 32deg)); }
+}
+#cgpt-ambient-bg .media-layer:not(.active) .space-bg *,
+html.cgpt-tab-hidden #cgpt-ambient-bg .space-bg * { animation-play-state: paused !important; }
+html.cgpt-animations-disabled #cgpt-ambient-bg .space-bg * { animation: none !important; }
+html.cgpt-animations-disabled #cgpt-ambient-bg .space-meteor { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  #cgpt-ambient-bg .space-bg * { animation: none !important; }
+  #cgpt-ambient-bg .space-meteor { display: none; }
+}
 
 /* --- Quick Settings Styles --- */
 
@@ -228,7 +310,7 @@ html.cgpt-light-mode #cgpt-qs-btn svg { color: #000; }
   animation: sparkle-pulse 1.5s ease-in-out infinite;
 }
 #cgpt-qs-btn.sparkle-hint::after {
-  content: 'âœ¨';
+  content: 'Ã¢Å“Â¨';
   position: fixed;
   bottom: 42px;
   right: 8px;
@@ -349,7 +431,7 @@ html.cgpt-light-mode .qs-row .track { background: rgba(0,0,0,0.2); }
   display: flex;
   background: var(--switch-bg);
   padding: 4px;
-  border-radius: var(--switch-radius);
+  border-radius: var(--aurora-ui-switch-radius);
   border: 1px solid var(--switch-border);
   box-shadow: var(--switch-shadow);
   width: 100%;
@@ -368,7 +450,7 @@ html.cgpt-light-mode .qs-row .track { background: rgba(0,0,0,0.2); }
   /* Default Dimmed Style */
   background: var(--switch-glider-bg);
   border: 1px solid var(--switch-glider-border);
-  border-radius: var(--switch-glider-radius);
+  border-radius: var(--aurora-ui-switch-glider-radius);
   box-shadow: var(--switch-glider-shadow);
   -webkit-backdrop-filter: var(--switch-glider-blur);
   backdrop-filter: var(--switch-glider-blur);
@@ -392,7 +474,7 @@ html.cgpt-light-mode .qs-row .track { background: rgba(0,0,0,0.2); }
   font-size: 12px;
   font-weight: 500;
   color: var(--switch-text-color);
-  border-radius: var(--switch-glider-radius);
+  border-radius: var(--aurora-ui-switch-glider-radius);
   cursor: pointer;
   transition: color 0.3s ease;
   text-align: center;

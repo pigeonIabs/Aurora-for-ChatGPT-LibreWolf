@@ -3,7 +3,7 @@
     "message": "Aurora Universal"
   },
   "extensionDescription": {
-    "message": "Thèmes de verre et arrière-plans personnalisés pour ChatGPT, Claude, Gemini et Grok."
+    "message": "Thèmes de verre et fonds pour ChatGPT, Claude, Gemini, Grok, Qwen, Google AI Studio, DeepSeek et Hugging Face."
   },
   "actionTitle": {
     "message": "Paramètres Aurora Universal"
@@ -161,17 +161,11 @@
   "sectionHideElements": {
     "message": "Masquer les éléments"
   },
-  "labelHideGpt5Limit": {
-    "message": "Message de limite GPT-5"
-  },
-  "tooltipHideGpt5Limit": {
-    "message": "Masque la fenêtre contextuelle de limite GPT-5 5 minutes après son apparition"
-  },
   "labelHideUpgradeButtons": {
-    "message": "Éléments \"Mettre à niveau le plan\""
+    "message": "Masquer les promotions"
   },
   "tooltipHideUpgradeButtons": {
-    "message": "Masquer tous les boutons et sections \"Mettre à niveau votre plan\""
+    "message": "Masquer les boutons, bannières et avis de forfaits payants"
   },
   "labelHideGptsButton": {
     "message": "Bouton \"Explorer les GPTs\""
@@ -205,6 +199,9 @@
   },
   "bgPresetOptionDefault": {
     "message": "Fond d'écran par défaut"
+  },
+  "bgPresetOptionSpace": {
+    "message": "Espace"
   },
   "bgPresetOptionGpt5Animated": {
     "message": "Dégradé animé"
@@ -248,12 +245,6 @@
   "statusAnimatedBackground": {
     "message": "L'arrière-plan animé est actif"
   },
-  "creditPrefix": {
-    "message": "Créé par"
-  },
-  "creditSuffix": {
-    "message": "sur X"
-  },
   "placeholderSearch": {
     "message": "Rechercher des paramètres..."
   },
@@ -273,7 +264,7 @@
     "message": "Interface vocale"
   },
   "quickSettingsLabelHideUpgradeButtons": {
-    "message": "Masquer les éléments de mise à niveau"
+    "message": "Masquer les promotions"
   },
   "quickSettingsLabelHideGptsButton": {
     "message": "Masquer \"Explorer les GPTs\""
@@ -338,24 +329,6 @@
   "welcomeBtnFinish": {
     "message": "Terminer la configuration"
   },
-  "welcomeBtnNext": {
-    "message": "Suivant"
-  },
-  "welcomeBtnSkip": {
-    "message": "Passer pour l'instant"
-  },
-  "welcomeSupportTitle": {
-    "message": "Soutenir Aurora"
-  },
-  "welcomeSupportDescription": {
-    "message": "Aurora est gratuit et open source. Si vous l'appréciez, envisagez de soutenir le développement avec un petit don ou en nous donnant une étoile sur GitHub !"
-  },
-  "welcomeSupportDonate": {
-    "message": "Offrez-moi un café"
-  },
-  "welcomeSupportStar": {
-    "message": "Étoile sur GitHub"
-  },
   "welcomeLabelVoice": {
     "message": "Personnalisation de la voix"
   },
@@ -417,7 +390,7 @@
     "message": "Défilement automatique désactivé"
   },
   "labelBlurChatHistory": {
-    "message": "Flouter l'historique des chats (Mode streamer)"
+    "message": "Flouter l’historique"
   },
   "tooltipBlurChatHistory": {
     "message": "Flouter la barre latérale de l'historique des chats pour la confidentialité lors du streaming ou de l'enregistrement"
@@ -509,60 +482,6 @@
   "tooltipSmartSelectors": {
     "message": "Trouver automatiquement les éléments si ChatGPT se met à jour"
   },
-  "feedbackLink": {
-    "message": "Vous avez des commentaires ou trouvé un bug ?"
-  },
-  "feedbackPlaceholder": {
-    "message": "Dites-nous ce que vous pensez..."
-  },
-  "feedbackSend": {
-    "message": "Envoyer le Commentaire"
-  },
-  "feedbackSuccess": {
-    "message": "Commentaire envoyé ! Merci."
-  },
-  "feedbackError": {
-    "message": "Échec de l'envoi. Veuillez réessayer."
-  },
-  "feedbackSending": {
-    "message": "Envoi en cours..."
-  },
-  "feedbackReportSent": {
-    "message": "Rapport envoyé !"
-  },
-  "feedbackQueuedMessage": {
-    "message": "Votre commentaire a été mis en file d'attente."
-  },
-  "feedbackYourTicketId": {
-    "message": "Votre ID de Ticket"
-  },
-  "feedbackCopyIdTooltip": {
-    "message": "Copier l'ID"
-  },
-  "feedbackCopied": {
-    "message": "Copié !"
-  },
-  "feedbackPrioritizeTitle": {
-    "message": "Voulez-vous prioriser ceci ?"
-  },
-  "feedbackDonatePre": {
-    "message": "Faites un don pour soutenir le développement et incluez votre "
-  },
-  "feedbackDonatePost": {
-    "message": " pour accélérer cette demande."
-  },
-  "feedbackSupportKofi": {
-    "message": "☕ Soutenir sur Ko-fi"
-  },
-  "feedbackClose": {
-    "message": "Non merci, fermer"
-  },
-  "ticketIdLabel": {
-    "message": "ID de Ticket"
-  },
-  "feedbackServerError": {
-    "message": "Erreur du serveur"
-  },
   "buttonCopied": {
     "message": "✓ Copié !"
   },
@@ -598,5 +517,23 @@
   },
   "queueFull": {
     "message": "La file est pleine"
+  },
+  "labelHideRateLimitMessages": {
+    "message": "Masquer les limites"
+  },
+  "tooltipHideRateLimitMessages": {
+    "message": "Masquer les avis de quotas et de limites"
+  },
+  "labelSoundVolume": {
+    "message": "Volume"
+  },
+  "soundVolumeLow": {
+    "message": "Faible"
+  },
+  "soundVolumeMedium": {
+    "message": "Moyen"
+  },
+  "soundVolumeHigh": {
+    "message": "Élevé"
   }
 }

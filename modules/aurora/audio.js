@@ -85,12 +85,14 @@
 
       this.onMouseEnter = (e) => {
         const t = e.target;
-        if (t && t.matches && t.matches('button, a, [role="button"], input, .btn')) {
+        if (t && t.matches && t.matches('button, a, [role="button"], input, select, [role="switch"], [role="checkbox"]')) {
           this.play('hover');
         }
       };
-      this.onClick = () => {
-        this.play('click');
+      this.onClick = event => {
+        const control = event.target?.closest?.('button, a, input, select, [role="button"], [role="switch"], [role="checkbox"], [role="menuitem"]');
+        if (!control || control.disabled || control.getAttribute('aria-disabled') === 'true') return;
+        this.play(control.matches('input[type="checkbox"], [role="switch"], [role="checkbox"]') ? 'toggle' : 'click');
       };
 
       // Capture phase to catch all.

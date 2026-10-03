@@ -14,7 +14,6 @@
         CODEX_COMPOSER_EDITOR: '#prompt-textarea[contenteditable="true"]',
         MODEL_SWITCHER_BUTTON: 'button[data-codex-intelligence-trigger="true"]',
         LEGACY_MODEL_SWITCHER_BUTTON: '[data-testid="model-switcher-dropdown-button"]',
-        GPT5_LIMIT_POPUP: 'div[class*="text-token-text-primary"]',
         UPGRADE_MENU_ITEM: 'a.__menu-item',
         UPGRADE_TOP_BUTTON_CONTAINER: '.start-1\\/2.absolute',
         UPGRADE_PROFILE_BUTTON_TRAILING_ICON: '[data-testid="accounts-profile-button"] .__menu-item-trailing-btn',

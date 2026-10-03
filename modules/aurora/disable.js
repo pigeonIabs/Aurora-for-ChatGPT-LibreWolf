@@ -16,7 +16,6 @@
   const CLEAR_APPEARANCE_CLASS = cfg.CLEAR_APPEARANCE_CLASS || 'cgpt-appearance-clear';
   const QS_BUTTON_ID = cfg.QS_BUTTON_ID || 'cgpt-qs-btn';
   const QS_PANEL_ID = cfg.QS_PANEL_ID || 'cgpt-qs-panel';
-  const HIDE_LIMIT_CLASS = cfg.HIDE_LIMIT_CLASS || 'cgpt-hide-gpt5-limit';
   const HIDE_UPGRADE_CLASS = cfg.HIDE_UPGRADE_CLASS || 'cgpt-hide-upgrade';
 
   function disableAllFeatures() {
@@ -33,6 +32,8 @@
       'cgpt-cinema-mode',
       'cgpt-blur-chat-history',
       'cgpt-blur-avatar',
+      'cgpt-hide-upgrade',
+      'cgpt-hide-rate-limits',
       'cgpt-theme-transitioning',
       'cgpt-tab-hidden',
       'cgpt-snapshot-mode',
@@ -40,6 +41,8 @@
     );
 
     root.removeAttribute('data-aurora-site');
+    root.removeAttribute('data-aurora-hub-settings');
+    A.embeddedGems?.sync?.();
     root.removeAttribute('data-custom-font');
     root.removeAttribute('data-voice-color');
     root.style.removeProperty('--cgpt-bg-blur-radius');
@@ -56,6 +59,8 @@
     A.defaultModel?.cancel?.();
     A.queue?.shutdown?.();
     A.glass?.untag?.();
+    A.upgrade?.untag?.();
+    A.interface?.untag?.();
     A.background?.restoreApp?.();
 
     // Optional engines / UI.
@@ -85,7 +90,6 @@
     document.getElementById('aurora-style-bar')?.remove();
     document.getElementById('aurora-support-screen')?.remove();
 
-    document.querySelectorAll(`.${HIDE_LIMIT_CLASS}`).forEach((el) => el.classList.remove(HIDE_LIMIT_CLASS));
     document.querySelectorAll(`.${HIDE_UPGRADE_CLASS}`).forEach((el) => el.classList.remove(HIDE_UPGRADE_CLASS));
 
     // Data masking engine.

@@ -1,12 +1,11 @@
 /* Current ChatGPT app shell, lightweight web shell, and Codex Cloud.
  * Stable data attributes and component roles take precedence over utility names.
  * Only the outer surface owns a glass filter. Nested content stays transparent.
+ * Host components own their geometry, including corners and border widths.
  */
 html:root.cgpt-ambient-on {
-  --glass-radius: 14px;
-  --switch-radius: 6px;
-  --aurora-control-radius: 6px;
-  --aurora-surface-radius: 14px;
+  --aurora-ui-radius: 14px;
+  --aurora-ui-switch-radius: 6px;
   --aurora-glass-saturate: 100%;
   --color-text: var(--theme-text-primary);
   --color-text-secondary: var(--theme-text-secondary);
@@ -22,6 +21,7 @@ html:root.cgpt-ambient-on {
   --color-surface-tertiary: var(--aurora-glass-fill);
   --color-surface-elevated: var(--aurora-glass-fill);
   --color-surface-elevated-secondary: var(--aurora-glass-fill);
+  /* Native hover classes own visible fills. Menu roles also cover clear hit areas. */
   --color-background-primary-ghost-hover: color-mix(in srgb, currentColor 9%, transparent);
 }
 
@@ -42,7 +42,8 @@ html:root.cgpt-ambient-on :is(
   [class*="MainContentFrame-"], [class*="ComposerModeSurface-"],
   [data-app-shell-main-content-layout], [data-request-input-activity-root],
   [data-app-action-timeline-scroll], [data-thread-scroll-footer],
-  [data-pip-obstacle="thread-footer"], [data-composer-body],
+  [data-pip-obstacle="thread-footer"],
+  [data-composer-surface-variant]:not([data-composer-utility-bar-variant="home"]) [data-composer-body],
   [data-composer-input-layout], [data-rich-text-layout],
   [class~="bg-background-composer-action-bar"],
   [data-composer-markdown], #mobile-composer-prompt,
@@ -65,50 +66,93 @@ html:root.cgpt-ambient-on [data-request-input-activity-root] [aria-hidden="true"
 }
 
 html:root.cgpt-ambient-on :is(
-  [data-aurora-glass="true"], [data-aurora-code-block="true"],
-  [role="menu"], [role="dialog"], dialog[open], [role="tooltip"],
-  [data-radix-popper-content-wrapper] > [data-state="open"],
-  [data-testid="chatgpt-writing-block"], [data-composer-surface-variant],
-  [data-markdown-copy="code-block"],
-  [class*="composer-surface-primary"],
-  #octane-mobile-composer-actions-popover,
-  :where(#web-mobile-root) form:has(:where(#mobile-composer-prompt)),
-  #cgpt-qs-panel, .aurora-queue-panel,
-  [data-composer-overlay-floating-ui] > div
+  [data-aurora-glass="true"]:not([data-composer-surface-variant]), [data-aurora-code-block="true"],
+  [role="status"].group.isolate:is([class~="bg-surface/80"], .bg-warning-surface, .shadow-sidebar-footer),
+  #cgpt-qs-panel, .aurora-queue-panel
 ) {
   background: var(--aurora-glass-fill) !important;
   background-image: none !important;
-  border: 1px solid var(--aurora-glass-border) !important;
-  border-radius: var(--aurora-surface-radius) !important;
-  box-shadow: var(--aurora-surface-shadow, var(--aurora-glass-shadow)) !important;
+  border-color: var(--aurora-surface-edge, var(--aurora-glass-border)) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-surface-edge, var(--aurora-glass-border)), var(--aurora-glass-shadow) !important;
   backdrop-filter: var(--aurora-glass-backdrop, none) !important;
   -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+  color: var(--theme-text-primary) !important;
+}
+/* The native sidebar usage component explicitly owns a rounded filled surface.
+ * Its status role also covers plain announcements elsewhere, so match its
+ * component classes and reset the edge instead of inheriting sidebar paint. */
+html:root.cgpt-ambient-on [role="status"].group.isolate:is(
+  [class~="bg-surface/80"], .bg-warning-surface, .shadow-sidebar-footer
+) {
+  --aurora-surface-edge: var(--aurora-glass-border);
+}
+
+/* Profile paint lives on the empty showcase and each plugin's inner span.
+ * The illustration uses SVG fills, including Dark Reader's inline fill token. */
+html:root.cgpt-ambient-on [class*="showcaseEmptyState-"] {
+  --profile-illustration-surface: var(--aurora-glass-fill) !important;
+  --darkreader-bg--profile-illustration-surface: var(--aurora-glass-fill) !important;
 }
 
 html:root.cgpt-ambient-on :is(.app-shell-left-panel, [data-app-shell-titlebar]) {
   background: var(--aurora-glass-fill) !important;
-  border: solid var(--aurora-glass-border) !important;
-  border-radius: 0 !important;
+  border-color: var(--aurora-glass-border) !important;
   box-shadow: none !important;
   backdrop-filter: var(--aurora-glass-backdrop, none) !important;
 }
-html:root.cgpt-ambient-on .app-shell-left-panel { border-width: 0 1px 0 0 !important; }
-html:root.cgpt-ambient-on [data-app-shell-titlebar] { border-width: 0 !important; }
-/* The thread composer resets borders in the host's important component layer.
- * An inset stroke retains the same one-pixel frame without changing layer order. */
-html:root.cgpt-ambient-on [data-composer-surface-variant]:not([data-composer-utility-bar-variant="home"]) {
-  --aurora-surface-shadow: inset 0 0 0 1px var(--aurora-glass-border), var(--aurora-glass-shadow);
-  --darkreader-bg--aurora-surface-shadow: var(--aurora-surface-shadow) !important;
+html:root.cgpt-ambient-on .app-shell-left-panel { box-shadow: inset -1px 0 0 var(--aurora-glass-border) !important; }
+/* Native composer CSS paints the thread root and the home page's inner body.
+ * Supplying its material tokens follows that ownership, including rounded
+ * single-line, multiline, attachment, and expanded states. */
+html:root.cgpt-ambient-on [data-composer-surface-variant] {
+  --composer-layout-surface-background: var(--aurora-glass-fill) !important;
+  --composer-layout-surface-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+  --composer-layout-surface-shadow: inset 0 0 0 1px var(--aurora-glass-border), var(--aurora-glass-shadow) !important;
+  --darkreader-bg--composer-layout-surface-background: var(--aurora-glass-fill) !important;
+  --darkreader-bg--composer-layout-surface-shadow: var(--composer-layout-surface-shadow) !important;
+}
+/* Codex's Add, Plugins, Apps and conversation headings own a sticky fill.
+ * Use the shared material while preserving native section sizing and scroll. */
+html:root.cgpt-ambient-on [data-composer-overlay-floating-ui] {
+  --suggestion-menu-header-background: var(--aurora-glass-fill) !important;
+  --darkreader-bg--suggestion-menu-header-background: var(--aurora-glass-fill) !important;
+}
+html:root.cgpt-ambient-on [data-composer-overlay-floating-ui] [class*="--suggestion-menu-header-background"] {
+  background: var(--aurora-glass-fill) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
 }
 html:root.cgpt-ambient-on [data-markdown-copy="code-block"] :is(.cm-editor, .cm-content, [class*="bg-"], [data-markdown-copy="exclude"]) {
   background: transparent !important;
 }
 html:root.cgpt-ambient-on [data-markdown-copy="code-block"] .cm-content { color: var(--theme-text-primary) !important; }
-html:root.cgpt-ambient-on [data-app-shell-titlebar] [class*="indicator-"] {
-  background: color-mix(in srgb, var(--theme-text-primary) 12%, transparent) !important;
-  border: 1px solid var(--aurora-glass-border) !important;
+/* Chat/Work paints a track and a moving indicator, rather than its buttons.
+ * The mode variant also paints its selected button directly. Keep material on
+ * those native owners across titlebar, home, mobile and selected-mode changes.
+ * The track has tint only so the indicator samples a single glass backdrop. */
+html:root.cgpt-ambient-on [role="group"]:has(> .bg-background-mode-toggle-track) {
+  --color-background-mode-toggle-track: color-mix(in srgb, var(--aurora-glass-fill) 55%, transparent) !important;
+  --color-background-mode-toggle-selected: var(--aurora-glass-fill) !important;
+  --color-border-mode-toggle-selected: var(--aurora-glass-border) !important;
+  --shadow-mode-toggle-selected: inset 0 0 0 1px var(--aurora-glass-border), inset 0 1px 2px var(--aurora-glass-glow), var(--aurora-glass-shadow) !important;
+  --darkreader-bg--color-background-mode-toggle-track: var(--color-background-mode-toggle-track) !important;
+  --darkreader-bg--color-background-mode-toggle-selected: var(--aurora-glass-fill) !important;
+  --darkreader-border--color-border-mode-toggle-selected: var(--aurora-glass-border) !important;
+  --darkreader-bg--shadow-mode-toggle-selected: var(--shadow-mode-toggle-selected) !important;
 }
-html:root.cgpt-ambient-on [role="tooltip"] { --aurora-surface-radius: 6px; }
+html:root.cgpt-ambient-on [role="group"] > .bg-background-mode-toggle-track {
+  background: var(--color-background-mode-toggle-track) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--aurora-glass-border) 45%, transparent) !important;
+}
+html:root.cgpt-ambient-on [role="group"]:has(> .bg-background-mode-toggle-track) > :is(
+  [class*="indicator-"], .bg-background-mode-toggle-selected
+) {
+  background: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+  box-shadow: var(--shadow-mode-toggle-selected) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+}
 
 html:root.cgpt-ambient-on :is([role="menu"], [role="dialog"], dialog[open]) :is(
   [role="listbox"], [role="group"], [role="tabpanel"],
@@ -120,13 +164,69 @@ html:root.cgpt-ambient-on :is([role="menu"], [role="dialog"], dialog[open]) :is(
   box-shadow: none !important;
 }
 
+/* The side-pane rail owns the native sidebar fill. Keep one glass backdrop
+ * behind the screen's scroll content and its leading/trailing bars. The older
+ * shell owns the same fill through its sidebar background class. */
+html:root.cgpt-ambient-on :is(
+  [data-side-pane-shell-rail], .bg-token-sidebar-surface-primary
+):has([data-testid="screen-threadFlyOut"]) {
+  background: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+  box-shadow: var(--aurora-glass-shadow) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+}
+html:root.cgpt-ambient-on [data-testid="screen-threadFlyOut"] {
+  border-color: var(--aurora-glass-border) !important;
+}
+/* Standalone screens use their already-painted content slot as the owner. */
+html:root.cgpt-ambient-on [data-testid="screen-threadFlyOut"]:not(
+  [data-side-pane-shell-rail] *, .bg-token-sidebar-surface-primary *
+) > [slot="content"] {
+  background: var(--aurora-glass-fill) !important;
+  box-shadow: var(--aurora-glass-shadow) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+}
+/* Filled native headers retain their own scrolling surface. Transparent
+ * product headers continue to use the backdrop of the sidebar beneath them. */
+html:root.cgpt-ambient-on [data-testid="screen-threadFlyOut"] [data-testid="bar-search-sources-header"]:is(
+  .bg-token-main-surface-primary, [class~="bg-token-main-surface-primary!"]
+):not(.bg-transparent) {
+  background: var(--aurora-glass-fill) !important;
+  border-color: var(--aurora-glass-border) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+}
+
+/* Search and shopping details paint content again inside the native surface.
+ * Clear only structural fills so imagery and individual controls retain paint.
+ * The product header-height class also identifies the responsive modal. */
+html:root.cgpt-ambient-on :is(
+  [data-testid="screen-threadFlyOut"],
+  [data-testid="modal-search-results"],
+  [data-testid="modal-chat-screen-product-flyout"],
+  [class*="--product-flyout-sticky-header-height"]
+) :is(
+  [data-side-pane-shell-rail] [slot="content"],
+  .bg-token-sidebar-surface-primary [slot="content"],
+  [data-testid="modal-search-results"] [slot="content"],
+  [data-testid="modal-chat-screen-product-flyout"] [slot="content"],
+  [data-testid="bar-search-sources-header"] > div.bg-token-main-surface-primary,
+  div.flex.w-full.flex-col:is(.bg-surface-primary, .bg-token-bg-primary),
+  div.bg-inherit
+) {
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 html:root.cgpt-ambient-on :is([data-testid="chatgpt-writing-block"], [data-aurora-code-block="true"]) {
   --wb-surface-primary: transparent !important;
   --wb-surface-secondary: transparent !important;
   --oai-wb-surface-primary: transparent !important;
   --oai-wb-surface-secondary: transparent !important;
-  --wb-radius: 14px !important;
-  --oai-wb-radius: 14px !important;
 }
 html:root.cgpt-ambient-on :is([data-testid="chatgpt-writing-block"], [data-aurora-code-block="true"]) :is(pre, code, header, .writing-block-editor, [class*="bg-surface"], [class*="bg-token"], [class*="oai-wb-surface-primary"], [class*="oai-wb-surface-secondary"]) {
   background: transparent !important;
@@ -136,43 +236,211 @@ html:root.cgpt-ambient-on :is([data-testid="chatgpt-writing-block"], [data-auror
 
 html:root.cgpt-ambient-on.cgpt-glass-user-messages [data-user-message-bubble] {
   background: var(--aurora-glass-fill) !important;
-  border: 1px solid var(--user-bubble-border) !important;
-  border-radius: 14px !important;
-  box-shadow: var(--aurora-glass-shadow) !important;
+  border-color: var(--user-bubble-border) !important;
+  box-shadow: inset 0 0 0 1px var(--user-bubble-border), var(--aurora-glass-shadow) !important;
   backdrop-filter: var(--aurora-glass-backdrop, none) !important;
 }
-html:root.cgpt-ambient-on [data-user-message-bubble] { border-radius: 14px !important; }
 /* Temporary chats already draw their own dashed message outline. */
 html:root.cgpt-ambient-on.cgpt-glass-user-messages[data-aurora-temporary-chat] [data-user-message-bubble] {
-  border: 0 !important;
+  box-shadow: var(--aurora-glass-shadow) !important;
 }
 
-/* Controls use compact corners, retaining the host application's layout. */
-html:root.cgpt-ambient-on :is(
-  button, [role="button"], [role="tab"], [role="menuitem"], [role="menuitemradio"],
-  [role="option"], input:not([type="range"]), select, [data-pill],
-  .rounded-full, [class*="rounded-3xl"]
-) { border-radius: var(--aurora-control-radius) !important; }
-
-html:root.cgpt-ambient-on :is([role="menuitem"], [role="menuitemradio"], [role="option"]):is(:hover, [data-highlighted], [aria-selected="true"]) {
-  background: var(--menu-item-hover) !important;
-}
 html:root.cgpt-ambient-on :is(button, [role="button"], [role="tab"]):focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 2px;
 }
-/* The current voice action uses composer tokens instead of the legacy bg-black classes. */
-html:root.cgpt-ambient-on form[data-chatgpt-composer] button[aria-label="Start Voice" i] {
+/* Text entry keeps the existing field surface when focused. Native outlines
+ * and legacy focus shadows otherwise draw a rectangle around the inner editor.
+ * An omitted input type is text, and prompt editors also use contenteditable. */
+html:root.cgpt-ambient-on :is(
+  input:not([type]), input[type="text" i], input[type="search" i],
+  input[type="email" i], input[type="url" i], input[type="tel" i],
+  input[type="password" i], input[type="number" i], textarea,
+  [contenteditable=""], [contenteditable="true" i], [contenteditable="plaintext-only" i]
+):is(:focus, :focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+/* Composer-primary controls also cover voice actions outside the form. */
+html:root.cgpt-ambient-on [data-app-shell-focus-area="main"]:has(.health-zero-state-heart-outer) button.bg-primary-solid[data-aurora-glass="true"],
+html:root.cgpt-ambient-on button.bg-composer-primary[data-aurora-glass="true"],
+html:root.cgpt-ambient-on form[data-chatgpt-composer] button:is(
+  [data-testid="send-button"], [data-testid="stop-button"], [data-testid*="stop-generating"],
+  [aria-label="Start Voice" i], [aria-label="Send prompt" i],
+  [aria-label="Send message" i], [aria-label="Send" i],
+  [aria-label="Stop generating" i], [aria-label="Stop streaming" i],
+  [aria-label="Stop response" i], [aria-label="Stop" i]
+)[data-aurora-glass="true"],
+html:root.cgpt-ambient-on :is(
+  [data-chatgpt-search-unit-key$=":user"], [data-message-author-role="user"],
+  [data-testid^="conversation-turn-"]
+):has(:is(textarea, [contenteditable="true"])) button:is(
+  .btn-primary, .bg-primary-solid, [type="submit"], [data-testid="send-button"],
+  [data-color="primary"][data-variant="solid"]
+)[data-aurora-glass="true"] {
   background: var(--aurora-glass-fill) !important;
   color: var(--theme-text-primary) !important;
-  border: 1px solid var(--aurora-glass-border) !important;
-  border-radius: var(--aurora-control-radius) !important;
-  box-shadow: inset 0 0 2px 0 var(--aurora-glass-glow) !important;
+  border-color: var(--aurora-surface-edge, var(--aurora-glass-border)) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-surface-edge, var(--aurora-glass-border)), inset 0 0 2px 0 var(--aurora-glass-glow) !important;
   backdrop-filter: var(--aurora-glass-backdrop, none) !important;
   -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
 }
-html:root.cgpt-ambient-on form[data-chatgpt-composer] button[aria-label="Start Voice" i]:hover {
+html:root.cgpt-ambient-on [data-app-shell-focus-area="main"]:has(.health-zero-state-heart-outer) button.bg-primary-solid[data-aurora-glass="true"][data-aurora-surface-edge="true"]:hover,
+html:root.cgpt-ambient-on button.bg-composer-primary[data-aurora-glass="true"][data-aurora-surface-edge="true"]:hover,
+html:root.cgpt-ambient-on form[data-chatgpt-composer] button:is(
+  [data-testid="send-button"], [data-testid="stop-button"], [data-testid*="stop-generating"],
+  [aria-label="Start Voice" i], [aria-label="Send prompt" i],
+  [aria-label="Send message" i], [aria-label="Send" i],
+  [aria-label="Stop generating" i], [aria-label="Stop streaming" i],
+  [aria-label="Stop response" i], [aria-label="Stop" i]
+)[data-aurora-glass="true"][data-aurora-surface-edge="true"]:hover,
+html:root.cgpt-ambient-on :is(
+  [data-chatgpt-search-unit-key$=":user"], [data-message-author-role="user"],
+  [data-testid^="conversation-turn-"]
+):has(:is(textarea, [contenteditable="true"])) button:is(
+  .btn-primary, .bg-primary-solid, [type="submit"], [data-testid="send-button"],
+  [data-color="primary"][data-variant="solid"]
+)[data-aurora-glass="true"][data-aurora-surface-edge="true"]:hover {
   box-shadow: inset 0 0 0 1px var(--theme-text-secondary), inset 0 0 2px 0 var(--aurora-glass-glow) !important;
+}
+
+/* Health's sample records are an external SVG with a baked-in solid backdrop.
+ * Transparent foreground assets preserve its artwork. A masked paint layer
+ * owns the glass and follows the original SVG silhouette at every width.
+ * CSS handles route changes and theme switches without rewriting native nodes. */
+html:root.cgpt-ambient-on [class*="artwork-"]:has(> img[src*="/health-zero-state-records-"])::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--aurora-glass-fill);
+  box-shadow: inset 0 0 0 1px var(--aurora-glass-border), var(--aurora-glass-shadow);
+  backdrop-filter: var(--aurora-glass-backdrop, none);
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none);
+  mask: url("assets/health-zero-state-records-surface.svg") center / 100% 100% no-repeat;
+  -webkit-mask: url("assets/health-zero-state-records-surface.svg") center / 100% 100% no-repeat;
+}
+html:root.cgpt-ambient-on img[src*="/health-zero-state-records-"] {
+  content: url("assets/health-zero-state-records-glass-dark.svg");
+  position: relative;
+}
+html:root.cgpt-ambient-on.cgpt-light-mode img[src*="/health-zero-state-records-"] {
+  content: url("assets/health-zero-state-records-glass-light.svg");
+}
+/* Image editing keeps the image untouched while the full viewer stage shows the wallpaper. */
+html:root.cgpt-ambient-on [data-aurora-image-viewer="glass"] {
+  background: var(--aurora-glass-fill) !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: inset 1px 0 0 var(--aurora-glass-border) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+}
+html:root.cgpt-ambient-on [data-aurora-image-viewer="clear"] {
+  background: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* The shell inserts its outer black pane separately from the image toolbar.
+ * Match the image tab directly so every opening is styled before JS tagging. */
+html:root.cgpt-ambient-on [data-app-shell-pane-frame]:has([data-app-shell-tab-panel-controller][data-tab-id^="image:"]) {
+  --app-shell-panel-background: transparent !important;
+  background: var(--aurora-glass-fill) !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: inset 1px 0 0 var(--aurora-glass-border) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+}
+html:root.cgpt-ambient-on [data-app-shell-pane-frame]:has([data-app-shell-tab-panel-controller][data-tab-id^="image:"]) :is(
+  [class*="app-shell-panel-background"], [data-aurora-image-viewer],
+  [data-app-shell-pane-content-viewport], [data-app-shell-tab-panel-controller]
+) {
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* The shared shell titlebar sits above the image pane. Its full-width glass
+ * surface would create a blur strip behind the viewer's individual controls. */
+html:root.cgpt-ambient-on:has([data-app-shell-tab-panel-controller][data-tab-id^="image:"]) :is(
+  [data-app-shell-titlebar], [data-testid="viewer-header"]
+) {
+  background: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html:root.cgpt-ambient-on:has([data-app-shell-tab-panel-controller][data-tab-id^="image:"]) [data-app-shell-titlebar]::before,
+html:root.cgpt-ambient-on:has([data-app-shell-tab-panel-controller][data-tab-id^="image:"]) [data-app-shell-titlebar]::after {
+  content: none !important;
+}
+
+/* Header wrappers and native decorative layers must share the viewer backdrop. */
+html:root.cgpt-ambient-on [data-app-shell-pane-frame]:has([data-app-shell-tab-panel-controller][data-tab-id^="image:"]) [data-testid="viewer-header"] :is(div, span),
+html:root.cgpt-ambient-on [data-aurora-image-control-group="clear"] {
+  background: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html:root.cgpt-ambient-on [data-testid="viewer-header"]::before,
+html:root.cgpt-ambient-on [data-testid="viewer-header"]::after,
+html:root.cgpt-ambient-on [data-testid="viewer-header"] :is(div, span, button)::before,
+html:root.cgpt-ambient-on [data-testid="viewer-header"] :is(div, span, button)::after {
+  content: none !important;
+}
+html:root.cgpt-ambient-on [data-app-shell-pane-frame]:has([data-app-shell-tab-panel-controller][data-tab-id^="image:"]) [data-testid="viewer-header"] button[data-aurora-image-top-control="true"] {
+  background: var(--aurora-glass-fill) !important;
+  background-image: none !important;
+  color: var(--theme-text-primary) !important;
+  border-color: var(--aurora-surface-edge, var(--aurora-glass-border)) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-surface-edge, var(--aurora-glass-border)), inset 0 0 2px var(--aurora-glass-glow) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+}
+
+html:root.cgpt-ambient-on :is([data-aurora-image-toolbar="glass"], [data-aurora-image-top-control="true"]) {
+  background: var(--aurora-glass-fill) !important;
+  background-image: none !important;
+  color: var(--theme-text-primary) !important;
+  border-color: var(--aurora-surface-edge, var(--aurora-glass-border)) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+}
+html:root.cgpt-ambient-on [data-aurora-image-toolbar="glass"] {
+  box-shadow: inset 0 0 0 1px var(--aurora-surface-edge, var(--aurora-glass-border)), inset 0 0 2px var(--aurora-glass-glow), var(--aurora-glass-shadow) !important;
+}
+html:root.cgpt-ambient-on [data-aurora-image-top-control="true"] {
+  box-shadow: inset 0 0 0 1px var(--aurora-surface-edge, var(--aurora-glass-border)), inset 0 0 2px var(--aurora-glass-glow), 0 2px 8px rgba(0, 0, 0, 0.16) !important;
+}
+html:root.cgpt-ambient-on :is([data-aurora-image-toolbar="clear"], [data-aurora-image-control-group="clear"]) {
+  background: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html:root.cgpt-ambient-on [data-aurora-image-toolbar="glass"] :is(button, [role="button"], a) {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html:root.cgpt-ambient-on [data-aurora-image-toolbar="glass"] :is(button, [role="button"], a):is(:hover, [aria-pressed="true"], [data-state="open"]) {
+  background: var(--menu-item-hover) !important;
 }
 html:root.cgpt-ambient-on :is([class~="group/settings"], [data-app-shell-main-surface]) :is(input:not([type="checkbox"]):not([type="range"]), select, textarea:not(#prompt-textarea)) {
   background-color: var(--aurora-glass-fill) !important;
@@ -181,13 +449,38 @@ html:root.cgpt-ambient-on :is([class~="group/settings"], [data-app-shell-main-su
 html:root.cgpt-ambient-on [class~="group/settings"] > div {
   background-color: transparent !important;
 }
-html:root.cgpt-ambient-on [class~="group/settings"] [class~="border-default"] {
+html:root.cgpt-ambient-on [class~="group/settings"] [class~="border"][class~="border-default"] {
   background-color: var(--aurora-glass-fill) !important;
   border-color: var(--aurora-glass-border) !important;
-  border-radius: 12px !important;
   backdrop-filter: var(--aurora-glass-backdrop, none) !important;
 }
+/* Settings titles share the page backdrop. Only controls own a glass surface. */
+html:root.cgpt-ambient-on:has([class~="group/settings"]) [data-app-shell-titlebar],
+html:root.cgpt-ambient-on [class~="group/settings"] :is(header, h1, h2, h3, [role="heading"]),
+html:root.cgpt-ambient-on [class~="group/settings"] header :is(div, span) {
+  background: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html:root.cgpt-ambient-on:has([class~="group/settings"]) [data-app-shell-titlebar]::before,
+html:root.cgpt-ambient-on:has([class~="group/settings"]) [data-app-shell-titlebar]::after,
+html:root.cgpt-ambient-on [class~="group/settings"] header::before,
+html:root.cgpt-ambient-on [class~="group/settings"] header::after {
+  content: none !important;
+}
 html:root.cgpt-ambient-on :is(#settings-search, input[role="combobox"]) { background: transparent !important; box-shadow: none !important; }
+/* The plugin search wrapper owns the glass. Its input reveals that surface. */
+html:root.cgpt-ambient-on input[placeholder="Search plugins" i] {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: var(--theme-text-primary) !important;
+}
 html:root.cgpt-ambient-on .aurora-switch-glider { border-radius: 4px !important; }
 
 html:root.cgpt-ambient-on[data-aurora-codex] :is([class~="bg-token-bg-primary"], [class~="bg-token-bg-secondary"], [class~="bg-token-bg-tertiary"]) {
@@ -204,6 +497,7 @@ html:root.cgpt-ambient-on[data-aurora-zero-blur] :is(
   [role="menu"], [role="dialog"], [role="tooltip"], [role="listbox"],
   [class*="backdrop-blur"], #app-shell-sidebar, .app-shell-left-panel,
   [data-app-shell-titlebar], [data-composer-surface-variant],
+  [data-aurora-image-viewer], [data-aurora-image-toolbar], [data-aurora-image-top-control],
   [data-testid="chatgpt-writing-block"], #cgpt-qs-panel, #cgpt-qs-btn,
   .aurora-switch-glider, .aurora-queue-panel, .aurora-queue-btn,
   .qs-select-options, #stage-slideover-sidebar
@@ -218,24 +512,15 @@ html:root.cgpt-ambient-on.cgpt-blur-chat-history #app-shell-sidebar a[href^="/c/
 html:root.cgpt-ambient-on.cgpt-blur-chat-history #app-shell-sidebar a[href^="/c/"]:is(:hover, :focus-within) { filter: none !important; }
 html:root.cgpt-ambient-on.cgpt-blur-chat-history :is(#app-shell-sidebar [data-thread-title], #app-shell-sidebar [data-marquee-text]):hover { filter: none !important; }
 html:root.cgpt-ambient-on.cgpt-blur-avatar button[aria-label="Open profile menu"] img { filter: blur(6px) !important; }
-html:root.cgpt-ambient-on.cgpt-focus-mode-on :is(.app-shell-left-panel, [data-app-shell-titlebar], [data-user-message-bubble], [data-chatgpt-search-unit-key$=":assistant"]) {
-  opacity: 0;
-  transition: opacity 200ms ease;
-}
-html:root.cgpt-ambient-on.cgpt-focus-mode-on :is(.app-shell-left-panel, [data-app-shell-titlebar], [data-user-message-bubble], [data-chatgpt-search-unit-key$=":assistant"]):is(:hover, :focus-within) { opacity: 1; }
-html:root.cgpt-ambient-on .qs-row .track { border-radius: 6px !important; }
-html:root.cgpt-ambient-on .qs-row .thumb { border-radius: 4px !important; }
+html:root.cgpt-ambient-on #cgpt-qs-panel .qs-row .track { border-radius: 6px !important; }
+html:root.cgpt-ambient-on #cgpt-qs-panel .qs-row .thumb { border-radius: 4px !important; }
 html:root.cgpt-ambient-on :is(.aurora-queue-count, .aurora-queue-btn) { border-radius: 5px !important; }
-html:root.cgpt-ambient-on [data-composer-overlay-floating-ui] button { border-radius: 6px !important; }
-html:root.cgpt-ambient-on [data-model-picker-power-slider] :is([class^="Track-"], [class^="Thumb-"]) {
-  border-radius: 5px !important;
+/* Glass belongs to the track. Native thumb, fill, ticks, and motion stay native. */
+html:root.cgpt-ambient-on [data-model-picker-power-slider] :is([class^="Track-"], [class*=" Track-"]) {
   background: var(--aurora-glass-fill) !important;
-  border: 1px solid var(--aurora-glass-border) !important;
-}
-html:root.cgpt-ambient-on :is(.sr-only, [class~="sr-only"])[data-aurora-glass] {
-  border: 0 !important;
-  background: transparent !important;
-  backdrop-filter: none !important;
-  box-shadow: none !important;
+  border-color: var(--aurora-glass-border) !important;
+  box-shadow: inset 0 0 0 1px var(--aurora-glass-border) !important;
+  backdrop-filter: var(--aurora-glass-backdrop, none) !important;
+  -webkit-backdrop-filter: var(--aurora-glass-backdrop, none) !important;
 }
 
