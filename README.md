@@ -38,6 +38,8 @@ python scripts/build_xpi.py --output build/aurora-universal-development.xpi
 
 Install the XPI through LibreWolf's add-on manager in a profile configured for local unsigned extensions. The existing extension ID preserves saved settings and backgrounds.
 
-The current source includes all eight websites. [Version 1.8](https://github.com/pigeonIabs/aurora-universal/releases/tag/v1.8) is the earlier ChatGPT release.
+The current source includes all eight websites. [Version 1.8](https://github.com/pigeonIabs/Aurora-Universal/releases/tag/v1.8) is the earlier ChatGPT release.
 
-[Development guide](DEVELOPMENT.md) · [MIT license](LICENSE)
+[Development guide](DEVELOPMENT.md) · [AGPLv3 license](LICENSE)
+
+Aurora Universal is licensed under AGPL-3.0-only. [Third-party notices](THIRD_PARTY_NOTICES.md) cover included source and fonts.

@@ -13,14 +13,14 @@
     "privacy-security"
   ],
   "homepage": {
-    "en-US": "https://github.com/pigeonIabs/aurora-universal"
+    "en-US": "https://github.com/pigeonIabs/Aurora-Universal"
   },
   "requires_payment": false,
   "version": {
-    "license": "MIT",
+    "license": "AGPL-3.0-only",
     "release_notes": {
       "en-US": "Adds all eight supported websites, shared appearance and privacy controls, message queues, native model preferences, and bundled fonts. Expands Gemini galleries and AI Studio workspaces. Simplifies the settings popup and welcome setup."
     },
-    "approval_notes": "MIT-licensed browser extension. The XPI contains readable JavaScript and CSS source. The unlimitedStorage permission stores user-selected backgrounds locally within a 15 MB file limit. Website access applies the matching adapter and styles. Copyright and license notices are included in the package."
+    "approval_notes": "AGPLv3-licensed browser extension. The XPI contains readable JavaScript and CSS source. The unlimitedStorage permission stores user-selected backgrounds locally within a 15 MB file limit. Website access applies the matching adapter and styles. The full AGPLv3 license and required third-party notices are included in the package. Corresponding source is available in the public project repository."
   }
 }
