@@ -30,4 +30,4 @@ Each supported AI website has its own privacy practices.
 
 ## Contact
 
-Privacy questions and reports can be filed in the [Aurora Universal repository](https://github.com/pigeonIabs/Aurora-Universal).
+Privacy questions and reports can be filed in the [Aurora Universal repository](https://github.com/pigeonIabs/AuroraUniversal).

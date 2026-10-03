@@ -1,6 +1,6 @@
 # <img src="icons/logo-48.png" width="32" height="32" alt=""> Aurora Universal
 
-Glass themes, custom backgrounds, and chat controls for your AI websites. Built for LibreWolf.
+Add beautiful liquid glass to every major AI platform. Built for Firefox.
 
 ## Supported websites
 
@@ -28,7 +28,7 @@ Settings follow the current page's available features. Preferences and uploaded 
 
 ## Install from source
 
-In LibreWolf or Firefox, open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on**, and select `manifest.json`. Open a supported website and use the Aurora toolbar button.
+In Firefox, open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on**, and select `manifest.json`. Open a supported website and use the Aurora toolbar button.
 
 For an XPI, run this from the project folder with Python 3.9+ and Git installed.
 
@@ -36,9 +36,9 @@ For an XPI, run this from the project folder with Python 3.9+ and Git installed.
 python scripts/build_xpi.py --output build/aurora-universal-development.xpi
 ```
 
-Install the XPI through LibreWolf's add-on manager in a profile configured for local unsigned extensions. The existing extension ID preserves saved settings and backgrounds.
+Permanent installation in standard Firefox requires a [Mozilla-signed XPI](https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/). Local unsigned builds can be installed in Firefox Developer Edition, Nightly, or compatible browsers such as LibreWolf with signature enforcement configured for development. The existing extension ID preserves saved settings and backgrounds.
 
-The current source includes all eight websites. [Version 1.8](https://github.com/pigeonIabs/Aurora-Universal/releases/tag/v1.8) is the earlier ChatGPT release.
+The current source includes all eight websites. [Version 1.8](https://github.com/pigeonIabs/AuroraUniversal/releases/tag/v1.8) is the earlier ChatGPT release.
 
 [Development guide](DEVELOPMENT.md) · [AGPLv3 license](LICENSE)
 

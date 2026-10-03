@@ -3,17 +3,17 @@
     "en-US": "Aurora Universal"
   },
   "summary": {
-    "en-US": "Glass themes and backgrounds for ChatGPT, Claude, Gemini, Grok, Qwen, Google AI Studio, DeepSeek, and Hugging Face."
+    "en-US": "Add beautiful liquid glass to every major AI platform. Built for Firefox."
   },
   "description": {
-    "en-US": "Glass themes, image and video backgrounds, fonts, privacy controls, and quick settings for ChatGPT, Claude, Gemini, Grok, Qwen, Google AI Studio, DeepSeek, and Hugging Face, including HuggingChat. Message queues and model preferences follow native website controls. Preferences and uploaded backgrounds stay in browser storage."
+    "en-US": "A Firefox extension that adds liquid glass, image and video backgrounds, fonts, privacy controls, and quick settings to ChatGPT, Claude, Gemini, Grok, Qwen, Google AI Studio, DeepSeek, and Hugging Face, including HuggingChat. Message queues and model preferences follow native website controls. Preferences and uploaded backgrounds stay in browser storage."
   },
   "categories": [
     "appearance",
     "privacy-security"
   ],
   "homepage": {
-    "en-US": "https://github.com/pigeonIabs/Aurora-Universal"
+    "en-US": "https://github.com/pigeonIabs/AuroraUniversal"
   },
   "requires_payment": false,
   "version": {
