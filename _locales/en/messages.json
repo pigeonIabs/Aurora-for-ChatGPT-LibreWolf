@@ -3,7 +3,7 @@
     "message": "Aurora Universal"
   },
   "extensionDescription": {
-    "message": "Glass themes and backgrounds for ChatGPT, Claude, Gemini, Grok, Qwen, Google AI Studio, DeepSeek, and Hugging Face."
+    "message": "Liquid glass themes and backgrounds for ChatGPT, Claude, Gemini, Grok, Qwen, Google AI Studio, DeepSeek, and Hugging Face."
   },
   "actionTitle": {
     "message": "Aurora Universal Settings"
@@ -117,13 +117,13 @@
     "message": "Disable menu open/close animations"
   },
   "labelGlassStyle": {
-    "message": "Glass Style"
+    "message": "Liquid glass Style"
   },
   "labelGlassUserMessages": {
-    "message": "Glass user messages"
+    "message": "Liquid glass user messages"
   },
   "tooltipGlassUserMessages": {
-    "message": "Apply the active glass style to your message bubbles"
+    "message": "Apply the active liquid glass style to your message bubbles"
   },
   "sectionInterface": {
     "message": "Interface"
@@ -279,7 +279,7 @@
     "message": "Voice Color"
   },
   "quickSettingsLabelGlassStyle": {
-    "message": "Glass Style"
+    "message": "Liquid glass Style"
   },
   "errorLoadingSettings": {
     "message": "Error: Could not load settings. Please try reloading the page."
@@ -291,7 +291,7 @@
     "message": "Welcome to Aurora"
   },
   "welcomeDescription": {
-    "message": "Personalize ChatGPT with ambient backgrounds, glass effects, privacy controls, and workflow upgrades."
+    "message": "Personalize ChatGPT with ambient backgrounds, liquid glass effects, privacy controls, and workflow upgrades."
   },
   "welcomeBtnGetStarted": {
     "message": "Get Started"
@@ -318,7 +318,7 @@
     "message": "Blue"
   },
   "welcomeLabelGlassStyle": {
-    "message": "Glass Style"
+    "message": "Liquid glass Style"
   },
   "welcomeGlassClear": {
     "message": "Clear"
@@ -468,7 +468,7 @@
     "message": "UI Haptic Sound"
   },
   "tooltipHapticSound": {
-    "message": "Play subtle glass sounds on interaction"
+    "message": "Play subtle liquid glass sounds on interaction"
   },
   "labelAutoContrast": {
     "message": "Auto-Contrast (Images)"
@@ -580,5 +580,8 @@
   },
   "soundVolumeHigh": {
     "message": "High"
+  },
+  "labelGlassTransparency": {
+    "message": "Liquid glass transparency"
   }
 }

@@ -3,7 +3,7 @@
     "message": "Aurora Universal"
   },
   "extensionDescription": {
-    "message": "Стеклянные темы и фоны для ChatGPT, Claude, Gemini, Grok, Qwen, Google AI Studio, DeepSeek и Hugging Face."
+    "message": "Темы с жидким стеклом и фоны для ChatGPT, Claude, Gemini, Grok, Qwen, Google AI Studio, DeepSeek и Hugging Face."
   },
   "actionTitle": {
     "message": "Настройки Aurora Universal"
@@ -117,13 +117,13 @@
     "message": "Отключить анимации открытия/закрытия меню"
   },
   "labelGlassStyle": {
-    "message": "Стиль стекла"
+    "message": "Стиль жидкого стекла"
   },
   "labelGlassUserMessages": {
-    "message": "Стеклянные сообщения пользователя"
+    "message": "Сообщения пользователя с эффектом жидкого стекла"
   },
   "tooltipGlassUserMessages": {
-    "message": "Применять активный стиль стекла к вашим сообщениям"
+    "message": "Применять активный стиль жидкого стекла к вашим сообщениям"
   },
   "sectionInterface": {
     "message": "Интерфейс"
@@ -279,7 +279,7 @@
     "message": "Цвет голоса"
   },
   "quickSettingsLabelGlassStyle": {
-    "message": "Стиль стекла"
+    "message": "Стиль жидкого стекла"
   },
   "errorLoadingSettings": {
     "message": "Ошибка: Не удалось загрузить настройки. Пожалуйста, попробуйте перезагрузить страницу."
@@ -291,7 +291,7 @@
     "message": "Welcome to Aurora"
   },
   "welcomeDescription": {
-    "message": "Personalize ChatGPT with ambient backgrounds, glass effects, privacy controls, and workflow upgrades."
+    "message": "Personalize ChatGPT with ambient backgrounds, liquid glass effects, privacy controls, and workflow upgrades."
   },
   "welcomeBtnGetStarted": {
     "message": "Начать"
@@ -318,7 +318,7 @@
     "message": "Синий"
   },
   "welcomeLabelGlassStyle": {
-    "message": "Стиль стекла"
+    "message": "Стиль жидкого стекла"
   },
   "welcomeGlassClear": {
     "message": "Прозрачный"
@@ -468,7 +468,7 @@
     "message": "Звуки интерфейса"
   },
   "tooltipHapticSound": {
-    "message": "Воспроизводить тонкие стеклянные звуки при взаимодействии"
+    "message": "Воспроизводить тонкие звуки жидкого стекла при взаимодействии"
   },
   "labelAutoContrast": {
     "message": "Авто-контраст (Изображения)"
@@ -577,5 +577,8 @@
   },
   "soundVolumeHigh": {
     "message": "Высокая"
+  },
+  "labelGlassTransparency": {
+    "message": "Прозрачность жидкого стекла"
   }
 }

@@ -17,7 +17,7 @@ Add beautiful liquid glass to every major AI platform. Built for Firefox.
 
 ## Features
 
-- Glass transparency and blur that preserve each website's native layout and controls
+- Liquid glass transparency and blur that preserve each website's native layout and controls
 - Image and video backgrounds, light and dark themes, and bundled reading fonts
 - Quick settings, searchable preferences, and individual website switches
 - History and avatar blur, sensitive text masking, focus mode, and cinema width

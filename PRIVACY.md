@@ -22,7 +22,7 @@ Remote background URLs load media from the selected provider. The ChatGPT defaul
 - `unlimitedStorage` supports user-selected image and video files within the 15 MB upload limit
 - `chatgpt.com`, `claude.ai`, `gemini.google.com`, `grok.com`, `chat.qwen.ai`, `aistudio.google.com`, and `chat.deepseek.com` host access injects the corresponding site adapter and appearance features
 - `huggingface.co` loads the Hugging Face adapter for Hub appearance and HuggingChat. Authentication, API, and account settings routes keep their native interface. Embedded Spaces use their own hosts
-- `opal.google.com/_gemini` and `opal.google/_app/` style the Labs gallery embedded in Gemini. The frame bridge passes only glass and text appearance tokens. Styling is enabled only for Gemini's embedded lite gallery
+- `opal.google.com/_gemini` and `opal.google/_app/` style the Labs gallery embedded in Gemini. The frame bridge passes only liquid glass and text appearance tokens. Styling is enabled only for Gemini's embedded lite gallery
 
 ## Third-party sites
 

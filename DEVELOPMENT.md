@@ -18,7 +18,7 @@ Develop on `main`. Create tags and publish releases when requested. Preserve the
 | --- | --- |
 | `modules/aurora/sites.js` | Website registry and page capabilities |
 | `modules/aurora/adapters/` | Native routes, surfaces, composers, and workflow controls |
-| `modules/aurora/material.js` and `glass.js` | Native surface ownership and glass appearance |
+| `modules/aurora/material.js` and `glass.js` | Native surface ownership and liquid glass appearance |
 | `modules/aurora/central-observer.js` | Shared observation and incremental updates |
 | `modules/aurora/interface.js` and `features.css` | Focus, width, and privacy targets |
 | `modules/message-queue.js` | Conversation-scoped message queue |
@@ -29,9 +29,9 @@ Develop on `main`. Create tags and publish releases when requested. Preserve the
 
 ## Implementation rules
 
-Glass changes existing native surface fills, tint, border colors, shadows, and backdrop blur. Preserve website shapes, dimensions, spacing, typography, icons, and hit areas. Keep appearance separate from focus and cinema settings.
+Liquid glass changes existing native surface fills, tint, border colors, shadows, and backdrop blur. Preserve website shapes, dimensions, spacing, typography, icons, and hit areas. Keep appearance separate from focus and cinema settings.
 
-Use the shared observer and process changed branches incrementally. Discover workflow controls independently of glass surfaces. Scope selectors to known composers and use native send controls.
+Use the shared observer and process changed branches incrementally. Discover workflow controls independently of liquid glass surfaces. Scope selectors to known composers and use native send controls.
 
 Queues preserve active drafts and stay within the current conversation. Navigation, cleanup, or disabling the feature clears pending work. Guard against duplicate submissions and pause uncertain sends for an explicit retry.
 
